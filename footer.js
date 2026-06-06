@@ -184,13 +184,17 @@
   newsletterLabel.className = 'gf-newsletter-label';
   newsletterLabel.textContent = '// Get Early Access //';
 
-  /* Load Beehiiv script properly so it executes */
+  /* Beehiiv target container — the loader looks for this div */
+  const beehiivContainer = document.createElement('div');
+  beehiivContainer.setAttribute('data-beehiiv-form', 'e76eeefb-b363-4f57-ab70-82e508f70d49');
+
+  /* Load Beehiiv script after the container is in the DOM */
   const beehiivScript = document.createElement('script');
   beehiivScript.src = 'https://subscribe-forms.beehiiv.com/v3/loader.js';
   beehiivScript.async = true;
-  beehiivScript.setAttribute('data-beehiiv-form', 'e76eeefb-b363-4f57-ab70-82e508f70d49');
 
   newsletterRow.appendChild(newsletterLabel);
+  newsletterRow.appendChild(beehiivContainer);
   newsletterRow.appendChild(beehiivScript);
 
   /* Bottom row: brand / nav / socials */
