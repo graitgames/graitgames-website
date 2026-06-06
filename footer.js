@@ -1,5 +1,3 @@
-Please update the footer.js so the title in the bottom left of the footer has the sames style.
-
 (function () {
   /* ── Google Fonts (load only once) ── */
   if (!document.querySelector('link[href*="Press+Start+2P"]')) {
