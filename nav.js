@@ -43,9 +43,10 @@
      -------------------------------------------------------------------------- */
   if (!document.getElementById('grait-nav-supplemental-styles')) {
     var css = `
-      /* Brand glow tokens with safe fallbacks (in case styles.css var changes) */
-      #grait-navbar .navbar-logo .logo-orange { color: var(--color-orange, #FF6B2B); }
-      #grait-navbar .navbar-logo .logo-green  { color: var(--color-green, #39FF14); }
+      /* Logo: remove the base .navbar-logo glow so it matches the page titles
+         (brand colours come from .text-orange / .text-green in styles.css). */
+      #grait-navbar .navbar-logo { text-shadow: none; }
+      #grait-navbar .navbar-logo:hover { text-shadow: none; }
 
       /* --- Hamburger icon bars (styles.css .nav-toggle only draws the box) --- */
       #grait-navbar .nav-toggle {
@@ -143,10 +144,10 @@
 
       /* Logo (left) */
       '<a class="navbar-logo" href="index.html" aria-label="GRaiT GAMES home">' +
-        '<span class="logo-orange">GR</span>' +
-        '<span class="logo-green">ai</span>' +
-        '<span class="logo-orange">T</span>' +
-        '<span class="logo-green"> GAMES</span>' +
+        '<span class="text-orange">GR</span>' +
+        '<span class="text-green">ai</span>' +
+        '<span class="text-orange">T</span>' +
+        '<span class="text-green"> GAMES</span>' +
       '</a>' +
 
       /* Hamburger toggle (mobile only — hidden on desktop via styles.css) */
