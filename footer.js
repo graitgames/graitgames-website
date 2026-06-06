@@ -1,3 +1,5 @@
+Please update the footer.js so the title in the bottom left of the footer has the sames style.
+
 (function () {
   /* ── Google Fonts (load only once) ── */
   if (!document.querySelector('link[href*="Press+Start+2P"]')) {
@@ -54,17 +56,21 @@
     .gf-logo {
       font-family: 'Press Start 2P', monospace;
       font-size: clamp(.6rem, 2vw, .85rem);
-      color: #39ff14;
-      text-shadow: 0 0 8px #39ff14, 0 0 24px rgba(57,255,20,.4);
+      color: #e8e8f0;
       letter-spacing: .04em;
       line-height: 1.6;
       display: block;
       text-decoration: none;
     }
-    .gf-logo em {
+    .gf-logo .logo-orange {
       color: #ff6b1a;
       font-style: normal;
       text-shadow: 0 0 8px #ff6b1a, 0 0 24px rgba(255,107,26,.4);
+    }
+    .gf-logo .logo-green {
+      color: #39ff14;
+      font-style: normal;
+      text-shadow: 0 0 8px #39ff14, 0 0 24px rgba(57,255,20,.4);
     }
     .gf-copy {
       font-family: 'Share Tech Mono', monospace;
@@ -161,7 +167,7 @@
     <div class="gf-inner">
  
       <div class="gf-brand">
-        <a class="gf-logo" href="/">GRaiT <em>GAMES</em></a>
+        <a class="gf-logo" href="/"><span class="logo-orange">GR</span><span class="logo-green">ai</span><span class="logo-orange">T</span><span class="logo-green"> GAMES</span></a>
         <div class="gf-copy">© ${year} GRaiT GAMES. All Rights Reserved.</div>
       </div>
  
