@@ -1,9 +1,0 @@
-<!doctype html>
-<html>
-  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-  <body>
-    <h1>Signup Test</h1>
-    <script async src="https://subscribe-forms.beehiiv.com/v3/loader.js"
-      data-beehiiv-form="e76eeefb-b363-4f57-ab70-82e508f70d49"></script>
-  </body>
-</html>
