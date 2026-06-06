@@ -6,399 +6,143 @@
   <title>Privacy Policy — GRaiT GAMES</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg:        #0a0a0f;
-      --bg2:       #0f0f1a;
-      --bg3:       #13131f;
-      --green:     #39ff14;
-      --green-dim: #1a7a07;
-      --orange:    #ff6b1a;
-      --cyan:      #00eaff;
-      --cyan-dim:  #005a63;
-      --white:     #e8e8f0;
-      --muted:     #7a7a9a;
-      --border:    #1e1e30;
-    }
- 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
-    html { scroll-behavior: smooth; }
- 
-    body {
-      background-color: var(--bg);
-      color: var(--white);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 17px;
-      line-height: 1.75;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
- 
-    /* ── scanline overlay ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        transparent,
-        transparent 3px,
-        rgba(0,0,0,.18) 3px,
-        rgba(0,0,0,.18) 4px
-      );
-      pointer-events: none;
-      z-index: 9999;
-    }
- 
-    /* ── grid noise bg ── */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(57,255,20,.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(57,255,20,.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
- 
-    /* ── layout wrapper ── */
-    .page {
-      position: relative;
-      z-index: 1;
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem 5rem;
-    }
- 
-    /* ── back button ── */
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: .6rem;
-      font-family: 'Press Start 2P', monospace;
-      font-size: .55rem;
-      color: var(--cyan);
-      text-decoration: none;
-      border: 1px solid var(--cyan-dim);
-      padding: .65rem 1.1rem;
-      background: rgba(0,234,255,.05);
-      transition: background .2s, box-shadow .2s, border-color .2s;
-      letter-spacing: .04em;
-      margin-bottom: 2.8rem;
-    }
-    .back-btn:hover {
-      background: rgba(0,234,255,.13);
-      border-color: var(--cyan);
-      box-shadow: 0 0 14px rgba(0,234,255,.35);
-    }
-    .back-btn::before { content: '◀ '; }
- 
-    /* ── site header ── */
-    .site-header {
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-    .site-logo {
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(1rem, 4vw, 1.6rem);
-      letter-spacing: .05em;
-      display: block;
-      margin-bottom: .5rem;
-    }
-    .site-logo .logo-orange {
-      color: var(--orange);
-      text-shadow: 0 0 8px var(--orange), 0 0 30px rgba(255,107,26,.4);
-    }
-    .site-logo .logo-green {
-      color: var(--green);
-      text-shadow: 0 0 8px var(--green), 0 0 30px rgba(57,255,20,.4);
-    }
-    .page-title {
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(.65rem, 2.2vw, .9rem);
-      color: var(--cyan);
-      letter-spacing: .15em;
-      text-transform: uppercase;
-      margin-top: .8rem;
-    }
- 
-    /* ── divider ── */
-    .divider {
-      width: 100%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--green-dim), var(--cyan-dim), transparent);
-      margin: 2rem 0;
-    }
- 
-    /* ── meta line ── */
-    .meta {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .8rem;
-      color: var(--muted);
-      text-align: center;
-      margin-bottom: 3rem;
-    }
-    .meta span { color: var(--orange); }
- 
-    /* ── section ── */
-    section {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--green-dim);
-      padding: 1.8rem 2rem;
-      margin-bottom: 1.6rem;
-      position: relative;
-      transition: border-left-color .25s;
-    }
-    section:hover { border-left-color: var(--green); }
-    section:nth-child(even)     { border-left-color: var(--cyan-dim); }
-    section:nth-child(even):hover { border-left-color: var(--cyan); }
- 
-    /* section number badge */
-    section::before {
-      content: attr(data-num);
-      font-family: 'Press Start 2P', monospace;
-      font-size: .5rem;
-      color: var(--bg);
-      background: var(--green);
-      position: absolute;
-      top: -1px;
-      right: 1.4rem;
-      padding: .25rem .45rem;
-      line-height: 1;
-    }
-    section:nth-child(even)::before { background: var(--cyan); }
- 
-    h2 {
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(.55rem, 1.8vw, .75rem);
-      color: var(--green);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      margin-bottom: 1.1rem;
-      line-height: 1.7;
-    }
-    section:nth-child(even) h2 { color: var(--cyan); }
- 
-    p { margin-bottom: .9rem; color: var(--white); }
-    p:last-child { margin-bottom: 0; }
- 
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: .5rem 0 .9rem 0;
-    }
-    ul li {
-      padding: .3rem 0 .3rem 1.4rem;
-      position: relative;
-      color: var(--white);
-    }
-    ul li::before {
-      content: '▸';
-      position: absolute;
-      left: 0;
-      color: var(--orange);
-      font-size: .85em;
-    }
- 
-    a {
-      color: var(--cyan);
-      text-decoration: none;
-      border-bottom: 1px solid var(--cyan-dim);
-      transition: border-color .2s, text-shadow .2s;
-    }
-    a:hover {
-      border-color: var(--cyan);
-      text-shadow: 0 0 8px var(--cyan);
-    }
- 
-    strong { color: var(--orange); font-weight: 700; }
- 
-    .tag {
-      display: inline-block;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .75rem;
-      background: rgba(57,255,20,.08);
-      border: 1px solid var(--green-dim);
-      color: var(--green);
-      padding: .15rem .5rem;
-      margin: .15rem .2rem;
-    }
-    .tag.cyan {
-      background: rgba(0,234,255,.08);
-      border-color: var(--cyan-dim);
-      color: var(--cyan);
-    }
- 
-    /* ── contact box ── */
-    .contact-box {
-      background: var(--bg3);
-      border: 1px solid var(--cyan-dim);
-      padding: 1.2rem 1.5rem;
-      margin-top: 1rem;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .85rem;
-    }
-    .contact-box .label { color: var(--muted); font-size: .75rem; margin-bottom: .3rem; }
-    .contact-box .value { color: var(--cyan); font-size: .95rem; }
- 
- 
- 
-    /* ── pixel corners decoration ── */
-    .corner-deco {
-      display: block;
-      width: 10px; height: 10px;
-      border-top: 2px solid var(--green);
-      border-left: 2px solid var(--green);
-      position: absolute;
-    }
- 
-    /* ── responsive ── */
-    @media (max-width: 600px) {
-      .page { padding: 1.5rem 1rem 4rem; }
-      section { padding: 1.4rem 1.2rem; }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<div class="page">
- 
+<main class="container-narrow section">
+
   <!-- Back Button -->
-  <a href="https://graitgames.com" class="back-btn">Back to Home</a>
- 
+  <a href="https://graitgames.com" class="btn btn-outline-cyan btn-sm mb-2xl">← Back to Home</a>
+
   <!-- Header -->
-  <header class="site-header">
-    <span class="site-logo"><span class="logo-orange">GR</span><span class="logo-green">ai</span><span class="logo-orange">T</span><span class="logo-green"> GAMES</span></span>
-    <div class="page-title">// Privacy Policy //</div>
+  <header class="text-center mb-xl">
+    <span class="logo-text">
+      <span class="text-orange glow-orange">GR</span><span class="text-green glow-green">ai</span><span class="text-orange glow-orange">T</span><span class="text-green glow-green"> GAMES</span>
+    </span>
+    <h1 class="text-cyan mt-md">// Privacy Policy //</h1>
   </header>
- 
-  <div class="divider"></div>
- 
-  <p class="meta">
-    Last updated: <span>June 2026</span> &nbsp;|&nbsp; Jurisdiction: <span>Canada</span>
+
+  <!-- Meta line -->
+  <p class="mono text-muted text-center mb-2xl">
+    Last updated: <span class="text-orange">June 2026</span> &nbsp;|&nbsp; Jurisdiction: <span class="text-orange">Canada</span>
   </p>
- 
+
   <!-- 1. Introduction -->
-  <section data-num="00">
-    <h2>Introduction</h2>
+  <section class="card">
+    <h2 class="text-green">Introduction</h2>
     <p>
-      Welcome to <strong>GRaiT Games</strong> (<a href="https://graitgames.com">graitgames.com</a>). We respect your privacy and are committed to being transparent about how we handle your information.
+      Welcome to <strong class="text-orange">GRaiT Games</strong> (<a href="https://graitgames.com">graitgames.com</a>). We respect your privacy and are committed to being transparent about how we handle your information.
     </p>
     <p>
       This Privacy Policy explains what data we collect, why we collect it, and how you can control it. By visiting our website or subscribing to our newsletter, you agree to the practices described here.
     </p>
   </section>
- 
+
   <!-- 2. Information Collected -->
-  <section data-num="01">
-    <h2>Information We Collect</h2>
+  <section class="card">
+    <h2 class="text-green">Information We Collect</h2>
     <p>We keep things simple. Here's what we collect and why:</p>
     <ul>
-      <li><strong>Email addresses</strong> — only when you voluntarily sign up for our newsletter.</li>
-      <li><strong>Usage data</strong> — anonymous browsing data (pages visited, time on site, device type) collected automatically via Google Analytics.</li>
-      <li><strong>Technical data</strong> — IP addresses and request logs processed by Cloudflare solely for security and performance purposes.</li>
+      <li><strong class="text-orange">Email addresses</strong> — only when you voluntarily sign up for our newsletter.</li>
+      <li><strong class="text-orange">Usage data</strong> — anonymous browsing data (pages visited, time on site, device type) collected automatically via Google Analytics.</li>
+      <li><strong class="text-orange">Technical data</strong> — IP addresses and request logs processed by Cloudflare solely for security and performance purposes.</li>
     </ul>
-    <p>We do <strong>not</strong> collect names, physical addresses, payment information, or any other personal details. We have <strong>no user accounts</strong> on this website.</p>
+    <p>We do <strong class="text-orange">not</strong> collect names, physical addresses, payment information, or any other personal details. We have <strong class="text-orange">no user accounts</strong> on this website.</p>
   </section>
- 
+
   <!-- 3. How We Use It -->
-  <section data-num="02">
-    <h2>How We Use Your Information</h2>
-    <p>Your email address is used for <strong>one purpose only</strong>:</p>
+  <section class="card">
+    <h2 class="text-green">How We Use Your Information</h2>
+    <p>Your email address is used for <strong class="text-orange">one purpose only</strong>:</p>
     <ul>
       <li>Sending you our newsletter — updates, game news, and announcements from GRaiT Games.</li>
     </ul>
     <p>We will never sell, rent, or trade your email address to any third party for marketing purposes. We use anonymous analytics data solely to understand how visitors use our site and to improve it.</p>
   </section>
- 
+
   <!-- 4. Third-Party Services -->
-  <section data-num="03">
-    <h2>Third-Party Services</h2>
+  <section class="card">
+    <h2 class="text-green">Third-Party Services</h2>
     <p>We use the following trusted third-party services. Each has its own privacy policy:</p>
- 
+
     <p>
-      <span class="tag">Beehiiv</span>
+      <code>Beehiiv</code>
       Our newsletter platform. Email addresses you submit are stored and managed by Beehiiv, Inc. They power our subscription and email delivery.
       <br/><a href="https://www.beehiiv.com/privacy" target="_blank" rel="noopener">beehiiv.com/privacy</a>
     </p>
- 
+
     <p>
-      <span class="tag cyan">Google Analytics</span>
+      <code>Google Analytics</code>
       We use Google Analytics to collect anonymous, aggregated data about website traffic. Google may use cookies to track visits. You can opt out via the
       <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a>.
       <br/><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>
     </p>
- 
+
     <p>
-      <span class="tag">Cloudflare</span>
+      <code>Cloudflare</code>
       Our website is served through Cloudflare's network for security, DDoS protection, and performance. Cloudflare may process IP addresses and request metadata as part of providing these services.
       <br/><a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">cloudflare.com/privacypolicy</a>
     </p>
   </section>
- 
+
   <!-- 5. Cookies -->
-  <section data-num="04">
-    <h2>Cookie Policy</h2>
+  <section class="card">
+    <h2 class="text-green">Cookie Policy</h2>
     <p>Our website uses cookies in the following limited ways:</p>
     <ul>
-      <li><strong>Analytics cookies</strong> — set by Google Analytics to distinguish unique visitors and track sessions anonymously.</li>
-      <li><strong>Security cookies</strong> — set by Cloudflare to identify trusted web traffic and prevent abuse.</li>
+      <li><strong class="text-orange">Analytics cookies</strong> — set by Google Analytics to distinguish unique visitors and track sessions anonymously.</li>
+      <li><strong class="text-orange">Security cookies</strong> — set by Cloudflare to identify trusted web traffic and prevent abuse.</li>
     </ul>
     <p>We do not use advertising cookies, tracking pixels, or any cookies for targeted advertising. You can control or disable cookies via your browser settings. Note that disabling cookies may affect site functionality.</p>
   </section>
- 
+
   <!-- 6. Children's Privacy -->
-  <section data-num="05">
-    <h2>Children's Privacy</h2>
+  <section class="card">
+    <h2 class="text-green">Children's Privacy</h2>
     <p>
-      GRaiT Games is a gaming website and we take children's privacy seriously. Our website is intended for a general audience. We do <strong>not</strong> knowingly collect personal information from children under the age of <strong>13</strong> (or 14 in applicable jurisdictions).
+      GRaiT Games is a gaming website and we take children's privacy seriously. Our website is intended for a general audience. We do <strong class="text-orange">not</strong> knowingly collect personal information from children under the age of <strong class="text-orange">13</strong> (or 14 in applicable jurisdictions).
     </p>
     <p>
-      Because we have <strong>no user accounts</strong>, the only personal data we could ever collect from a child is an email address submitted to our newsletter. If you are a parent or guardian and believe your child has submitted their email to us, please contact us immediately at <a href="mailto:support@graitgames.com">support@graitgames.com</a> and we will promptly delete it.
+      Because we have <strong class="text-orange">no user accounts</strong>, the only personal data we could ever collect from a child is an email address submitted to our newsletter. If you are a parent or guardian and believe your child has submitted their email to us, please contact us immediately at <a href="mailto:support@graitgames.com">support@graitgames.com</a> and we will promptly delete it.
     </p>
   </section>
- 
+
   <!-- 7. Unsubscribe & Data Deletion -->
-  <section data-num="06">
-    <h2>Unsubscribe &amp; Data Deletion</h2>
+  <section class="card">
+    <h2 class="text-green">Unsubscribe &amp; Data Deletion</h2>
     <p>You are always in control of your data. Here's how to exercise your rights:</p>
     <ul>
-      <li><strong>Unsubscribe from the newsletter</strong> — every email we send includes an unsubscribe link at the bottom. Click it and you're done.</li>
-      <li><strong>Request deletion of your data</strong> — email us at <a href="mailto:support@graitgames.com">support@graitgames.com</a> with the subject line <strong>"Data Deletion Request"</strong> and we will permanently remove your information from our systems and from Beehiiv within <strong>30 days</strong>.</li>
-      <li><strong>Access your data</strong> — you may also request a copy of any personal data we hold about you.</li>
+      <li><strong class="text-orange">Unsubscribe from the newsletter</strong> — every email we send includes an unsubscribe link at the bottom. Click it and you're done.</li>
+      <li><strong class="text-orange">Request deletion of your data</strong> — email us at <a href="mailto:support@graitgames.com">support@graitgames.com</a> with the subject line <strong class="text-orange">"Data Deletion Request"</strong> and we will permanently remove your information from our systems and from Beehiiv within <strong class="text-orange">30 days</strong>.</li>
+      <li><strong class="text-orange">Access your data</strong> — you may also request a copy of any personal data we hold about you.</li>
     </ul>
-    <p>As a Canadian website, we respect your rights under <strong>PIPEDA</strong> (Personal Information Protection and Electronic Documents Act).</p>
+    <p>As a Canadian website, we respect your rights under <strong class="text-orange">PIPEDA</strong> (Personal Information Protection and Electronic Documents Act).</p>
   </section>
- 
+
   <!-- 8. Contact -->
-  <section data-num="07">
-    <h2>Contact Us</h2>
+  <section class="card">
+    <h2 class="text-green">Contact Us</h2>
     <p>Questions, concerns, or requests about this Privacy Policy? Reach out to us:</p>
-    <div class="contact-box">
-      <div class="label">// EMAIL</div>
-      <div class="value"><a href="mailto:support@graitgames.com">support@graitgames.com</a></div>
+    <div class="bg-secondary border rounded p-md mono mt-md">
+      <div class="text-muted">// EMAIL</div>
+      <div class="text-cyan"><a href="mailto:support@graitgames.com">support@graitgames.com</a></div>
     </div>
-    <div class="contact-box" style="margin-top:.8rem;">
-      <div class="label">// WEBSITE</div>
-      <div class="value"><a href="https://graitgames.com">graitgames.com</a></div>
+    <div class="bg-secondary border rounded p-md mono mt-sm">
+      <div class="text-muted">// WEBSITE</div>
+      <div class="text-cyan"><a href="https://graitgames.com">graitgames.com</a></div>
     </div>
-    <p style="margin-top:1rem;">We aim to respond to all privacy-related inquiries within <strong>5 business days</strong>.</p>
+    <p class="mt-md">We aim to respond to all privacy-related inquiries within <strong class="text-orange">5 business days</strong>.</p>
   </section>
- 
+
   <!-- 9. Changes -->
-  <section data-num="08">
-    <h2>Changes to This Policy</h2>
+  <section class="card">
+    <h2 class="text-green">Changes to This Policy</h2>
     <p>
       We may update this Privacy Policy from time to time. When we do, we'll revise the "Last updated" date at the top of this page. We encourage you to review this page periodically. Continued use of our website after changes constitutes acceptance of the updated policy.
     </p>
   </section>
- 
- 
-</div>
+
+</main>
 <script src="/footer.js"></script>
 </body>
 </html>
