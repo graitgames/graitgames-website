@@ -6,9 +6,25 @@
     link.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap';
     document.head.appendChild(link);
   }
- 
+
   /* ── Styles ── */
   const css = `
+    /* ── NEWSLETTER SECTION ── */
+    #gf-newsletter {
+      text-align: center;
+      padding: 2.5rem 1.5rem 0;
+      position: relative;
+      z-index: 10;
+    }
+    .gf-newsletter-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: #ff6b1a;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
     #grait-footer {
       position: relative;
       background: #0a0a0f;
@@ -19,7 +35,7 @@
       color: #e8e8f0;
       overflow: hidden;
     }
- 
+
     /* scanline overlay */
     #grait-footer::before {
       content: '';
@@ -35,9 +51,9 @@
       pointer-events: none;
       z-index: 0;
     }
- 
+
     #grait-footer > * { position: relative; z-index: 1; }
- 
+
     .gf-inner {
       max-width: 900px;
       margin: 0 auto;
@@ -46,7 +62,7 @@
       align-items: center;
       gap: 1.5rem 2rem;
     }
- 
+
     /* brand */
     .gf-brand {
       justify-self: start;
@@ -76,7 +92,7 @@
       color: #7a7a9a;
       margin-top: .55rem;
     }
- 
+
     /* nav links — centre column */
     .gf-nav {
       justify-self: center;
@@ -100,7 +116,7 @@
       border-color: #00eaff;
       text-shadow: 0 0 8px #00eaff;
     }
- 
+
     /* socials — right column */
     .gf-socials {
       justify-self: end;
@@ -131,7 +147,7 @@
       height: 16px;
       fill: currentColor;
     }
- 
+
     /* mobile */
     @media (max-width: 640px) {
       .gf-inner {
@@ -143,11 +159,21 @@
       .gf-socials { justify-self: center; }
     }
   `;
- 
+
   const style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);
- 
+
+  /* ── Newsletter section ── */
+  const newsletter = document.createElement('section');
+  newsletter.id = 'gf-newsletter';
+  newsletter.setAttribute('aria-label', 'Email Signup');
+  newsletter.innerHTML = `
+    <div class="gf-newsletter-label">// Get Early Access //</div>
+    <script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="e76eeefb-b363-4f57-ab70-82e508f70d49"><\/script>
+  `;
+  document.body.appendChild(newsletter);
+
   /* ── SVG icons ── */
   const icons = {
     youtube: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>`,
@@ -155,35 +181,35 @@
     x: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 1h3.7l-8 9.2L24 23h-7.4l-5.8-7.5L4.5 23H.8l8.6-9.8L0 1h7.6l5.2 6.9L18.9 1zm-1.3 19.8h2L6.5 3.1H4.3l13.3 17.7z"/></svg>`,
     tiktok: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.6 8.6a7.6 7.6 0 0 1-4.4-1.4v6.4a6.2 6.2 0 1 1-6.2-6.2c.2 0 .4 0 .6.0v3.1a3.1 3.1 0 1 0 2.6 3v-13h3c.3 2.5 2.3 4.5 4.8 4.8v3.3h-.4z"/></svg>`,
   };
- 
+
   /* ── HTML ── */
   const year = new Date().getFullYear();
- 
+
   const footer = document.createElement('footer');
   footer.id = 'grait-footer';
   footer.innerHTML = `
     <div class="gf-inner">
- 
+
       <div class="gf-brand">
         <a class="gf-logo" href="/"><span class="logo-orange">GR</span><span class="logo-green">ai</span><span class="logo-orange">T</span><span class="logo-green"> GAMES</span></a>
         <div class="gf-copy">© ${year} GRaiT GAMES. All Rights Reserved.</div>
       </div>
- 
+
       <nav class="gf-nav" aria-label="Footer navigation">
         <a href="/privacy-policy.html">Privacy Policy</a>
         <a href="/terms.html">Terms &amp; Conditions</a>
       </nav>
- 
+
       <div class="gf-socials" aria-label="Social media links">
         <a href="https://youtube.com/@graitgames"   target="_blank" rel="noopener" aria-label="YouTube">${icons.youtube}</a>
         <a href="https://instagram.com/graitgames"  target="_blank" rel="noopener" aria-label="Instagram">${icons.instagram}</a>
         <a href="https://x.com/graitgames"          target="_blank" rel="noopener" aria-label="X">${icons.x}</a>
         <a href="https://tiktok.com/@graitgames"    target="_blank" rel="noopener" aria-label="TikTok">${icons.tiktok}</a>
       </div>
- 
+
     </div>
   `;
- 
+
   /* ── Inject ── */
   document.body.appendChild(footer);
 })();
