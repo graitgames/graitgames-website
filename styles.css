@@ -691,12 +691,20 @@ pre code {
   padding: 0 var(--space-md);
 }
 
+/* Container width modifiers — self-centering so they work standalone
+   (i.e. without also needing the base .container class). */
 .container-wide {
+  width: 100%;
   max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
 }
 
 .container-narrow {
+  width: 100%;
   max-width: 800px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
 }
 
 /* --- SECTION SPACING --- */
