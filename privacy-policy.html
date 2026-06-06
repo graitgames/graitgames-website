@@ -105,15 +105,18 @@
     .site-logo {
       font-family: 'Press Start 2P', monospace;
       font-size: clamp(1rem, 4vw, 1.6rem);
-      color: var(--green);
-      text-shadow:
-        0 0 8px var(--green),
-        0 0 30px rgba(57,255,20,.4);
       letter-spacing: .05em;
       display: block;
       margin-bottom: .5rem;
     }
-    .site-logo span { color: var(--orange); text-shadow: 0 0 8px var(--orange), 0 0 30px rgba(255,107,26,.4); }
+    .site-logo .logo-orange {
+      color: var(--orange);
+      text-shadow: 0 0 8px var(--orange), 0 0 30px rgba(255,107,26,.4);
+    }
+    .site-logo .logo-green {
+      color: var(--green);
+      text-shadow: 0 0 8px var(--green), 0 0 30px rgba(57,255,20,.4);
+    }
     .page-title {
       font-family: 'Press Start 2P', monospace;
       font-size: clamp(.65rem, 2.2vw, .9rem);
@@ -269,7 +272,7 @@
  
   <!-- Header -->
   <header class="site-header">
-    <span class="site-logo">GRaiT <span>GAMES</span></span>
+    <span class="site-logo"><span class="logo-orange">GR</span><span class="logo-green">ai</span><span class="logo-orange">T</span><span class="logo-green"> GAMES</span></span>
     <div class="page-title">// Privacy Policy //</div>
   </header>
  
