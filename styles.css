@@ -1,0 +1,1837 @@
+/*
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                      GRaiT GAMES — MASTER STYLESHEET                         ║
+║                   Synthwave / Retro-Futuristic Gaming Brand                  ║
+║                                                                              ║
+║  Created: 2026                                                               ║
+║  Compliance: WCAG 2.1 AA                                                     ║
+║  Brand Guide: /home/ubuntu/grait-games-brand-summary.md                     ║
+║                                                                              ║
+║  DESIGN PRINCIPLES:                                                          ║
+║  • Orange & Green are PRIMARY brand colors (must dominate)                   ║
+║  • Magenta, Purple, Cyan are SUPPORTING colors                               ║
+║  • Dark backgrounds with neon glow accents                                   ║
+║  • High contrast for accessibility                                           ║
+║  • Glow effects are decorative only (not for readability)                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+*/
+
+/* ============================================================================
+   1. GOOGLE FONTS IMPORT
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+
+/* ============================================================================
+   2. CSS CUSTOM PROPERTIES (CSS Variables)
+   ============================================================================ */
+:root {
+  /* === CORE BRAND COLORS === */
+  /* Orange and Green are PRIMARY — must remain dominant */
+  --color-orange:           #FF6B2B;  /* Primary orange (GR, T in logo) */
+  --color-green:            #39FF14;  /* Primary green (ai, GAMES in logo) */
+  --color-magenta:          #FF00D4;  /* Neon magenta (supporting) */
+  --color-orange-2:         #FF8C42;  /* Secondary orange (hover states) */
+  --color-green-2:          #00FF88;  /* Secondary green (accents) */
+  --color-cyan:             #00FFFF;  /* Tertiary cyan accent */
+  --color-cyan-2:           #00EAFF;  /* Navigation/footer links */
+
+  /* === PINK / SYNTHWAVE SPECTRUM === */
+  --color-hot-pink:         #FF2BC2;  /* Secondary pink accents */
+  --color-deep-magenta:     #D100B8;  /* Shadows and depth (decorative) */
+  --color-synthwave-purple: #8A00FF;  /* Decorative purple (NOT for body text) */
+
+  /* === FUNCTIONAL COLORS === */
+  --color-alert-red:        #FF3355;  /* Errors, warnings, destructive actions */
+  --color-trophy-gold:      #FFD447;  /* Rewards, achievements, badges */
+
+  /* === BACKGROUND COLORS === */
+  --bg-primary:             #07070F;  /* Main page background (Space Black) */
+  --bg-secondary:           #0D0D1A;  /* Secondary background (Deep Space) */
+  --bg-footer:              #0A0A0F;  /* Footer background */
+  --bg-panel:               #1A1A2E;  /* Cards, panels, inset sections */
+
+  /* === TEXT COLORS (WCAG AA Accessible) === */
+  --text-primary:           #E0E0E0;  /* Main body text */
+  --text-footer:            #E8E8F0;  /* Footer text */
+  --text-description:       #B8DDB8;  /* Descriptive paragraphs */
+  --text-muted:             #8A8AAD;  /* Secondary text, metadata */
+  --text-link:              #00EAFF;  /* Links (cyan-2) */
+  --text-orange:            #FF6B2B;  /* Orange accent text */
+  --text-green:             #39FF14;  /* Green accent text */
+  --text-magenta:           #FF00D4;  /* Magenta accent text (limited use) */
+  --text-purple:            #B266FF;  /* Accessible purple text (optional) */
+
+  /* === BORDERS === */
+  /* Decorative borders (low contrast — for visual separation only) */
+  --border-decorative:      #1E1E30;  /* Subtle decorative dividers */
+  
+  /* Accessible borders (high contrast — for component boundaries) */
+  --border-accessible:      #666690;  /* Default accessible border */
+  --border-accessible-strong: #7878A8;  /* Stronger contrast border */
+  
+  /* Accent borders (decorative, semi-transparent) */
+  --border-orange:          #FF6B2B55;  /* Orange accent border */
+  --border-green:           #39FF1455;  /* Green accent border */
+  --border-pink:            #FF00D455;  /* Pink accent border */
+  --border-cyan:            #00FFFF55;  /* Cyan accent border */
+
+  /* === NEON GLOW EFFECTS (box-shadow / text-shadow values) === */
+  /* ⚠️ Glow is DECORATIVE ONLY — never rely on it for readability */
+  --glow-orange:            0 0 8px #FF6B2B, 0 0 24px #FF6B2BAA, 0 0 50px #FF6B2B55;
+  --glow-green:             0 0 8px #39FF14, 0 0 24px #39FF14AA, 0 0 50px #39FF1455;
+  --glow-cyan:              0 0 8px #00FFFF, 0 0 24px #00FFFFAA;
+  --glow-pink:              0 0 8px #FF00D4, 0 0 24px #FF00D4AA, 0 0 50px #FF00D455;
+  --glow-purple:            0 0 8px #8A00FF, 0 0 24px #8A00FFAA, 0 0 50px #8A00FF55;
+
+  /* === GRADIENTS === */
+  --gradient-orange:        linear-gradient(180deg, #FF8C42 0%, #FF6B2B 100%);
+  --gradient-green:         linear-gradient(180deg, #00FF88 0%, #39FF14 100%);
+  --gradient-synthwave:     linear-gradient(90deg, #FF00D4 0%, #8A00FF 50%, #00FFFF 100%);
+
+  /* === TYPOGRAPHY === */
+  --font-logo:              'Press Start 2P', cursive;      /* Pixel/retro logo font */
+  --font-headline:          'Orbitron', sans-serif;         /* H1-H2 headlines */
+  --font-body:              'Rajdhani', sans-serif;         /* Body text, navigation */
+  --font-mono:              'Share Tech Mono', monospace;   /* Stats, code, technical UI */
+
+  /* === SPACING SCALE === */
+  /* Consistent spacing system (based on 8px grid) */
+  --space-xs:   0.25rem;  /* 4px */
+  --space-sm:   0.5rem;   /* 8px */
+  --space-md:   1rem;     /* 16px */
+  --space-lg:   1.5rem;   /* 24px */
+  --space-xl:   2rem;     /* 32px */
+  --space-2xl:  3rem;     /* 48px */
+  --space-3xl:  4rem;     /* 64px */
+  --space-4xl:  6rem;     /* 96px */
+
+  /* === RESPONSIVE BREAKPOINTS === */
+  /* Use these in media queries */
+  --breakpoint-sm:  640px;   /* Small devices */
+  --breakpoint-md:  768px;   /* Tablets */
+  --breakpoint-lg:  1024px;  /* Desktop */
+  --breakpoint-xl:  1280px;  /* Large desktop */
+  --breakpoint-2xl: 1536px;  /* Extra large screens */
+
+  /* === EFFECTS & TRANSITIONS === */
+  --transition-fast:    0.15s ease;
+  --transition-normal:  0.3s ease;
+  --transition-slow:    0.5s ease;
+  --border-radius:      4px;
+  --border-radius-lg:   8px;
+  --border-radius-xl:   12px;
+}
+
+
+/* ============================================================================
+   3. CSS RESET & NORMALIZATION
+   ============================================================================ */
+/* Modern CSS reset for consistent cross-browser rendering */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* Prevent font size adjustments after orientation changes on iOS */
+  -webkit-text-size-adjust: 100%;
+  /* Set default font size for rem units */
+  font-size: 16px;
+  /* Enable smooth scrolling for anchor links */
+  scroll-behavior: smooth;
+}
+
+body {
+  /* Remove default margins */
+  margin: 0;
+  padding: 0;
+  /* Prevent horizontal scrolling */
+  overflow-x: hidden;
+  /* Improve text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Remove default list styling */
+ol, ul {
+  list-style: none;
+}
+
+/* Make images responsive by default */
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Remove default button styles */
+button, input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Improve table rendering */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+
+/* ============================================================================
+   4. GLOBAL BASE STYLES
+   ============================================================================ */
+html, body {
+  width: 100%;
+  min-height: 100vh;
+}
+
+body {
+  /* Brand background and text colors */
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  
+  /* Default body typography */
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: 400;
+  
+  /* Ensure body takes full viewport height */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content area */
+main {
+  flex: 1;
+  width: 100%;
+}
+
+
+/* ============================================================================
+   5. TYPOGRAPHY SYSTEM
+   ============================================================================ */
+
+/* --- HEADINGS --- */
+/* H1-H2: Orbitron (futuristic headlines) */
+h1, h2 {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--space-lg);
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);  /* Responsive: 32px → 56px */
+  margin-bottom: var(--space-xl);
+}
+
+h2 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);  /* Responsive: 28px → 40px */
+}
+
+/* H3-H6: Rajdhani (body font, bold) */
+h3, h4, h5, h6 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: var(--space-md);
+  color: var(--text-primary);
+}
+
+h3 {
+  font-size: clamp(1.5rem, 3vw, 2rem);  /* Responsive: 24px → 32px */
+}
+
+h4 {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);  /* Responsive: 20px → 24px */
+}
+
+h5 {
+  font-size: 1.125rem;  /* 18px */
+}
+
+h6 {
+  font-size: 1rem;  /* 16px */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --- PARAGRAPHS & TEXT ELEMENTS --- */
+p {
+  margin-bottom: var(--space-md);
+  line-height: 1.7;
+}
+
+/* Description text variant (greenish tint) */
+p.description,
+.text-description {
+  color: var(--text-description);
+}
+
+/* Muted text variant */
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.875rem;  /* 14px */
+}
+
+/* Small text */
+small {
+  font-size: 0.875rem;  /* 14px */
+  color: var(--text-muted);
+}
+
+/* Strong/bold text */
+strong, b {
+  font-weight: 700;
+}
+
+/* Emphasized text */
+em, i {
+  font-style: italic;
+}
+
+/* --- LINKS --- */
+a {
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color var(--transition-fast), 
+              text-shadow var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-cyan);
+  text-shadow: var(--glow-cyan);
+}
+
+a:focus {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Active/visited link states */
+a:active {
+  color: var(--color-green);
+}
+
+/* --- LOGO TEXT --- */
+.logo-text {
+  font-family: var(--font-logo);
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  line-height: 1.5;
+  letter-spacing: 0.05em;
+}
+
+/* --- MONOSPACE TEXT (Stats, Code, IDs) --- */
+.mono,
+code,
+pre,
+.stats-text {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;  /* 15px */
+  letter-spacing: 0.02em;
+}
+
+code {
+  background-color: var(--bg-panel);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--border-radius);
+  color: var(--color-green);
+}
+
+pre {
+  background-color: var(--bg-panel);
+  padding: var(--space-md);
+  border-radius: var(--border-radius-lg);
+  overflow-x: auto;
+  border: 1px solid var(--border-accessible);
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* --- TEXT ALIGNMENT UTILITIES --- */
+.text-left {
+  text-align: left;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* --- ACCENT TEXT COLOR UTILITIES --- */
+.text-orange {
+  color: var(--text-orange);
+}
+
+.text-green {
+  color: var(--text-green);
+}
+
+.text-magenta {
+  color: var(--text-magenta);
+}
+
+.text-cyan {
+  color: var(--text-link);
+}
+
+.text-purple {
+  color: var(--text-purple);
+}
+
+
+/* ============================================================================
+   6. NEON GLOW EFFECTS — UTILITY CLASSES
+   ============================================================================ */
+/* ⚠️ IMPORTANT: Glow effects are DECORATIVE ONLY
+   Never rely on glow to make text readable. Always ensure sufficient
+   color contrast between text and background. */
+
+/* Orange glow (PRIMARY brand color) */
+.glow-orange {
+  text-shadow: var(--glow-orange);
+}
+
+.glow-orange-box {
+  box-shadow: var(--glow-orange);
+}
+
+/* Green glow (PRIMARY brand color) */
+.glow-green {
+  text-shadow: var(--glow-green);
+}
+
+.glow-green-box {
+  box-shadow: var(--glow-green);
+}
+
+/* Cyan glow */
+.glow-cyan {
+  text-shadow: var(--glow-cyan);
+}
+
+.glow-cyan-box {
+  box-shadow: var(--glow-cyan);
+}
+
+/* Pink/Magenta glow (supporting color) */
+.glow-pink {
+  text-shadow: var(--glow-pink);
+}
+
+.glow-pink-box {
+  box-shadow: var(--glow-pink);
+}
+
+/* Purple glow (decorative only) */
+.glow-purple {
+  text-shadow: var(--glow-purple);
+}
+
+.glow-purple-box {
+  box-shadow: var(--glow-purple);
+}
+
+/* Multi-color glow combination (synthwave effect) */
+.glow-synthwave {
+  text-shadow: 
+    0 0 8px var(--color-magenta),
+    0 0 16px var(--color-synthwave-purple),
+    0 0 24px var(--color-cyan);
+}
+
+
+/* ============================================================================
+   7. BUTTON STYLES
+   ============================================================================ */
+
+/* --- BASE BUTTON STYLES --- */
+.btn {
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  
+  /* Sizing */
+  padding: var(--space-md) var(--space-xl);
+  min-height: 48px;  /* Accessibility: minimum touch target size */
+  
+  /* Typography */
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  
+  /* Appearance */
+  border: 2px solid transparent;
+  border-radius: var(--border-radius-lg);
+  background: transparent;
+  cursor: pointer;
+  
+  /* Transitions */
+  transition: all var(--transition-normal);
+  
+  /* Prevent text selection */
+  user-select: none;
+}
+
+.btn:focus {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 3px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* --- PRIMARY BUTTON (Orange — PRIMARY brand color) --- */
+.btn-primary {
+  background: var(--gradient-orange);
+  color: #000000;  /* Dark text on bright background for contrast */
+  border-color: var(--color-orange);
+}
+
+.btn-primary:hover {
+  background: var(--color-orange-2);
+  box-shadow: var(--glow-orange);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* --- SECONDARY BUTTON (Green — PRIMARY brand color) --- */
+.btn-secondary {
+  background: var(--gradient-green);
+  color: #000000;  /* Dark text on bright background for contrast */
+  border-color: var(--color-green);
+}
+
+.btn-secondary:hover {
+  background: var(--color-green-2);
+  box-shadow: var(--glow-green);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* --- OUTLINE BUTTON (Transparent with colored border) --- */
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--border-accessible);
+}
+
+.btn-outline:hover {
+  background-color: rgba(255, 107, 43, 0.1);  /* Subtle orange tint */
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+  box-shadow: var(--glow-orange);
+}
+
+/* Orange outline variant */
+.btn-outline-orange {
+  background: transparent;
+  color: var(--color-orange);
+  border-color: var(--color-orange);
+}
+
+.btn-outline-orange:hover {
+  background-color: var(--color-orange);
+  color: #000000;
+  box-shadow: var(--glow-orange);
+}
+
+/* Green outline variant */
+.btn-outline-green {
+  background: transparent;
+  color: var(--color-green);
+  border-color: var(--color-green);
+}
+
+.btn-outline-green:hover {
+  background-color: var(--color-green);
+  color: #000000;
+  box-shadow: var(--glow-green);
+}
+
+/* Cyan outline variant */
+.btn-outline-cyan {
+  background: transparent;
+  color: var(--color-cyan-2);
+  border-color: var(--color-cyan-2);
+}
+
+.btn-outline-cyan:hover {
+  background-color: var(--color-cyan);
+  color: #000000;
+  box-shadow: var(--glow-cyan);
+}
+
+/* --- GHOST BUTTON (Text only, no border) --- */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-link);
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.btn-ghost:hover {
+  color: var(--color-cyan);
+  text-shadow: var(--glow-cyan);
+  background-color: rgba(0, 234, 255, 0.05);
+}
+
+/* --- BUTTON SIZE VARIANTS --- */
+.btn-sm {
+  padding: var(--space-sm) var(--space-md);
+  min-height: 36px;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  padding: var(--space-lg) var(--space-2xl);
+  min-height: 56px;
+  font-size: 1.125rem;
+}
+
+/* --- FULL-WIDTH BUTTON --- */
+.btn-block {
+  display: flex;
+  width: 100%;
+}
+
+
+/* ============================================================================
+   8. CARD & CONTAINER COMPONENTS
+   ============================================================================ */
+
+/* --- BASE CARD --- */
+.card {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-accessible);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  transition: all var(--transition-normal);
+}
+
+.card:hover {
+  border-color: var(--border-accessible-strong);
+  transform: translateY(-4px);
+}
+
+/* Card with accent border glow */
+.card-glow {
+  border: 2px solid transparent;
+  background-image: 
+    linear-gradient(var(--bg-panel), var(--bg-panel)),
+    var(--gradient-synthwave);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.card-glow:hover {
+  box-shadow: var(--glow-pink);
+}
+
+/* --- CARD HEADER --- */
+.card-header {
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-decorative);
+}
+
+.card-header h2,
+.card-header h3 {
+  margin-bottom: 0;
+}
+
+/* --- CARD BODY --- */
+.card-body {
+  padding: var(--space-md) 0;
+}
+
+/* --- CARD FOOTER --- */
+.card-footer {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-decorative);
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+}
+
+/* --- CONTAINER (Max-width wrapper) --- */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+.container-wide {
+  max-width: 1400px;
+}
+
+.container-narrow {
+  max-width: 800px;
+}
+
+/* --- SECTION SPACING --- */
+.section {
+  padding: var(--space-3xl) 0;
+}
+
+.section-sm {
+  padding: var(--space-2xl) 0;
+}
+
+.section-lg {
+  padding: var(--space-4xl) 0;
+}
+
+
+/* ============================================================================
+   9. LAYOUT UTILITIES
+   ============================================================================ */
+
+/* --- FLEXBOX UTILITIES --- */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+/* Justify content */
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+/* Align items */
+.items-start {
+  align-items: flex-start;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.items-stretch {
+  align-items: stretch;
+}
+
+/* Gap utilities */
+.gap-xs {
+  gap: var(--space-xs);
+}
+
+.gap-sm {
+  gap: var(--space-sm);
+}
+
+.gap-md {
+  gap: var(--space-md);
+}
+
+.gap-lg {
+  gap: var(--space-lg);
+}
+
+.gap-xl {
+  gap: var(--space-xl);
+}
+
+.gap-2xl {
+  gap: var(--space-2xl);
+}
+
+/* --- CSS GRID UTILITIES --- */
+.grid {
+  display: grid;
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Auto-fit responsive grid */
+.grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Auto-fill responsive grid */
+.grid-auto-fill {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+
+/* ============================================================================
+   10. SPACING UTILITIES
+   ============================================================================ */
+
+/* --- MARGIN UTILITIES --- */
+.m-0 { margin: 0; }
+.m-xs { margin: var(--space-xs); }
+.m-sm { margin: var(--space-sm); }
+.m-md { margin: var(--space-md); }
+.m-lg { margin: var(--space-lg); }
+.m-xl { margin: var(--space-xl); }
+.m-2xl { margin: var(--space-2xl); }
+
+/* Margin top */
+.mt-0 { margin-top: 0; }
+.mt-xs { margin-top: var(--space-xs); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mt-xl { margin-top: var(--space-xl); }
+.mt-2xl { margin-top: var(--space-2xl); }
+
+/* Margin bottom */
+.mb-0 { margin-bottom: 0; }
+.mb-xs { margin-bottom: var(--space-xs); }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+.mb-xl { margin-bottom: var(--space-xl); }
+.mb-2xl { margin-bottom: var(--space-2xl); }
+
+/* Margin left */
+.ml-0 { margin-left: 0; }
+.ml-auto { margin-left: auto; }
+
+/* Margin right */
+.mr-0 { margin-right: 0; }
+.mr-auto { margin-right: auto; }
+
+/* Margin horizontal (left + right) */
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* --- PADDING UTILITIES --- */
+.p-0 { padding: 0; }
+.p-xs { padding: var(--space-xs); }
+.p-sm { padding: var(--space-sm); }
+.p-md { padding: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
+.p-xl { padding: var(--space-xl); }
+.p-2xl { padding: var(--space-2xl); }
+
+/* Padding top */
+.pt-0 { padding-top: 0; }
+.pt-xs { padding-top: var(--space-xs); }
+.pt-sm { padding-top: var(--space-sm); }
+.pt-md { padding-top: var(--space-md); }
+.pt-lg { padding-top: var(--space-lg); }
+.pt-xl { padding-top: var(--space-xl); }
+.pt-2xl { padding-top: var(--space-2xl); }
+
+/* Padding bottom */
+.pb-0 { padding-bottom: 0; }
+.pb-xs { padding-bottom: var(--space-xs); }
+.pb-sm { padding-bottom: var(--space-sm); }
+.pb-md { padding-bottom: var(--space-md); }
+.pb-lg { padding-bottom: var(--space-lg); }
+.pb-xl { padding-bottom: var(--space-xl); }
+.pb-2xl { padding-bottom: var(--space-2xl); }
+
+
+/* ============================================================================
+   11. RESPONSIVE BREAKPOINTS
+   ============================================================================ */
+
+/* Small devices (640px and up) */
+@media (min-width: 640px) {
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .sm\:flex-row {
+    flex-direction: row;
+  }
+  
+  .sm\:text-left {
+    text-align: left;
+  }
+}
+
+/* Medium devices (768px and up) - Tablets */
+@media (min-width: 768px) {
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .md\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .md\:flex-row {
+    flex-direction: row;
+  }
+  
+  .md\:text-left {
+    text-align: left;
+  }
+}
+
+/* Large devices (1024px and up) - Desktop */
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .lg\:flex-row {
+    flex-direction: row;
+  }
+}
+
+/* Extra large devices (1280px and up) */
+@media (min-width: 1280px) {
+  .xl\:grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+
+/* ============================================================================
+   12. ACCESSIBILITY FEATURES
+   ============================================================================ */
+
+/* --- SKIP TO CONTENT LINK --- */
+/* Hidden by default, visible when focused (for keyboard navigation) */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background-color: var(--color-orange);
+  color: #000000;
+  padding: var(--space-md) var(--space-lg);
+  font-weight: 700;
+  z-index: 9999;
+  text-decoration: none;
+  border-radius: 0 0 var(--border-radius) 0;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--color-green);
+  outline-offset: 2px;
+}
+
+/* --- SCREEN READER ONLY --- */
+/* Visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Make screen reader only element focusable */
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* --- FOCUS VISIBLE (Modern focus states) --- */
+/* Only show focus outline when using keyboard navigation */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 3px;
+  border-radius: var(--border-radius);
+}
+
+/* High contrast focus states for interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--color-cyan);
+  outline-offset: 2px;
+  box-shadow: var(--glow-cyan);
+}
+
+/* --- REDUCED MOTION --- */
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ============================================================================
+   13. NAVIGATION STYLES
+   ============================================================================ */
+
+/* --- MAIN NAVIGATION BAR --- */
+.navbar {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-accessible);
+  padding: var(--space-md) 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+/* --- NAVIGATION LOGO --- */
+.navbar-logo {
+  font-family: var(--font-logo);
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+  color: var(--color-orange);
+  text-shadow: var(--glow-orange);
+  transition: all var(--transition-fast);
+}
+
+.navbar-logo:hover {
+  color: var(--color-orange-2);
+  text-shadow: var(--glow-orange);
+  transform: scale(1.05);
+}
+
+/* --- NAVIGATION MENU --- */
+.nav-menu {
+  display: flex;
+  gap: var(--space-xl);
+  align-items: center;
+  list-style: none;
+}
+
+.nav-link {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-link);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius);
+  transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--color-cyan);
+  background-color: rgba(0, 234, 255, 0.1);
+  text-shadow: var(--glow-cyan);
+}
+
+.nav-link.active {
+  color: var(--color-green);
+  background-color: rgba(57, 255, 20, 0.1);
+  border-bottom: 2px solid var(--color-green);
+}
+
+/* --- MOBILE MENU TOGGLE --- */
+.nav-toggle {
+  display: none;
+  background: transparent;
+  border: 2px solid var(--border-accessible);
+  color: var(--text-primary);
+  padding: var(--space-sm);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+
+.nav-toggle:hover {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan);
+}
+
+/* Mobile responsive navigation */
+@media (max-width: 768px) {
+  .nav-toggle {
+    display: block;
+  }
+  
+  .nav-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-accessible);
+    padding: var(--space-md);
+    gap: var(--space-sm);
+  }
+  
+  .nav-menu.active {
+    display: flex;
+  }
+  
+  .nav-link {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+
+/* ============================================================================
+   14. FOOTER STYLES
+   ============================================================================ */
+
+.footer {
+  background-color: var(--bg-footer);
+  border-top: 1px solid var(--border-accessible);
+  padding: var(--space-2xl) 0 var(--space-lg);
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+/* --- FOOTER GRID LAYOUT --- */
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-2xl);
+  margin-bottom: var(--space-xl);
+}
+
+/* --- FOOTER SECTION --- */
+.footer-section h3 {
+  color: var(--color-orange);
+  font-size: 1.125rem;
+  margin-bottom: var(--space-md);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer-section ul {
+  list-style: none;
+}
+
+.footer-section li {
+  margin-bottom: var(--space-sm);
+}
+
+.footer-link {
+  color: var(--text-footer);
+  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
+}
+
+.footer-link:hover {
+  color: var(--color-cyan-2);
+  text-shadow: var(--glow-cyan);
+  padding-left: var(--space-xs);
+}
+
+/* --- FOOTER BOTTOM (Copyright, etc.) --- */
+.footer-bottom {
+  border-top: 1px solid var(--border-decorative);
+  padding-top: var(--space-lg);
+  text-align: center;
+}
+
+.footer-bottom p {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-sm);
+}
+
+/* --- SOCIAL LINKS --- */
+.social-links {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  margin-top: var(--space-md);
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--border-accessible);
+  color: var(--text-primary);
+  transition: all var(--transition-normal);
+}
+
+.social-link:hover {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan);
+  box-shadow: var(--glow-cyan);
+  transform: translateY(-3px) rotate(5deg);
+}
+
+
+/* ============================================================================
+   15. FORM ELEMENTS
+   ============================================================================ */
+
+/* --- FORM GROUPS --- */
+.form-group {
+  margin-bottom: var(--space-lg);
+}
+
+/* --- LABELS --- */
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+  letter-spacing: 0.02em;
+}
+
+label.required::after {
+  content: " *";
+  color: var(--color-alert-red);
+}
+
+/* --- INPUT FIELDS --- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  /* Layout */
+  width: 100%;
+  padding: var(--space-md);
+  
+  /* Appearance */
+  background-color: var(--bg-panel);
+  border: 2px solid var(--border-accessible);
+  border-radius: var(--border-radius);
+  color: var(--text-primary);
+  
+  /* Typography */
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+  
+  /* Transitions */
+  transition: all var(--transition-fast);
+}
+
+/* Input focus state */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 234, 255, 0.2), var(--glow-cyan);
+}
+
+/* Input hover state */
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: var(--border-accessible-strong);
+}
+
+/* --- TEXTAREA --- */
+textarea {
+  min-height: 120px;
+  resize: vertical;
+  font-family: var(--font-body);
+}
+
+/* --- SELECT DROPDOWN --- */
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300EAFF' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-md) center;
+  padding-right: var(--space-2xl);
+}
+
+/* --- CHECKBOXES & RADIO BUTTONS --- */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  margin-right: var(--space-sm);
+  cursor: pointer;
+  accent-color: var(--color-cyan);
+}
+
+/* Checkbox/radio label alignment */
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.form-check label {
+  margin-bottom: 0;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+/* --- INPUT VALIDATION STATES --- */
+/* Error state */
+input.error,
+textarea.error,
+select.error {
+  border-color: var(--color-alert-red);
+}
+
+input.error:focus,
+textarea.error:focus,
+select.error:focus {
+  box-shadow: 0 0 0 3px rgba(255, 51, 85, 0.2);
+}
+
+.error-message {
+  color: var(--color-alert-red);
+  font-size: 0.875rem;
+  margin-top: var(--space-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* Success state */
+input.success,
+textarea.success,
+select.success {
+  border-color: var(--color-green);
+}
+
+input.success:focus,
+textarea.success:focus,
+select.success:focus {
+  box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.2), var(--glow-green);
+}
+
+.success-message {
+  color: var(--color-green);
+  font-size: 0.875rem;
+  margin-top: var(--space-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* --- HELPER TEXT --- */
+.form-help {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-top: var(--space-xs);
+}
+
+/* --- DISABLED INPUTS --- */
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--bg-secondary);
+}
+
+/* --- PLACEHOLDER STYLING --- */
+::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+
+/* ============================================================================
+   16. UTILITY CLASSES
+   ============================================================================ */
+
+/* --- DISPLAY UTILITIES --- */
+.hidden {
+  display: none !important;
+}
+
+.block {
+  display: block;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.inline {
+  display: inline;
+}
+
+/* --- VISIBILITY UTILITIES --- */
+.invisible {
+  visibility: hidden;
+}
+
+.visible {
+  visibility: visible;
+}
+
+/* --- OVERFLOW UTILITIES --- */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.overflow-scroll {
+  overflow: scroll;
+}
+
+/* --- POSITION UTILITIES --- */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.sticky {
+  position: sticky;
+}
+
+/* --- Z-INDEX UTILITIES --- */
+.z-0 {
+  z-index: 0;
+}
+
+.z-10 {
+  z-index: 10;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+.z-100 {
+  z-index: 100;
+}
+
+/* --- WIDTH UTILITIES --- */
+.w-full {
+  width: 100%;
+}
+
+.w-auto {
+  width: auto;
+}
+
+.w-50 {
+  width: 50%;
+}
+
+/* --- HEIGHT UTILITIES --- */
+.h-full {
+  height: 100%;
+}
+
+.h-screen {
+  height: 100vh;
+}
+
+.h-auto {
+  height: auto;
+}
+
+/* --- BACKGROUND UTILITIES --- */
+.bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.bg-panel {
+  background-color: var(--bg-panel);
+}
+
+.bg-transparent {
+  background-color: transparent;
+}
+
+/* Gradient backgrounds */
+.bg-gradient-orange {
+  background: var(--gradient-orange);
+}
+
+.bg-gradient-green {
+  background: var(--gradient-green);
+}
+
+.bg-gradient-synthwave {
+  background: var(--gradient-synthwave);
+}
+
+/* --- BORDER UTILITIES --- */
+.border {
+  border: 1px solid var(--border-accessible);
+}
+
+.border-2 {
+  border: 2px solid var(--border-accessible);
+}
+
+.border-0 {
+  border: none;
+}
+
+.border-t {
+  border-top: 1px solid var(--border-accessible);
+}
+
+.border-b {
+  border-bottom: 1px solid var(--border-accessible);
+}
+
+.border-l {
+  border-left: 1px solid var(--border-accessible);
+}
+
+.border-r {
+  border-right: 1px solid var(--border-accessible);
+}
+
+/* Border radius */
+.rounded {
+  border-radius: var(--border-radius);
+}
+
+.rounded-lg {
+  border-radius: var(--border-radius-lg);
+}
+
+.rounded-xl {
+  border-radius: var(--border-radius-xl);
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.rounded-none {
+  border-radius: 0;
+}
+
+/* --- SHADOW UTILITIES --- */
+.shadow-none {
+  box-shadow: none;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+}
+
+/* --- OPACITY UTILITIES --- */
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.opacity-75 {
+  opacity: 0.75;
+}
+
+.opacity-100 {
+  opacity: 1;
+}
+
+
+/* ============================================================================
+   17. ANIMATION & TRANSITION UTILITIES
+   ============================================================================ */
+
+/* --- TRANSITION UTILITIES --- */
+.transition {
+  transition: all var(--transition-normal);
+}
+
+.transition-fast {
+  transition: all var(--transition-fast);
+}
+
+.transition-slow {
+  transition: all var(--transition-slow);
+}
+
+.transition-none {
+  transition: none;
+}
+
+/* --- HOVER EFFECTS --- */
+.hover-lift:hover {
+  transform: translateY(-4px);
+  transition: transform var(--transition-fast);
+}
+
+.hover-grow:hover {
+  transform: scale(1.05);
+  transition: transform var(--transition-fast);
+}
+
+/* --- LOADING SPINNER --- */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--border-accessible);
+  border-top-color: var(--color-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-lg {
+  width: 40px;
+  height: 40px;
+  border-width: 4px;
+}
+
+/* --- PULSE ANIMATION --- */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* --- NEON FLICKER ANIMATION --- */
+@keyframes flicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  41% {
+    opacity: 0.8;
+  }
+  42% {
+    opacity: 1;
+  }
+  43% {
+    opacity: 0.9;
+  }
+  45% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.flicker {
+  animation: flicker 4s infinite;
+}
+
+
+/* ============================================================================
+   18. PRINT STYLES
+   ============================================================================ */
+@media print {
+  /* Hide non-essential elements when printing */
+  .no-print,
+  .navbar,
+  .nav-toggle,
+  .footer,
+  .btn,
+  button {
+    display: none !important;
+  }
+  
+  /* Optimize for print */
+  body {
+    background-color: white;
+    color: black;
+  }
+  
+  /* Remove shadows and effects for print */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  /* Ensure links are visible */
+  a {
+    color: black;
+    text-decoration: underline;
+  }
+  
+  /* Show link URLs after link text */
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+  
+  /* Page breaks */
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+  
+  img {
+    page-break-inside: avoid;
+  }
+}
+
+
+/* ============================================================================
+   END OF STYLESHEET
+   
+   Total Sections:
+   1.  Google Fonts Import
+   2.  CSS Custom Properties
+   3.  CSS Reset & Normalization
+   4.  Global Base Styles
+   5.  Typography System
+   6.  Neon Glow Effects
+   7.  Button Styles
+   8.  Card & Container Components
+   9.  Layout Utilities
+   10. Spacing Utilities
+   11. Responsive Breakpoints
+   12. Accessibility Features
+   13. Navigation Styles
+   14. Footer Styles
+   15. Form Elements
+   16. Utility Classes
+   17. Animation & Transitions
+   18. Print Styles
+   
+   Questions? Refer to the brand guide at:
+   /home/ubuntu/grait-games-brand-summary.md
+   ============================================================================ */
