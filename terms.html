@@ -21,11 +21,11 @@
       --muted:     #7a7a9a;
       --border:    #1e1e30;
     }
-
+ 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
     html { scroll-behavior: smooth; }
-
+ 
     body {
       background-color: var(--bg);
       color: var(--white);
@@ -35,7 +35,7 @@
       min-height: 100vh;
       overflow-x: hidden;
     }
-
+ 
     /* scanline overlay */
     body::before {
       content: '';
@@ -51,7 +51,7 @@
       pointer-events: none;
       z-index: 9999;
     }
-
+ 
     /* grid noise bg */
     body::after {
       content: '';
@@ -64,7 +64,7 @@
       pointer-events: none;
       z-index: 0;
     }
-
+ 
     .page {
       position: relative;
       z-index: 1;
@@ -72,7 +72,7 @@
       margin: 0 auto;
       padding: 2.5rem 1.5rem 5rem;
     }
-
+ 
     /* back button */
     .back-btn {
       display: inline-flex;
@@ -95,7 +95,7 @@
       box-shadow: 0 0 14px rgba(0,234,255,.35);
     }
     .back-btn::before { content: '◀ '; }
-
+ 
     /* header */
     .site-header {
       text-align: center;
@@ -119,14 +119,14 @@
       text-transform: uppercase;
       margin-top: .8rem;
     }
-
+ 
     .divider {
       width: 100%;
       height: 2px;
       background: linear-gradient(90deg, transparent, var(--green-dim), var(--cyan-dim), transparent);
       margin: 2rem 0;
     }
-
+ 
     .meta {
       font-family: 'Share Tech Mono', monospace;
       font-size: .8rem;
@@ -135,7 +135,7 @@
       margin-bottom: 3rem;
     }
     .meta span { color: var(--orange); }
-
+ 
     /* sections */
     section {
       background: var(--bg2);
@@ -149,7 +149,7 @@
     section:hover { border-left-color: var(--green); }
     section:nth-child(even)       { border-left-color: var(--cyan-dim); }
     section:nth-child(even):hover { border-left-color: var(--cyan); }
-
+ 
     section::before {
       content: attr(data-num);
       font-family: 'Press Start 2P', monospace;
@@ -163,7 +163,7 @@
       line-height: 1;
     }
     section:nth-child(even)::before { background: var(--cyan); }
-
+ 
     h2 {
       font-family: 'Press Start 2P', monospace;
       font-size: clamp(.52rem, 1.7vw, .72rem);
@@ -174,10 +174,10 @@
       line-height: 1.8;
     }
     section:nth-child(even) h2 { color: var(--cyan); }
-
+ 
     p { margin-bottom: .9rem; color: var(--white); }
     p:last-child { margin-bottom: 0; }
-
+ 
     ul {
       list-style: none;
       padding: 0;
@@ -195,7 +195,7 @@
       color: var(--orange);
       font-size: .85em;
     }
-
+ 
     a {
       color: var(--cyan);
       text-decoration: none;
@@ -206,9 +206,9 @@
       border-color: var(--cyan);
       text-shadow: 0 0 8px var(--cyan);
     }
-
+ 
     strong { color: var(--orange); font-weight: 700; }
-
+ 
     .tag {
       display: inline-block;
       font-family: 'Share Tech Mono', monospace;
@@ -224,7 +224,7 @@
       border-color: var(--cyan-dim);
       color: var(--cyan);
     }
-
+ 
     /* warning box */
     .warning-box {
       background: rgba(255,107,26,.07);
@@ -241,7 +241,7 @@
       content: '⚠ ';
       color: var(--orange);
     }
-
+ 
     .contact-box {
       background: var(--bg3);
       border: 1px solid var(--cyan-dim);
@@ -252,20 +252,9 @@
     }
     .contact-box .label { color: var(--muted); font-size: .75rem; margin-bottom: .3rem; }
     .contact-box .value { color: var(--cyan); font-size: .95rem; }
-
-    footer {
-      text-align: center;
-      margin-top: 3.5rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border);
-    }
-    footer p {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .75rem;
-      color: var(--muted);
-    }
-    footer .glow { color: var(--green); text-shadow: 0 0 6px var(--green); }
-
+ 
+ 
+ 
     @media (max-width: 600px) {
       .page { padding: 1.5rem 1rem 4rem; }
       section { padding: 1.4rem 1.2rem; }
@@ -274,22 +263,22 @@
 </head>
 <body>
 <div class="page">
-
+ 
   <!-- Back Button -->
   <a href="https://graitgames.com" class="back-btn">Back to Home</a>
-
+ 
   <!-- Header -->
   <header class="site-header">
     <span class="site-logo">GRaiT <span>GAMES</span></span>
     <div class="page-title">// Terms &amp; Conditions //</div>
   </header>
-
+ 
   <div class="divider"></div>
-
+ 
   <p class="meta">
     Effective date: <span>June 2026</span> &nbsp;|&nbsp; Governing law: <span>Ontario, Canada</span>
   </p>
-
+ 
   <!-- 1. Acceptance -->
   <section data-num="01">
     <h2>Acceptance of Terms</h2>
@@ -300,7 +289,7 @@
       These Terms apply to all visitors, users, and anyone who accesses or uses the Site. Your continued use of the Site following any changes to these Terms constitutes acceptance of those changes.
     </p>
   </section>
-
+ 
   <!-- 2. Use of Website -->
   <section data-num="02">
     <h2>Use of the Website &amp; Games</h2>
@@ -319,7 +308,7 @@
       <li>Use the Site in any way that could damage, disable, or impair its operation.</li>
     </ul>
   </section>
-
+ 
   <!-- 3. Intellectual Property -->
   <section data-num="03">
     <h2>Intellectual Property</h2>
@@ -336,7 +325,7 @@
       If you believe any content on this Site infringes your intellectual property rights, please contact us at <a href="mailto:support@graitgames.com">support@graitgames.com</a>.
     </p>
   </section>
-
+ 
   <!-- 4. User Conduct -->
   <section data-num="04">
     <h2>User Conduct</h2>
@@ -352,7 +341,7 @@
       We reserve the right to take any action we deem appropriate in response to conduct that violates these Terms, including blocking access to the Site.
     </p>
   </section>
-
+ 
   <!-- 5. Disclaimer of Warranties -->
   <section data-num="05">
     <h2>Disclaimer of Warranties</h2>
@@ -369,7 +358,7 @@
       Your use of the Site is entirely at your own risk.
     </p>
   </section>
-
+ 
   <!-- 6. Limitation of Liability -->
   <section data-num="06">
     <h2>Limitation of Liability</h2>
@@ -383,35 +372,35 @@
       Some jurisdictions do not allow the exclusion of certain warranties or the limitation of liability, so some of the above limitations may not apply to you.
     </p>
   </section>
-
+ 
   <!-- 7. Third Party Services -->
   <section data-num="07">
     <h2>Third-Party Services</h2>
     <p>The Site integrates the following third-party services. GRaiT Games is not responsible for the privacy practices or content of these services:</p>
-
+ 
     <p>
       <span class="tag">Beehiiv</span>
       Powers our newsletter subscription. By signing up, you agree to Beehiiv's terms of service.
       <br/><a href="https://www.beehiiv.com/tou" target="_blank" rel="noopener">beehiiv.com/tou</a>
     </p>
-
+ 
     <p>
       <span class="tag cyan">Google Analytics</span>
       Provides anonymous website traffic analysis. Subject to Google's Terms of Service.
       <br/><a href="https://policies.google.com/terms" target="_blank" rel="noopener">policies.google.com/terms</a>
     </p>
-
+ 
     <p>
       <span class="tag">Cloudflare</span>
       Provides security, performance, and DDoS protection. Subject to Cloudflare's Terms of Service.
       <br/><a href="https://www.cloudflare.com/terms/" target="_blank" rel="noopener">cloudflare.com/terms</a>
     </p>
-
+ 
     <p>
       Links to third-party websites on this Site are provided for convenience only. GRaiT Games does not endorse and is not responsible for the content or practices of any third-party sites.
     </p>
   </section>
-
+ 
   <!-- 8. Children's Use -->
   <section data-num="08">
     <h2>Children's Use</h2>
@@ -425,7 +414,7 @@
       By permitting a child under 13 to use the Site, the parent or guardian assumes full responsibility for ensuring that use complies with these Terms.
     </p>
   </section>
-
+ 
   <!-- 9. Changes to Terms -->
   <section data-num="09">
     <h2>Changes to Terms</h2>
@@ -436,7 +425,7 @@
       It is your responsibility to review these Terms periodically. Continued use of the Site after changes are posted constitutes your acceptance of the revised Terms. If you do not agree to the updated Terms, you should stop using the Site.
     </p>
   </section>
-
+ 
   <!-- 10. Governing Law -->
   <section data-num="10">
     <h2>Governing Law</h2>
@@ -447,7 +436,7 @@
       Any disputes arising out of or relating to these Terms or your use of the Site shall be subject to the exclusive jurisdiction of the courts located in <strong>Ontario, Canada</strong>. You hereby consent to the personal jurisdiction of such courts.
     </p>
   </section>
-
+ 
   <!-- 11. Contact -->
   <section data-num="11">
     <h2>Contact Us</h2>
@@ -462,17 +451,9 @@
     </div>
     <p style="margin-top:1rem;">We aim to respond to all enquiries within <strong>5 business days</strong>.</p>
   </section>
-
-  <div class="divider"></div>
-
-  <footer>
-    <p>
-      <span class="glow">GRaiT GAMES</span> &nbsp;·&nbsp; graitgames.com &nbsp;·&nbsp; Ontario, Canada<br />
-      © <span id="yr"></span> GRaiT Games. All rights reserved.
-    </p>
-  </footer>
-
+ 
+ 
 </div>
-<script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+<script src="/footer.js"></script>
 </body>
 </html>
