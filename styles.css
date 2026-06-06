@@ -665,6 +665,27 @@ pre code {
   box-shadow: var(--glow-pink);
 }
 
+/* --- CALLOUT / WARNING BOX --- */
+/* Highlighted inset note (e.g. legal warnings). Orange left accent on a
+   subtle dark panel. High contrast for WCAG 2.1 AA. */
+.callout-warning {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-orange);
+  border-left: 3px solid var(--color-orange);
+  border-radius: var(--border-radius);
+  padding: var(--space-md) var(--space-lg);
+  margin: var(--space-md) 0;
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.callout-warning::before {
+  content: '⚠ ';
+  color: var(--color-orange);
+  font-weight: 700;
+}
+
 /* --- CARD HEADER --- */
 .card-header {
   margin-bottom: var(--space-md);
