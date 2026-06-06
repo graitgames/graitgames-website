@@ -6,7 +6,7 @@
     link.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap';
     document.head.appendChild(link);
   }
- 
+
   /* ── Styles ── */
   const css = `
     #grait-footer {
@@ -19,7 +19,7 @@
       color: #e8e8f0;
       overflow: hidden;
     }
- 
+
     /* scanline overlay */
     #grait-footer::before {
       content: '';
@@ -35,9 +35,9 @@
       pointer-events: none;
       z-index: 0;
     }
- 
+
     #grait-footer > * { position: relative; z-index: 1; }
- 
+
     .gf-inner {
       max-width: 900px;
       margin: 0 auto;
@@ -46,7 +46,7 @@
       align-items: center;
       gap: 1.5rem 2rem;
     }
- 
+
     /* brand */
     .gf-brand {
       justify-self: start;
@@ -61,14 +61,14 @@
       text-decoration: none;
     }
     .gf-logo .logo-orange {
-      color: #ff6b1a;
+      color: #FF6B2B;
       font-style: normal;
-      text-shadow: 0 0 8px #ff6b1a, 0 0 24px rgba(255,107,26,.4);
+      text-shadow: 0 0 8px #FF6B2B, 0 0 24px rgba(255,107,43,.4);
     }
     .gf-logo .logo-green {
-      color: #39ff14;
+      color: #39FF14;
       font-style: normal;
-      text-shadow: 0 0 8px #39ff14, 0 0 24px rgba(57,255,20,.4);
+      text-shadow: 0 0 8px #39FF14, 0 0 24px rgba(57,255,20,.4);
     }
     .gf-copy {
       font-family: 'Share Tech Mono', monospace;
@@ -76,7 +76,7 @@
       color: #7a7a9a;
       margin-top: .55rem;
     }
- 
+
     /* nav links — centre column */
     .gf-nav {
       justify-self: center;
@@ -100,7 +100,7 @@
       border-color: #00eaff;
       text-shadow: 0 0 8px #00eaff;
     }
- 
+
     /* socials — right column */
     .gf-socials {
       justify-self: end;
@@ -131,7 +131,7 @@
       height: 16px;
       fill: currentColor;
     }
- 
+
     /* mobile */
     @media (max-width: 640px) {
       .gf-inner {
@@ -143,47 +143,47 @@
       .gf-socials { justify-self: center; }
     }
   `;
- 
+
   const style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);
- 
+
   /* ── SVG icons ── */
   const icons = {
-    youtube: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>`,
+    youtube:   `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>`,
     instagram: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 3.3.2 4.8 1.7 5 5 .1 1.3.1 1.6.1 4.9s0 3.6-.1 4.9c-.2 3.3-1.7 4.8-5 5-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-3.3-.2-4.8-1.7-5-5C2 16.6 2 16.3 2 12s0-3.6.1-4.9c.2-3.3 1.7-4.8 5-5C8.4 2.2 8.8 2.2 12 2.2zM12 0C8.7 0 8.3 0 7.1.1 2.7.3.3 2.7.1 7.1.0 8.3 0 8.7 0 12s0 3.7.1 4.9C.3 21.3 2.7 23.7 7.1 23.9 8.3 24 8.7 24 12 24s3.7 0 4.9-.1c4.4-.2 6.8-2.6 7-7 .1-1.2.1-1.6.1-4.9s0-3.7-.1-4.9C23.7 2.7 21.3.3 16.9.1 15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 12 5.8zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z"/></svg>`,
-    x: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 1h3.7l-8 9.2L24 23h-7.4l-5.8-7.5L4.5 23H.8l8.6-9.8L0 1h7.6l5.2 6.9L18.9 1zm-1.3 19.8h2L6.5 3.1H4.3l13.3 17.7z"/></svg>`,
-    tiktok: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.6 8.6a7.6 7.6 0 0 1-4.4-1.4v6.4a6.2 6.2 0 1 1-6.2-6.2c.2 0 .4 0 .6.0v3.1a3.1 3.1 0 1 0 2.6 3v-13h3c.3 2.5 2.3 4.5 4.8 4.8v3.3h-.4z"/></svg>`,
+    x:         `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 1h3.7l-8 9.2L24 23h-7.4l-5.8-7.5L4.5 23H.8l8.6-9.8L0 1h7.6l5.2 6.9L18.9 1zm-1.3 19.8h2L6.5 3.1H4.3l13.3 17.7z"/></svg>`,
+    tiktok:    `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.6 8.6a7.6 7.6 0 0 1-4.4-1.4v6.4a6.2 6.2 0 1 1-6.2-6.2c.2 0 .4 0 .6.0v3.1a3.1 3.1 0 1 0 2.6 3v-13h3c.3 2.5 2.3 4.5 4.8 4.8v3.3h-.4z"/></svg>`,
   };
- 
+
   /* ── HTML ── */
   const year = new Date().getFullYear();
- 
+
   const footer = document.createElement('footer');
   footer.id = 'grait-footer';
   footer.innerHTML = `
     <div class="gf-inner">
- 
+
       <div class="gf-brand">
         <a class="gf-logo" href="/"><span class="logo-orange">GR</span><span class="logo-green">ai</span><span class="logo-orange">T</span><span class="logo-green"> GAMES</span></a>
         <div class="gf-copy">© ${year} GRaiT GAMES. All Rights Reserved.</div>
       </div>
- 
+
       <nav class="gf-nav" aria-label="Footer navigation">
         <a href="/privacy-policy.html">Privacy Policy</a>
         <a href="/terms.html">Terms &amp; Conditions</a>
       </nav>
- 
+
       <div class="gf-socials" aria-label="Social media links">
-        <a href="https://youtube.com/@graitgames"   target="_blank" rel="noopener" aria-label="YouTube">${icons.youtube}</a>
-        <a href="https://instagram.com/graitgames"  target="_blank" rel="noopener" aria-label="Instagram">${icons.instagram}</a>
-        <a href="https://x.com/graitgames"          target="_blank" rel="noopener" aria-label="X">${icons.x}</a>
-        <a href="https://tiktok.com/@graitgames"    target="_blank" rel="noopener" aria-label="TikTok">${icons.tiktok}</a>
+        <a href="https://youtube.com/@graitgames"  target="_blank" rel="noopener" aria-label="YouTube">${icons.youtube}</a>
+        <a href="https://instagram.com/graitgames" target="_blank" rel="noopener" aria-label="Instagram">${icons.instagram}</a>
+        <a href="https://x.com/graitgames"         target="_blank" rel="noopener" aria-label="X">${icons.x}</a>
+        <a href="https://tiktok.com/@graitgames"   target="_blank" rel="noopener" aria-label="TikTok">${icons.tiktok}</a>
       </div>
- 
+
     </div>
   `;
- 
+
   /* ── Inject ── */
   document.body.appendChild(footer);
 })();
