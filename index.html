@@ -318,7 +318,22 @@
     .social-btn.disc::before { background: var(--cyan); }
     .social-btn.disc:hover { box-shadow: var(--glow-c); border-color: #00eeff; }
  
-    
+    /* ── EMAIL SIGNUP (Beehiiv) ── */
+    .signup-section {
+      width: 100%;
+      max-width: 520px;
+      animation: fadeUp 1s 0.6s ease both;
+    }
+    .signup-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--orange);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+ 
     /* ── CORNER DECORATIONS ── */
     .corner {
       position: fixed;
@@ -370,7 +385,6 @@
       <div class="logo-name">
   <span class="g1">GR</span><span class="ai">ai</span><span class="t">T</span><span class="sp">&nbsp;</span><span class="ai">GAMES</span>
       </div>
-      <div class="logo-sub">Insert Coin to Continue</div>
     </header>
  
     <!-- ── MAIN ── -->
@@ -444,7 +458,12 @@
       </div>
     </section>
  
-    
+    <!-- ── EMAIL SIGNUP (Beehiiv) ── -->
+    <section class="signup-section" aria-label="Email Signup">
+      <div class="signup-label">// Get Early Access //</div>
+      <script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="e76eeefb-b363-4f57-ab70-82e508f70d49"></script>
+    </section>
+ 
   </div><!-- .page -->
  
   <script>
