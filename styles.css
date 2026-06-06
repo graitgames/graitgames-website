@@ -392,6 +392,17 @@ pre code {
   color: var(--text-purple);
 }
 
+/* --- AI HIGHLIGHT (emphasizes the "ai" in GRaiT) --- */
+/* Uses primary brand green with an underline accent to draw attention to the
+   AI aspect of the brand. No glow — keeps high contrast for WCAG 2.1 AA. */
+.highlight-ai {
+  color: var(--color-green);
+  text-decoration: underline;
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.18em;
+  text-decoration-color: var(--color-green);
+}
+
 
 /* ============================================================================
    6. NEON GLOW EFFECTS — UTILITY CLASSES
