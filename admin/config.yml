@@ -1,0 +1,61 @@
+# ============================================================================
+# DECAP CMS CONFIGURATION — GRaiT GAMES
+# ----------------------------------------------------------------------------
+# This file tells Decap CMS:
+#   • WHERE your content lives (which GitHub repo + branch)
+#   • HOW you log in (GitHub OAuth via our Cloudflare Pages Function proxy)
+#   • WHAT fields each blog post has (the editing form)
+#
+# Full setup walkthrough: ../BLOG-CMS-SETUP.md
+# Decap docs: https://decapcms.org/docs/
+# ============================================================================
+
+backend:
+  name: github                       # Use GitHub directly as the content store
+  repo: graitgames/graitgames-website # owner/repo — change if you fork/rename
+  branch: main                       # Branch the CMS commits to
+
+  # --- OAuth proxy (required on Cloudflare Pages) -------------------------
+  # Cloudflare Pages is static, so GitHub login is handled by the small
+  # serverless functions in /functions/api/ (auth.js + callback.js).
+  # base_url is your live site origin; auth_endpoint is the function path.
+  base_url: https://graitgames.com
+  auth_endpoint: /api/auth
+
+# Editorial workflow gives you Draft → In Review → Ready columns and creates
+# a Pull Request for each post instead of committing straight to main. Great
+# for reviewing your son's posts together before they go live. Set to
+# `simple` if you'd rather publish straight away.
+publish_mode: editorial_workflow
+
+# Where uploaded images are stored in the repo, and how the site links to them.
+media_folder: "blog/images"          # Files are committed here
+public_folder: "/blog/images"        # ...and served from this URL path
+
+# ----------------------------------------------------------------------------
+# COLLECTIONS — each "collection" is a type of content you can edit.
+# We have one: Blog Posts. Each post becomes a Markdown file in blog/posts/.
+# ----------------------------------------------------------------------------
+collections:
+  - name: "blog"
+    label: "Blog Posts"
+    label_singular: "Blog Post"
+    folder: "blog/posts"             # Markdown files are saved here
+    create: true                     # Allow creating new posts in the UI
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"  # Filename pattern
+    summary: "{{title}} — {{date}}"  # How posts appear in the list view
+    sortable_fields: ["date", "title"]
+
+    # The editing form. Each "field" becomes an input in the CMS.
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Publish Date", name: "date", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false }
+      - label: "Category"
+        name: "category"
+        widget: "select"
+        default: "Development"
+        options: ["Development", "AI", "Learning", "Updates"]
+      - { label: "Read Time (e.g. 5 min read)", name: "readtime", widget: "string", required: false, default: "5 min read" }
+      - { label: "Featured Image", name: "image", widget: "image", required: false, hint: "Optional banner image for the post" }
+      - { label: "Excerpt", name: "excerpt", widget: "text", hint: "1–2 sentence summary shown on the blog listing card" }
+      - { label: "Body", name: "body", widget: "markdown", hint: "Write your post here. Supports headings, lists, links, images and code blocks." }

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog — GRaiT GAMES</title>
+  <meta name="description" content="The GRaiT GAMES blog — game development notes, AI learning adventures, coding tips, and project updates from our father-and-son workshop." />
+
+  <!-- Preconnect to Google Fonts for faster font loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Master design system (all styling lives in styles.css) -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Skip link for keyboard users (becomes visible on focus) -->
+  <a href="#blog-main" class="skip-link">Skip to blog posts</a>
+
+  <!-- Navigation header injected by nav.js -->
+  <nav id="main-nav"></nav>
+
+  <main id="blog-main">
+
+    <!-- =================================================================
+         HERO — reuses the shared .about-hero band (synthwave gradient +
+         pixel grid). Text sits on a solid background for WCAG AA contrast.
+         ================================================================= -->
+    <section class="about-hero" aria-labelledby="blog-hero-title">
+      <div class="container-narrow">
+        <p class="section-eyebrow">// The Devlog //</p>
+        <h1 id="blog-hero-title">
+          The <span class="text-orange">GRaiT</span>
+          <span class="text-green">Blog</span>
+        </h1>
+        <p class="about-mission">
+          Follow along as we build games, learn to code, and figure out how to
+          use <strong class="text-green">AI</strong> as a teammate. Expect
+          honest devlogs, beginner-friendly coding tips, and the occasional
+          happy accident.
+        </p>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         POST LISTING — responsive 2-column card grid (1 column on mobile).
+
+         HOW TO ADD A POST (manual method):
+           1. Copy one <article class="blog-card"> block below.
+           2. Update the thumbnail label, category tag, title (+ link),
+              excerpt, date and read-time.
+           3. Point the "Read More" link at your post's URL
+              (e.g. blog-post.html or /blog/your-post.html).
+         Or use the CMS — see BLOG-CMS-SETUP.md.
+         ================================================================= -->
+    <section class="section" aria-labelledby="blog-posts-title">
+      <div class="container-wide">
+
+        <h2 id="blog-posts-title" class="sr-only">Latest posts</h2>
+
+        <div class="blog-grid">
+
+          <!-- 1. Project Update -->
+          <article class="blog-card">
+            <div class="blog-thumb">
+              <span class="blog-tag">Updates</span>
+              <span class="blog-thumb-label">LAUNCH<br>DAY</span>
+            </div>
+            <div class="blog-card-body">
+              <p class="post-meta">
+                <time datetime="2026-06-01">June 1, 2026</time>
+                <span class="meta-sep" aria-hidden="true">·</span>
+                <span>4 min read</span>
+              </p>
+              <h3 class="blog-card-title">
+                <a href="blog-post.html">We Launched GRaiT GAMES!</a>
+              </h3>
+              <p class="blog-excerpt">
+                After months of late-night coding sessions at the kitchen table,
+                our little game studio is finally live. Here's the story of how
+                we got here — and what's coming next.
+              </p>
+              <div class="blog-card-footer">
+                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
+                   aria-label="Read more: We Launched GRaiT GAMES!">Read More →</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2. Game Development -->
+          <article class="blog-card">
+            <div class="blog-thumb">
+              <span class="blog-tag">Development</span>
+              <span class="blog-thumb-label">GAME<br>LOOP</span>
+            </div>
+            <div class="blog-card-body">
+              <p class="post-meta">
+                <time datetime="2026-05-22">May 22, 2026</time>
+                <span class="meta-sep" aria-hidden="true">·</span>
+                <span>7 min read</span>
+              </p>
+              <h3 class="blog-card-title">
+                <a href="blog-post.html">Building Our First Game Loop</a>
+              </h3>
+              <p class="blog-excerpt">
+                Every game has a heartbeat called the "game loop." We break down
+                what it is, why it matters, and how we built a simple one in
+                plain JavaScript — no engine required.
+              </p>
+              <div class="blog-card-footer">
+                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
+                   aria-label="Read more: Building Our First Game Loop">Read More →</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 3. AI Learning -->
+          <article class="blog-card">
+            <div class="blog-thumb">
+              <span class="blog-tag">AI</span>
+              <span class="blog-thumb-label">AI<br>TEAMMATE</span>
+            </div>
+            <div class="blog-card-body">
+              <p class="post-meta">
+                <time datetime="2026-05-10">May 10, 2026</time>
+                <span class="meta-sep" aria-hidden="true">·</span>
+                <span>6 min read</span>
+              </p>
+              <h3 class="blog-card-title">
+                <a href="blog-post.html">How We Use AI Without Letting It Do Everything</a>
+              </h3>
+              <p class="blog-excerpt">
+                AI is an amazing tutor, but it's a terrible substitute for
+                actually understanding your code. Here's how we keep learning
+                in the driver's seat while still getting help.
+              </p>
+              <div class="blog-card-footer">
+                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
+                   aria-label="Read more: How We Use AI Without Letting It Do Everything">Read More →</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 4. Coding Tips -->
+          <article class="blog-card">
+            <div class="blog-thumb">
+              <span class="blog-tag">Learning</span>
+              <span class="blog-thumb-label">CSS<br>TRICKS</span>
+            </div>
+            <div class="blog-card-body">
+              <p class="post-meta">
+                <time datetime="2026-04-28">April 28, 2026</time>
+                <span class="meta-sep" aria-hidden="true">·</span>
+                <span>5 min read</span>
+              </p>
+              <h3 class="blog-card-title">
+                <a href="blog-post.html">5 CSS Tricks That Made Our Site Glow</a>
+              </h3>
+              <p class="blog-excerpt">
+                From neon text-shadows to scanline overlays, these are the five
+                beginner-friendly CSS techniques that gave GRaiT GAMES its
+                retro-futuristic synthwave look.
+              </p>
+              <div class="blog-card-footer">
+                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
+                   aria-label="Read more: 5 CSS Tricks That Made Our Site Glow">Read More →</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 5. Coding Tips -->
+          <article class="blog-card">
+            <div class="blog-thumb">
+              <span class="blog-tag">Development</span>
+              <span class="blog-thumb-label">DEBUG<br>MODE</span>
+            </div>
+            <div class="blog-card-body">
+              <p class="post-meta">
+                <time datetime="2026-04-15">April 15, 2026</time>
+                <span class="meta-sep" aria-hidden="true">·</span>
+                <span>8 min read</span>
+              </p>
+              <h3 class="blog-card-title">
+                <a href="blog-post.html">Debugging Is a Superpower (Here's How We Learned It)</a>
+              </h3>
+              <p class="blog-excerpt">
+                Bugs used to scare us. Now they're our favourite puzzles. We
+                share the simple debugging mindset and browser tools that turned
+                frustration into "aha!" moments.
+              </p>
+              <div class="blog-card-footer">
+                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
+                   aria-label="Read more: Debugging Is a Superpower">Read More →</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 6. AI / Learning -->
+          <article class="blog-card">
+            <div class="blog-thumb">
+              <span class="blog-tag">AI</span>
+              <span class="blog-thumb-label">PROMPT<br>CRAFT</span>
+            </div>
+            <div class="blog-card-body">
+              <p class="post-meta">
+                <time datetime="2026-04-02">April 2, 2026</time>
+                <span class="meta-sep" aria-hidden="true">·</span>
+                <span>6 min read</span>
+              </p>
+              <h3 class="blog-card-title">
+                <a href="blog-post.html">Talking to AI: What Makes a Good Prompt?</a>
+              </h3>
+              <p class="blog-excerpt">
+                Asking an AI for help is a skill of its own. We explore how
+                clear, specific prompts get better code — and how a 10-year-old
+                taught his dad a thing or two about asking good questions.
+              </p>
+              <div class="blog-card-footer">
+                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
+                   aria-label="Read more: Talking to AI: What Makes a Good Prompt?">Read More →</a>
+              </div>
+            </div>
+          </article>
+
+        </div><!-- /.blog-grid -->
+      </div>
+    </section>
+
+    <!-- =================================================================
+         NEWSLETTER CTA — reuses the about CTA band styling
+         ================================================================= -->
+    <section class="about-cta" aria-labelledby="blog-cta-title">
+      <div class="container-narrow">
+        <p class="section-eyebrow">// Never Miss a Post //</p>
+        <h2 id="blog-cta-title">Get new posts in your inbox</h2>
+        <p class="about-lead is-centered">
+          We send a short, friendly update whenever we publish a new devlog or
+          ship a new game. No spam — just the good stuff.
+        </p>
+        <div class="cta-actions">
+          <a href="index.html#newsletter" class="btn btn-primary btn-lg">Join the Newsletter</a>
+          <a href="games.html" class="btn btn-outline-cyan btn-lg">Play Our Games</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Scripts ──────────────────────────────────────────────────────
+       nav.js   → injects the responsive navigation header
+       footer.js→ injects the site footer -->
+  <script src="nav.js"></script>
+  <script src="/footer.js"></script>
+</body>
+</html>

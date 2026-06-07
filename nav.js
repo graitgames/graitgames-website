@@ -112,7 +112,7 @@
     { label: 'Home',  href: 'index.html' },
     { label: 'Games', href: 'games.html' },
     { label: 'About', href: 'about.html' },
-    { label: 'Blog',  href: '#' }
+    { label: 'Blog',  href: 'blog.html' }
   ];
 
   /* Resolve the current page so we can flag the active link */
