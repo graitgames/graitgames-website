@@ -2374,6 +2374,23 @@ select:disabled {
   z-index: 1050;
 }
 
+/* ⚠️ STACKING-CONTEXT FIX (mobile category drawer)
+   The drawer (.catalog-sidebar) and this backdrop use position:fixed with
+   z-index 1060/1050 so they intentionally sit ABOVE the sticky navbar (1000).
+   BUT a global rule (`main { position:relative; z-index:1 }`, added so page
+   content sits above the homepage's fixed background FX) turns <main> into its
+   own stacking context. Because the sidebar lives inside <main> while the
+   backdrop is a direct child of <body>, the sidebar's z-index:1060 was trapped
+   at main's level (1) and the body-level backdrop (1050) painted OVER it — the
+   drawer looked dimmed/blurred and every tap hit the backdrop (unclickable).
+   This catalog page has no background FX, so we let its <main> NOT form a
+   stacking context (z-index:auto). The fixed drawer + backdrop then resolve at
+   the root level and layer correctly (sidebar 1060 > backdrop 1050 > nav 1000).
+   (.catalog-page is a class on this page's <main> — see games.html.) */
+.catalog-page {
+  z-index: auto;
+}
+
 .catalog-backdrop.active {
   display: block;
 }
