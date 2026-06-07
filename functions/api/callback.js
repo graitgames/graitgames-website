@@ -78,12 +78,23 @@ export async function onRequest(context) {
 }
 
 /* ----------------------------------------------------------------------------
-   Helper: returns the small HTML page Decap CMS expects. It posts a message
-   in the exact format Decap listens for: "authorization:github:<status>:<json>".
-   The page closes itself once the token is delivered.
+   Helper: returns the small HTML page Decap CMS expects, implementing the
+   EXACT postMessage handshake Decap/Netlify CMS uses for external OAuth.
+
+   The handshake order matters (this is what previously broke login — the
+   popup closed but the user was never logged in):
+
+     1. POPUP  → opener:  "authorizing:github"               (we start it)
+     2. CMS    → popup:   "authorizing:github"               (acknowledgement)
+     3. POPUP  → opener:  "authorization:github:success:{…}" (the real token)
+     4. CMS receives the token, closes the popup, and logs you in.
+
+   The old code skipped step 1 and blindly sent the step-3 message before the
+   CMS had swapped its listener to receive it, so the token was dropped.
    ---------------------------------------------------------------------------- */
 function postMessagePage(status, payload) {
-  const message = `authorization:github:${status}:${JSON.stringify(payload)}`;
+  const provider = "github";
+  const message = `authorization:${provider}:${status}:${JSON.stringify(payload)}`;
 
   const html = `<!DOCTYPE html>
 <html>
@@ -92,17 +103,28 @@ function postMessagePage(status, payload) {
     <p style="font-family: sans-serif;">Completing GitHub login… you can close this window.</p>
     <script>
       (function () {
-        function send() {
-          // Send the result to whatever window opened this popup (the CMS).
-          window.opener && window.opener.postMessage(
-            ${JSON.stringify(message)},
-            "*"
-          );
+        var authMessage = ${JSON.stringify(message)};
+        var provider = ${JSON.stringify(provider)};
+
+        // If this page wasn't opened by the CMS (e.g. visited directly),
+        // there's no opener to talk to.
+        if (!window.opener) {
+          document.body.innerText =
+            "This window must be opened by the CMS login button. Please close it and try again.";
+          return;
         }
-        // Decap first sends us a handshake; reply once we hear it.
-        window.addEventListener("message", function () { send(); }, false);
-        send();
-        setTimeout(function () { window.close(); }, 1000);
+
+        // Step 2 → 3: when the CMS acknowledges our handshake, send the token.
+        function receiveMessage(e) {
+          window.opener.postMessage(authMessage, e.origin || "*");
+          window.removeEventListener("message", receiveMessage, false);
+          // Give the opener a moment to process, then close the popup.
+          setTimeout(function () { window.close(); }, 600);
+        }
+        window.addEventListener("message", receiveMessage, false);
+
+        // Step 1: kick off the handshake the CMS is waiting for.
+        window.opener.postMessage("authorizing:" + provider, "*");
       })();
     </script>
   </body>

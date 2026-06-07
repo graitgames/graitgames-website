@@ -10,6 +10,45 @@
 
 ---
 
+## 🔁 UPDATE 2 — "Popup closes but I'm NOT logged in" (FIXED)
+
+**Symptom:** You click **Login with GitHub**, the popup opens and briefly shows
+*"Completing login… you can close this window"*, then **closes by itself — but the
+CMS stays on the login screen.** No 404 this time; login *almost* works.
+
+**Root cause:** the OAuth popup and the CMS talk to each other with a specific
+**`postMessage` handshake**, and the order was wrong. Decap expects this sequence:
+
+```
+1. POPUP  → CMS:   "authorizing:github"                 ← the popup must start it
+2. CMS    → POPUP: "authorizing:github"                 ← acknowledgement
+3. POPUP  → CMS:   "authorization:github:success:{token}"
+4. CMS receives the token and logs you in ✅
+```
+
+The old `callback.js` **skipped step 1** and fired the step-3 token message
+immediately — before the CMS had switched to listening for it. So the token was
+**dropped on the floor**, the popup closed, and you were never logged in.
+
+**The fix (already committed):** `functions/api/callback.js` now performs the
+handshake correctly — it first posts `authorizing:github`, waits for the CMS to
+acknowledge, and *then* sends the token. We verified the new order with a
+simulation (token delivered ✅) and confirmed the old order failed (token dropped ❌).
+
+We also set `auth_endpoint: api/auth` (relative, no leading slash) in
+`admin/config.yml` so the auth URL resolves cleanly to
+`https://www.graitgames.com/api/auth` with no double-slash edge cases.
+
+> 👉 **What you must do:** **Re-deploy** (Cloudflare → Deployments → ⋯ →
+> **Retry deployment**, or push a commit) so the new `callback.js` goes live, then
+> try logging in again at **`https://www.graitgames.com/admin/`**.
+
+> 💡 **If it still doesn't log you in:** open the browser **console (F12)** on the
+> `/admin/` page *before* clicking login, and watch for messages/errors during the
+> popup. Also make sure pop-ups aren't blocked for the site.
+
+---
+
 ## 🩺 UPDATE — Root Cause Found (read this first)
 
 After you added the environment variables and re-deployed, the login **still

@@ -20,7 +20,7 @@ backend:
   # serverless functions in /functions/api/ (auth.js + callback.js).
   # base_url is your live site origin; auth_endpoint is the function path.
   base_url: https://www.graitgames.com
-  auth_endpoint: /api/auth
+  auth_endpoint: api/auth          # relative (no leading slash) → base_url + "/api/auth"
 
 # Editorial workflow gives you Draft → In Review → Ready columns and creates
 # a Pull Request for each post instead of committing straight to main. Great
