@@ -38,6 +38,74 @@
 
     #grait-footer > * { position: relative; z-index: 1; }
 
+    /* ── Newsletter signup band (sits ABOVE the main footer row) ── */
+    .gf-newsletter {
+      max-width: 640px;
+      margin: 0 auto 2.4rem;
+      padding-bottom: 2.4rem;
+      border-bottom: 1px solid #1e1e30;
+      text-align: center;          /* centres the heading, copy and button */
+    }
+    .gf-news-eyebrow {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: #00eaff;
+      margin: 0 0 .75rem;
+    }
+    .gf-news-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(.8rem, 2.2vw, 1.1rem);
+      line-height: 1.55;
+      color: #ffffff;
+      margin: 0 0 .9rem;
+    }
+    .gf-news-title .gf-orange {
+      color: #ff6b1a;
+      text-shadow: 0 0 8px #ff6b1a, 0 0 24px rgba(255,107,26,.4);
+    }
+    .gf-news-title .gf-green {
+      color: #39ff14;
+      text-shadow: 0 0 8px #39ff14, 0 0 24px rgba(57,255,20,.4);
+    }
+    .gf-news-copy {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #b8b8d0;
+      max-width: 520px;
+      margin: 0 auto 1.6rem;
+    }
+    /* the single, centred call-to-action button */
+    .gf-news-btn {
+      display: inline-block;
+      font-family: 'Press Start 2P', monospace;
+      font-size: .7rem;
+      letter-spacing: .04em;
+      color: #07070f;
+      background: #ff6b1a;
+      padding: .95rem 1.7rem;
+      text-decoration: none;
+      border: 2px solid #ff6b1a;
+      border-radius: 2px;
+      box-shadow: 0 0 16px rgba(255,107,26,.45);
+      transition: background .2s, border-color .2s, color .2s, box-shadow .2s, transform .15s;
+    }
+    .gf-news-btn:hover,
+    .gf-news-btn:focus-visible {
+      background: #39ff14;
+      border-color: #39ff14;
+      color: #07070f;
+      box-shadow: 0 0 20px rgba(57,255,20,.55);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .gf-news-btn:focus-visible {
+      outline: 2px solid #00eaff;
+      outline-offset: 3px;
+    }
+
     .gf-inner {
       max-width: 900px;
       margin: 0 auto;
@@ -159,6 +227,27 @@
   const footer = document.createElement('footer');
   footer.id = 'grait-footer';
   footer.innerHTML = `
+
+    <!-- ── Newsletter signup (site-wide CTA, shown above the footer row) ──
+         A single, centred "Subscribe" button links to our Beehiiv page.
+         We intentionally do NOT embed the Beehiiv loader script here so it
+         never double-loads alongside the live form on the home page. -->
+    <section class="gf-newsletter" aria-labelledby="gf-news-title">
+      <p class="gf-news-eyebrow">// Join the Crew //</p>
+      <h2 class="gf-news-title" id="gf-news-title">
+        Subscribe to the <span class="gf-orange">News</span><span class="gf-green">letter</span>
+      </h2>
+      <p class="gf-news-copy">
+        Get game drops, behind-the-scenes devlogs, and the occasional story
+        straight from the workshop — delivered to your inbox.
+      </p>
+      <a class="gf-news-btn"
+         href="https://graitgames.beehiiv.com/subscribe"
+         target="_blank" rel="noopener">
+        Subscribe to the Newsletter
+      </a>
+    </section>
+
     <div class="gf-inner">
 
       <div class="gf-brand">
