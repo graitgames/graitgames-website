@@ -36,7 +36,7 @@ blog/images/          Uploaded blog images
 - **Logo:** "GR" and "T" are orange; "ai" and "GAMES" are green.
 - **Accessibility:** target WCAG 2.1 AA (high contrast; glow is decorative only).
 
-## ✍️ Adding a new blog post
+## ✍️ Adding new blog posts
 
 You have two options — full details in **[BLOG-CMS-SETUP.md](./BLOG-CMS-SETUP.md)**.
 
