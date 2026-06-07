@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic-Tac-Toe — GRaiT GAMES</title>
+  <meta name="description" content="Tic-Tac-Toe — a synthwave two-player classic. Orange X vs Neon-Green O. Best of luck! A GRaiT GAMES original." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link rel="stylesheet" href="../styles.css" />
+
+  <style>
+    .game-stage { max-width: 460px; margin: 0 auto; }
+
+    /* Turn / status banner */
+    .status-banner {
+      text-align: center;
+      font-family: var(--font-headline);
+      font-size: 1.25rem;
+      font-weight: 700;
+      padding: var(--space-md);
+      margin-bottom: var(--space-lg);
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-accessible);
+      border-radius: var(--border-radius-lg);
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Scoreboard */
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+    .score-box {
+      flex: 1 1 0;
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-accessible);
+      border-radius: var(--border-radius-lg);
+      padding: var(--space-md);
+      text-align: center;
+    }
+    .score-box .lbl {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: var(--space-xs);
+    }
+    .score-box .val {
+      font-family: var(--font-headline);
+      font-size: 1.7rem;
+      font-weight: 700;
+    }
+    .score-x .val { color: var(--color-orange); }
+    .score-o .val { color: var(--color-green); }
+    .score-draw .val { color: var(--text-link); }
+
+    /* 3 × 3 board */
+    .ttt-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-sm);
+      aspect-ratio: 1 / 1;
+    }
+    .ttt-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-logo);
+      font-size: clamp(2rem, 12vw, 3.5rem);
+      background-color: var(--bg-panel);
+      border: 2px solid var(--border-accessible);
+      border-radius: var(--border-radius-lg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      user-select: none;
+    }
+    .ttt-cell:hover:not(:disabled) {
+      border-color: var(--color-cyan-2);
+      background-color: rgba(0, 234, 255, 0.06);
+    }
+    .ttt-cell:disabled { cursor: default; }
+    .ttt-cell.x { color: var(--color-orange); }
+    .ttt-cell.o { color: var(--color-green); }
+    /* Winning line highlight */
+    .ttt-cell.win-x { border-color: var(--color-orange); box-shadow: var(--glow-orange); }
+    .ttt-cell.win-o { border-color: var(--color-green); box-shadow: var(--glow-green); }
+
+    .game-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      justify-content: center;
+      margin-top: var(--space-xl);
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#game" class="skip-link">Skip to game</a>
+
+  <nav id="main-nav"></nav>
+
+  <main class="container-narrow section" id="game">
+
+    <a href="/games.html" class="btn btn-outline-cyan btn-sm mb-xl">← Back to Catalog</a>
+
+    <header class="text-center mb-xl">
+      <h1 class="text-cyan">// Tic-Tac-Toe //</h1>
+      <p class="text-description">
+        Two players, one grid. <span class="text-orange">X</span> vs
+        <span class="text-green">O</span> — get three in a row to win!
+      </p>
+    </header>
+
+    <div class="game-stage">
+
+      <!-- Scoreboard -->
+      <div class="scoreboard">
+        <div class="score-box score-x">
+          <div class="lbl">Player X</div>
+          <div class="val" id="score-x">0</div>
+        </div>
+        <div class="score-box score-draw">
+          <div class="lbl">Draws</div>
+          <div class="val" id="score-draw">0</div>
+        </div>
+        <div class="score-box score-o">
+          <div class="lbl">Player O</div>
+          <div class="val" id="score-o">0</div>
+        </div>
+      </div>
+
+      <!-- Status / turn announcement -->
+      <div class="status-banner" id="status" role="status" aria-live="polite">
+        <span class="text-orange">X</span>&nbsp;'s turn
+      </div>
+
+      <!-- Board (9 cells injected by JS) -->
+      <div class="ttt-board" id="board" aria-label="Tic-tac-toe board"></div>
+
+      <div class="game-controls">
+        <button type="button" class="btn btn-primary" id="reset">↻ New Round</button>
+        <button type="button" class="btn btn-outline-cyan" id="reset-scores">Reset Scores</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var board    = document.getElementById('board');
+    var statusEl = document.getElementById('status');
+    var resetBtn = document.getElementById('reset');
+    var resetScoresBtn = document.getElementById('reset-scores');
+    var scoreXEl = document.getElementById('score-x');
+    var scoreOEl = document.getElementById('score-o');
+    var scoreDEl = document.getElementById('score-draw');
+
+    /* The 8 ways to win (index positions on the 3×3 grid) */
+    var WINS = [
+      [0,1,2],[3,4,5],[6,7,8],   // rows
+      [0,3,6],[1,4,7],[2,5,8],   // columns
+      [0,4,8],[2,4,6]            // diagonals
+    ];
+
+    var cells, current, active;
+    var scores = { X: 0, O: 0, draw: 0 };
+
+    function setStatus(html) { statusEl.innerHTML = html; }
+
+    function tag(player) {
+      return player === 'X'
+        ? '<span class="text-orange">X</span>'
+        : '<span class="text-green">O</span>';
+    }
+
+    function newRound() {
+      board.innerHTML = '';
+      cells = Array(9).fill('');
+      current = 'X';
+      active = true;
+      setStatus(tag('X') + "&nbsp;'s turn");
+
+      cells.forEach(function (_, i) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ttt-cell';
+        btn.setAttribute('aria-label', 'Cell ' + (i + 1) + ', empty');
+        btn.addEventListener('click', function () { move(i, btn); });
+        board.appendChild(btn);
+      });
+    }
+
+    function move(i, btn) {
+      if (!active || cells[i]) return;
+
+      cells[i] = current;
+      btn.textContent = current;
+      btn.classList.add(current.toLowerCase());
+      btn.disabled = true;
+      btn.setAttribute('aria-label', 'Cell ' + (i + 1) + ', ' + current);
+
+      var combo = winningCombo();
+      if (combo) return endRound(current, combo);
+      if (cells.every(Boolean)) return endRound('draw', null);
+
+      current = current === 'X' ? 'O' : 'X';
+      setStatus(tag(current) + "&nbsp;'s turn");
+    }
+
+    /* Returns the winning index-trio if the current player just won */
+    function winningCombo() {
+      for (var i = 0; i < WINS.length; i++) {
+        var a = WINS[i][0], b = WINS[i][1], c = WINS[i][2];
+        if (cells[a] && cells[a] === cells[b] && cells[b] === cells[c]) {
+          return WINS[i];
+        }
+      }
+      return null;
+    }
+
+    function endRound(result, combo) {
+      active = false;
+      var nodes = board.children;
+
+      /* Disable every remaining cell */
+      Array.prototype.forEach.call(nodes, function (n) { n.disabled = true; });
+
+      if (result === 'draw') {
+        scores.draw++;
+        scoreDEl.textContent = scores.draw;
+        setStatus("🤝 It's a draw!");
+        return;
+      }
+
+      /* Highlight the winning line */
+      combo.forEach(function (idx) {
+        nodes[idx].classList.add(result === 'X' ? 'win-x' : 'win-o');
+      });
+
+      scores[result]++;
+      (result === 'X' ? scoreXEl : scoreOEl).textContent = scores[result];
+      setStatus('🏆 ' + tag(result) + ' wins!');
+    }
+
+    resetBtn.addEventListener('click', newRound);
+
+    resetScoresBtn.addEventListener('click', function () {
+      scores = { X: 0, O: 0, draw: 0 };
+      scoreXEl.textContent = '0';
+      scoreOEl.textContent = '0';
+      scoreDEl.textContent = '0';
+      newRound();
+    });
+
+    /* Boot */
+    newRound();
+  })();
+  </script>
+
+  <script src="../nav.js"></script>
+  <script src="../footer.js"></script>
+</body>
+</html>

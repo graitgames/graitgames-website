@@ -108,11 +108,13 @@
   /* --------------------------------------------------------------------------
      2. NAV LINK DATA
      -------------------------------------------------------------------------- */
+  /* Root-absolute paths (leading "/") so the nav works identically from the
+     site root AND from sub-directories like /games/. */
   var links = [
-    { label: 'Home',  href: 'index.html' },
-    { label: 'Games', href: 'games.html' },
-    { label: 'About', href: 'about.html' },
-    { label: 'Blog',  href: 'blog.html' }
+    { label: 'Home',  href: '/index.html' },
+    { label: 'Games', href: '/games.html' },
+    { label: 'About', href: '/about.html' },
+    { label: 'Blog',  href: '/blog.html' }
   ];
 
   /* Resolve the current page so we can flag the active link */
@@ -143,7 +145,7 @@
     '<div class="navbar-container">' +
 
       /* Logo (left) */
-      '<a class="navbar-logo" href="index.html" aria-label="GRaiT GAMES home">' +
+      '<a class="navbar-logo" href="/index.html" aria-label="GRaiT GAMES home">' +
         '<span class="text-orange">GR</span>' +
         '<span class="text-green">ai</span>' +
         '<span class="text-orange">T</span>' +
@@ -162,7 +164,7 @@
       '<ul class="nav-menu" id="grait-nav-menu" role="menubar" aria-label="Main navigation">' +
         linksHTML +
         '<li role="none">' +
-          '<a role="menuitem" class="btn btn-primary nav-cta" href="#newsletter">Newsletter</a>' +
+          '<a role="menuitem" class="btn btn-primary nav-cta" href="/index.html#newsletter">Newsletter</a>' +
         '</li>' +
       '</ul>' +
 
