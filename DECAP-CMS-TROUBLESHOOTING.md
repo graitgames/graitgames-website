@@ -10,6 +10,66 @@
 
 ---
 
+## 🩺 UPDATE — Root Cause Found (read this first)
+
+After you added the environment variables and re-deployed, the login **still
+404'd**. We dug in and found **two concrete issues**. Both are now handled:
+
+### ① Environment variable **name mismatch** (the main culprit) ✅ FIXED IN CODE
+
+You added the variables in Cloudflare as:
+
+```
+OAUTH_GITHUB_CLIENT_ID
+OAUTH_GITHUB_CLIENT_SECRET
+```
+
+…but the login functions were reading the **un-prefixed** names
+(`GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`). Because the names didn't match,
+the code sent an **empty `client_id`** to GitHub — and GitHub responds to an
+unknown/empty client ID with exactly the **404 "Jawa" page** you saw.
+
+**The fix (already committed):** `functions/api/auth.js` and
+`functions/api/callback.js` now accept **either** name:
+
+```js
+const clientId = env.GITHUB_CLIENT_ID || env.OAUTH_GITHUB_CLIENT_ID;
+const clientSecret = env.GITHUB_CLIENT_SECRET || env.OAUTH_GITHUB_CLIENT_SECRET;
+```
+
+So your existing `OAUTH_GITHUB_*` variables will now work as-is. They also now
+**fail loudly** with a clear message (instead of a confusing GitHub 404) if the
+credentials are ever missing.
+
+> 👉 **What you must do:** Just **re-deploy** so the new function code goes live
+> (Cloudflare → Deployments → ⋯ → **Retry deployment**, or push any commit).
+> You do **not** need to rename your variables.
+
+### ② Domain mismatch: `www.` vs non-`www.` ⚠️ ACTION NEEDED
+
+Your Cloudflare project serves **three** domains:
+`graitgames.com`, `www.graitgames.com`, and `graitgames-website.pages.dev`.
+
+You're logging in at **`https://www.graitgames.com/admin/`**, but
+`admin/config.yml` says `base_url: https://graitgames.com` (no `www.`). For the
+login popup, token hand-off, and your GitHub **callback URL** to all line up,
+**everything must use ONE domain.** See the exact fix in
+[Pitfall #1](#pitfall-1--www-vs-non-www-domain-mismatch-) below.
+
+> ✅ **Recommended:** Always use **`https://graitgames.com/admin/`** (no `www.`),
+> which matches `config.yml`, and set your GitHub OAuth callback to
+> `https://graitgames.com/api/callback`.
+
+### ✔️ Verify after re-deploying
+
+1. Open **`https://graitgames.com/api/auth`** directly.
+   - ✅ It should now **redirect to GitHub's "Authorize" screen** (not a 404).
+   - If you instead see *"Server is missing the GitHub OAuth client ID"*, the
+     variables aren't attached to this deployment → re-check names & re-deploy.
+2. Then open **`https://graitgames.com/admin/`** and click **Login with GitHub**.
+
+---
+
 ## 🎯 TL;DR — The Quick Fix (do these in order)
 
 Most people hit the 404 because the **GitHub OAuth App doesn't exist yet** and/or

@@ -12,8 +12,8 @@
         window via postMessage, then closes the popup.
 
    REQUIRED ENVIRONMENT VARIABLES (Cloudflare Pages → Settings → Variables):
-     • GITHUB_CLIENT_ID
-     • GITHUB_CLIENT_SECRET   (mark as "encrypted")
+     • GITHUB_CLIENT_ID       (or OAUTH_GITHUB_CLIENT_ID)
+     • GITHUB_CLIENT_SECRET   (or OAUTH_GITHUB_CLIENT_SECRET — mark as "encrypted")
 
    Docs: https://decapcms.org/docs/external-oauth-clients/
    ============================================================================ */
@@ -33,6 +33,20 @@ export async function onRequest(context) {
     return new Response("Invalid OAuth state or missing code.", { status: 400 });
   }
 
+  // Accept either naming convention (plain or OAUTH_-prefixed) so a dashboard
+  // typo/prefix doesn't break login. Must match what auth.js used.
+  const clientId = env.GITHUB_CLIENT_ID || env.OAUTH_GITHUB_CLIENT_ID;
+  const clientSecret = env.GITHUB_CLIENT_SECRET || env.OAUTH_GITHUB_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    return postMessagePage("error", {
+      message:
+        "Server is missing GitHub OAuth credentials. Add GITHUB_CLIENT_ID and " +
+        "GITHUB_CLIENT_SECRET (or the OAUTH_-prefixed names) in Cloudflare Pages " +
+        "→ Settings → Variables, then re-deploy.",
+    });
+  }
+
   // --- 2. Exchange the code for an access token --------------------------
   const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
@@ -41,8 +55,8 @@ export async function onRequest(context) {
       Accept: "application/json",
     },
     body: JSON.stringify({
-      client_id: env.GITHUB_CLIENT_ID,
-      client_secret: env.GITHUB_CLIENT_SECRET,
+      client_id: clientId,
+      client_secret: clientSecret,
       code,
       redirect_uri: `${url.origin}/api/callback`,
     }),
