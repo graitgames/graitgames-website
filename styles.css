@@ -2944,13 +2944,27 @@ select:disabled {
   100% { background-position: 0 -300px; }
 }
 
-/* Make sure the navbar, main content and footer sit ABOVE the background FX */
-#grait-navbar,
+/* Lift the page content (hero, main, footer) ABOVE the fixed background FX
+   (which live at z-index 0). These sit at z-index 1 — just above the FX. */
 #grait-footer,
 .home-hero,
 main {
   position: relative;
   z-index: 1;
+}
+
+/* The navbar must sit ABOVE the page content too, otherwise the mobile
+   dropdown menu (a position:absolute child that overlaps the hero) gets
+   painted over by .home-hero — which made the menu look transparent and
+   blocked taps on its links.
+   NOTE: we target #grait-navbar (ID) on purpose: an ID selector outranks the
+   generic `.navbar` rule, so we must restate the sticky + high z-index here or
+   they'd be clobbered down to z-index:1 by the rule above's old `#grait-navbar`
+   entry. Keeping it sticky also preserves the navbar's scroll behaviour. */
+#grait-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 /* --- HERO (transparent so the starfield shows through) --------------------- */
