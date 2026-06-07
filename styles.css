@@ -3101,13 +3101,9 @@ main {
 }
 
 /* --- NEWSLETTER / SOCIALS SECTION ------------------------------------------ */
-/* The Beehiiv embed is injected by their loader script; give it a sensible
-   max-width and centre it. */
-.newsletter-embed {
-  max-width: 520px;
-  margin: var(--space-lg) auto 0;
-  width: 100%;
-}
+/* The newsletter signup now links out to the hosted Beehiiv subscribe page
+   (see the .cta-actions button on index.html and the global footer.js),
+   so no embed container styling is needed here anymore. */
 
 /* "Follow the Journey" label above the social buttons */
 .home-follow-label {

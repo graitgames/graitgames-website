@@ -156,10 +156,12 @@
     </section>
 
     <!-- =================================================================
-         NEWSLETTER (Beehiiv) — PRIMARY CTA  +  SOCIAL FOLLOWS
-         The #newsletter anchor is the target of the nav "Newsletter" CTA.
-         ⚠️ Do NOT remove the Beehiiv loader script or its data-attribute —
-         that is the live, functional subscription form.
+         NEWSLETTER — PRIMARY CTA  +  SOCIAL FOLLOWS
+         The #newsletter anchor is the target of the nav "Newsletter" CTA,
+         the home-page skip link, and the blog "Join the Newsletter" button.
+         The embedded Beehiiv form was removed; we now link out to the hosted
+         Beehiiv subscribe page (matching the global footer signup), so the
+         form is maintained in one place and never double-loads.
          ================================================================= -->
     <section id="newsletter" class="about-cta" aria-labelledby="newsletter-title">
       <div class="container-narrow">
@@ -171,9 +173,11 @@
           from the workshop.
         </p>
 
-        <!-- Beehiiv newsletter embed (preserved from the original page) -->
-        <div class="newsletter-embed">
-          <script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="e76eeefb-b363-4f57-ab70-82e508f70d49"></script>
+        <!-- Subscribe call-to-action: opens the hosted Beehiiv signup page -->
+        <div class="cta-actions">
+          <a href="https://graitgames.beehiiv.com/subscribe" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
+            Subscribe to the Newsletter
+          </a>
         </div>
 
         <!-- Secondary CTA: follow on social media -->
