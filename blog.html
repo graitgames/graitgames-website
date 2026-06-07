@@ -44,15 +44,37 @@
     </section>
 
     <!-- =================================================================
-         POST LISTING — responsive 2-column card grid (1 column on mobile).
+         POST LISTING — responsive card grid (1 column on mobile, 2+ on wider
+         screens). The fake/placeholder posts have been removed. Right now we
+         show ONE real post; add a new <article class="blog-card"> here each
+         time you publish a post.
 
-         HOW TO ADD A POST (manual method):
-           1. Copy one <article class="blog-card"> block below.
-           2. Update the thumbnail label, category tag, title (+ link),
-              excerpt, date and read-time.
-           3. Point the "Read More" link at your post's URL
-              (e.g. blog-post.html or /blog/your-post.html).
-         Or use the CMS — see BLOG-CMS-SETUP.md.
+         ─────────────────────────────────────────────────────────────────
+         HOW TO ADD A NEW POST  (every post gets its OWN page + its OWN URL)
+         ─────────────────────────────────────────────────────────────────
+         Each post is a standalone HTML page living in the /blog/ folder, named
+         after its title so it gets a unique, shareable URL, e.g.
+             blog/building-our-first-game-loop.html
+                 → https://www.graitgames.com/blog/building-our-first-game-loop
+
+         STEP 1 — Create the post page:
+            • Copy the template file  blog-post.html  (in the project root).
+            • Save the copy inside the  blog/  folder, naming it after the
+              title in "slug" form — all lowercase, words joined by hyphens:
+                  "My Cool Update"  →  blog/my-cool-update.html
+            • Open your new file and replace the [PLACEHOLDER] fields (title,
+              date, category, body, canonical URL) with your real content.
+              Read the comment at the top of blog-post.html for details.
+
+         STEP 2 — Add a card here so people can find it:
+            • Copy the <article class="blog-card"> block below.
+            • Update the tag, thumbnail label, date, read-time, title and
+              excerpt, then point BOTH links at your new file
+              (e.g. href="blog/my-cool-update.html").
+
+         (Optional future upgrade: a build tool like Eleventy could read the
+          Markdown files in blog/posts/ and generate these pages + cards for
+          you automatically — see BLOG-CMS-SETUP.md › "Connecting Posts".)
          ================================================================= -->
     <section class="section" aria-labelledby="blog-posts-title">
       <div class="container-wide">
@@ -61,34 +83,8 @@
 
         <div class="blog-grid">
 
-          <!-- 1. Project Update -->
-          <article class="blog-card">
-            <div class="blog-thumb">
-              <span class="blog-tag">Updates</span>
-              <span class="blog-thumb-label">LAUNCH<br>DAY</span>
-            </div>
-            <div class="blog-card-body">
-              <p class="post-meta">
-                <time datetime="2026-06-01">June 1, 2026</time>
-                <span class="meta-sep" aria-hidden="true">·</span>
-                <span>4 min read</span>
-              </p>
-              <h3 class="blog-card-title">
-                <a href="blog-post.html">We Launched GRaiT GAMES!</a>
-              </h3>
-              <p class="blog-excerpt">
-                After months of late-night coding sessions at the kitchen table,
-                our little game studio is finally live. Here's the story of how
-                we got here — and what's coming next.
-              </p>
-              <div class="blog-card-footer">
-                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
-                   aria-label="Read more: We Launched GRaiT GAMES!">Read More →</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- 2. Game Development -->
+          <!-- Real post #1 — Building Our First Game Loop.
+               Lives at blog/building-our-first-game-loop.html (unique URL). -->
           <article class="blog-card">
             <div class="blog-thumb">
               <span class="blog-tag">Development</span>
@@ -101,129 +97,22 @@
                 <span>7 min read</span>
               </p>
               <h3 class="blog-card-title">
-                <a href="blog-post.html">Building Our First Game Loop</a>
+                <a href="blog/building-our-first-game-loop.html">Building Our First Game Loop</a>
               </h3>
               <p class="blog-excerpt">
-                Every game has a heartbeat called the "game loop." We break down
-                what it is, why it matters, and how we built a simple one in
-                plain JavaScript — no engine required.
+                Every game has a heartbeat called the game loop. Here's what it
+                is, why it matters, and how we built a simple one in plain
+                JavaScript.
               </p>
               <div class="blog-card-footer">
-                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
+                <a href="blog/building-our-first-game-loop.html" class="btn btn-outline-green btn-sm"
                    aria-label="Read more: Building Our First Game Loop">Read More →</a>
               </div>
             </div>
           </article>
 
-          <!-- 3. AI Learning -->
-          <article class="blog-card">
-            <div class="blog-thumb">
-              <span class="blog-tag">AI</span>
-              <span class="blog-thumb-label">AI<br>TEAMMATE</span>
-            </div>
-            <div class="blog-card-body">
-              <p class="post-meta">
-                <time datetime="2026-05-10">May 10, 2026</time>
-                <span class="meta-sep" aria-hidden="true">·</span>
-                <span>6 min read</span>
-              </p>
-              <h3 class="blog-card-title">
-                <a href="blog-post.html">How We Use AI Without Letting It Do Everything</a>
-              </h3>
-              <p class="blog-excerpt">
-                AI is an amazing tutor, but it's a terrible substitute for
-                actually understanding your code. Here's how we keep learning
-                in the driver's seat while still getting help.
-              </p>
-              <div class="blog-card-footer">
-                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
-                   aria-label="Read more: How We Use AI Without Letting It Do Everything">Read More →</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- 4. Coding Tips -->
-          <article class="blog-card">
-            <div class="blog-thumb">
-              <span class="blog-tag">Learning</span>
-              <span class="blog-thumb-label">CSS<br>TRICKS</span>
-            </div>
-            <div class="blog-card-body">
-              <p class="post-meta">
-                <time datetime="2026-04-28">April 28, 2026</time>
-                <span class="meta-sep" aria-hidden="true">·</span>
-                <span>5 min read</span>
-              </p>
-              <h3 class="blog-card-title">
-                <a href="blog-post.html">5 CSS Tricks That Made Our Site Glow</a>
-              </h3>
-              <p class="blog-excerpt">
-                From neon text-shadows to scanline overlays, these are the five
-                beginner-friendly CSS techniques that gave GRaiT GAMES its
-                retro-futuristic synthwave look.
-              </p>
-              <div class="blog-card-footer">
-                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
-                   aria-label="Read more: 5 CSS Tricks That Made Our Site Glow">Read More →</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- 5. Coding Tips -->
-          <article class="blog-card">
-            <div class="blog-thumb">
-              <span class="blog-tag">Development</span>
-              <span class="blog-thumb-label">DEBUG<br>MODE</span>
-            </div>
-            <div class="blog-card-body">
-              <p class="post-meta">
-                <time datetime="2026-04-15">April 15, 2026</time>
-                <span class="meta-sep" aria-hidden="true">·</span>
-                <span>8 min read</span>
-              </p>
-              <h3 class="blog-card-title">
-                <a href="blog-post.html">Debugging Is a Superpower (Here's How We Learned It)</a>
-              </h3>
-              <p class="blog-excerpt">
-                Bugs used to scare us. Now they're our favourite puzzles. We
-                share the simple debugging mindset and browser tools that turned
-                frustration into "aha!" moments.
-              </p>
-              <div class="blog-card-footer">
-                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
-                   aria-label="Read more: Debugging Is a Superpower">Read More →</a>
-              </div>
-            </div>
-          </article>
-
-          <!-- 6. AI / Learning -->
-          <article class="blog-card">
-            <div class="blog-thumb">
-              <span class="blog-tag">AI</span>
-              <span class="blog-thumb-label">PROMPT<br>CRAFT</span>
-            </div>
-            <div class="blog-card-body">
-              <p class="post-meta">
-                <time datetime="2026-04-02">April 2, 2026</time>
-                <span class="meta-sep" aria-hidden="true">·</span>
-                <span>6 min read</span>
-              </p>
-              <h3 class="blog-card-title">
-                <a href="blog-post.html">Talking to AI: What Makes a Good Prompt?</a>
-              </h3>
-              <p class="blog-excerpt">
-                Asking an AI for help is a skill of its own. We explore how
-                clear, specific prompts get better code — and how a 10-year-old
-                taught his dad a thing or two about asking good questions.
-              </p>
-              <div class="blog-card-footer">
-                <a href="blog-post.html" class="btn btn-outline-green btn-sm"
-                   aria-label="Read more: Talking to AI: What Makes a Good Prompt?">Read More →</a>
-              </div>
-            </div>
-          </article>
-
         </div><!-- /.blog-grid -->
+
       </div>
     </section>
 

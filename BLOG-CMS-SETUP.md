@@ -77,7 +77,9 @@ blog/
   posts/          ← Your blog posts live here as Markdown (.md) files
   images/         ← Uploaded featured images are committed here
 blog.html         ← The public blog listing page (cards grid)
-blog-post.html    ← Template showing how a single article looks
+blog-post.html    ← TEMPLATE for a single article (copy it per post — see §6)
+blog/<slug>.html  ← Each published post is its own page, e.g.
+                    blog/building-our-first-game-loop.html
 ```
 
 ---
@@ -169,15 +171,53 @@ That's it — setup is done. ✅
 
 ---
 
-## 6. Connecting Posts to the Pages (next step / optional)
+## 6. Connecting Posts to the Pages
 
-Right now `blog.html` and `blog-post.html` use **hand-written placeholder
-cards** so the design is visible immediately. The Markdown files in
-`blog/posts/` are the *source of truth* the CMS edits.
+This is a **static site with no build step**, so a Markdown file in
+`blog/posts/` does *not* turn itself into a web page automatically. Each post
+needs two small things to go live, and **every post gets its own unique URL**
+based on its title.
 
-To make the listing render automatically from those Markdown files, you can
-later add a tiny build step or a small JS loader. Good options:
-- A simple **build script** (Node) that turns each `.md` into a card / page, or
+### Each post = its own page + its own URL
+A post named *"Building Our First Game Loop"* lives at:
+
+```
+blog/building-our-first-game-loop.html
+   → https://www.graitgames.com/blog/building-our-first-game-loop
+```
+
+The file name (the "slug") is the title in lowercase with words joined by
+hyphens. That gives every post a clean, shareable link instead of everything
+pointing at one generic page.
+
+### How to publish a post manually (2 steps)
+
+**Step 1 — Create the post page**
+1. Copy the template file **`blog-post.html`** (in the project root).
+2. Save the copy inside the **`blog/`** folder, named after the title slug,
+   e.g. `blog/my-cool-update.html`.
+3. Open your new file and replace the `[PLACEHOLDER]` fields with your content:
+   the `<title>`, meta description, the **canonical** + **og:url** links (point
+   them at your new URL), the hero label, category, date, read-time, `<h1>`,
+   and everything inside `<article class="article-body">`.
+   *(The template already uses `../styles.css`, `../nav.js`, `../footer.js`
+   because it lives one folder deep — keep those `../` prefixes.)*
+
+**Step 2 — Add a card to the listing**
+1. Open **`blog.html`** and copy the existing `<article class="blog-card">`
+   block inside `<div class="blog-grid">`.
+2. Update its tag, thumbnail label, date, read-time, title and excerpt, then
+   point both links at your new page (e.g. `href="blog/my-cool-update.html"`).
+
+Commit and push to `main` — Cloudflare auto-deploys.
+
+> The Markdown files in `blog/posts/` are still the *source of truth* the CMS
+> edits. Today you copy that content into the HTML page by hand.
+
+### Optional future upgrade (automation)
+To skip the manual copy step, you could add a small build step that reads the
+Markdown in `blog/posts/` and generates these pages + cards for you:
+- A simple **build script** (Node) that turns each `.md` into a page + card, or
 - A static-site generator (e.g. **Eleventy**) wired into the Cloudflare build.
 
 This is intentionally left as a clear, separate upgrade so the site keeps

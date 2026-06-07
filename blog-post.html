@@ -1,25 +1,60 @@
 <!DOCTYPE html>
+<!-- ============================================================================
+     📄 BLOG POST TEMPLATE  (this file is a master copy — do NOT publish it as-is)
+     ============================================================================
+     Every blog post is its own standalone HTML page with its own unique URL.
+     To create a new post:
+
+       1. COPY this file into the  blog/  folder and rename it after the post
+          title in "slug" form (all lowercase, words joined by hyphens):
+              "Building Our First Game Loop"
+                  →  blog/building-our-first-game-loop.html
+                  →  https://www.graitgames.com/blog/building-our-first-game-loop
+
+       2. Because the copy lives one folder deep (inside /blog/), the shared
+          files are reached with "../" — this template already uses:
+              ../styles.css   ../nav.js   ../footer.js   ../blog.html
+          (Keep those "../" prefixes in your copy. This root template file is
+           NOT meant to be opened directly, so its own links use "../" too.)
+
+       3. Replace every [PLACEHOLDER] below with your real content:
+            • <title> and meta description
+            • canonical + og:url  (point them at your new file's URL)
+            • the hero label, category tag, date, read-time and <h1>
+            • everything inside <article class="article-body">
+
+       4. Finally, add a card for the post on  blog.html  so visitors can find
+          it (copy an <article class="blog-card"> block there and link it to
+          your new blog/<slug>.html page).
+
+     See BLOG-CMS-SETUP.md › "Connecting Posts" for the full walkthrough.
+     ============================================================================ -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- ⬇️ PER-POST: update title + description for each article -->
-  <title>Building Our First Game Loop — GRaiT GAMES</title>
-  <meta name="description" content="A beginner-friendly walkthrough of what a game loop is and how we built a simple one in plain JavaScript for our first GRaiT GAMES project." />
+  <title>[PLACEHOLDER POST TITLE] — GRaiT GAMES</title>
+  <meta name="description" content="[PLACEHOLDER: one-sentence summary of this post for search engines.]" />
+
+  <!-- Canonical URL: the one official address for this post. Update the slug
+       to match your file name in the /blog/ folder. -->
+  <link rel="canonical" href="https://www.graitgames.com/blog/[PLACEHOLDER-SLUG].html" />
 
   <!-- Open Graph tags (used when the post is shared on social media) -->
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Building Our First Game Loop — GRaiT GAMES" />
-  <meta property="og:description" content="A beginner-friendly walkthrough of what a game loop is and how we built a simple one in plain JavaScript." />
-  <meta property="og:url" content="https://graitgames.com/blog-post.html" />
+  <meta property="og:title" content="[PLACEHOLDER POST TITLE] — GRaiT GAMES" />
+  <meta property="og:description" content="[PLACEHOLDER: short share description.]" />
+  <meta property="og:url" content="https://www.graitgames.com/blog/[PLACEHOLDER-SLUG].html" />
 
   <!-- Preconnect to Google Fonts for faster font loading -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-  <!-- Master design system (all styling lives in styles.css) -->
-  <link rel="stylesheet" href="styles.css" />
+  <!-- Master design system (all styling lives in styles.css).
+       "../" steps up out of /blog/ to reach the shared file in the root. -->
+  <link rel="stylesheet" href="../styles.css" />
 </head>
 <body>
 
@@ -32,119 +67,74 @@
   <!-- =====================================================================
        SINGLE ARTICLE
        .container-narrow keeps the line length comfortable for reading.
-       This whole file is a TEMPLATE — duplicate it per post and edit the
-       marked sections (title, metadata, hero label, and .article-body).
        ===================================================================== -->
   <main id="post-main" class="container-narrow section">
 
-    <!-- Back link to the listing -->
-    <a href="blog.html" class="btn btn-outline-cyan btn-sm mb-xl">← Back to Blog</a>
+    <!-- Back link to the listing (../ because we're inside /blog/) -->
+    <a href="../blog.html" class="btn btn-outline-cyan btn-sm mb-xl">← Back to Blog</a>
 
     <!-- ── HERO IMAGE PLACEHOLDER ──────────────────────────────────────
          Replace the .article-hero-label span with a real image:
-           <img src="/blog/images/your-image.jpg" alt="Descriptive alt text" />
+           <img src="../blog/images/your-image.jpg" alt="Descriptive alt text" />
          (Keep meaningful alt text for accessibility.) -->
     <div class="article-hero">
-      <span class="article-hero-label">GAME<br>LOOP</span>
+      <span class="article-hero-label">[HERO<br>LABEL]</span>
     </div>
 
     <!-- ── ARTICLE HEADER (title + metadata) ───────────────────────────── -->
     <header class="article-header">
       <p class="post-meta">
-        <span class="tag-chip">Development</span>
+        <span class="tag-chip">[PLACEHOLDER CATEGORY]</span>
         <span class="meta-sep" aria-hidden="true">·</span>
-        <time datetime="2026-05-22">May 22, 2026</time>
+        <time datetime="YYYY-MM-DD">[Month DD, YYYY]</time>
         <span class="meta-sep" aria-hidden="true">·</span>
-        <span>7 min read</span>
+        <span>[X] min read</span>
       </p>
-      <h1>Building Our First Game Loop</h1>
+      <h1>[PLACEHOLDER POST TITLE]</h1>
       <p class="text-description">
-        Every game has a heartbeat called the "game loop." Here's what it is,
-        why it matters, and how we built a simple one in plain JavaScript.
+        [PLACEHOLDER: a short, friendly intro sentence or two that hooks the
+        reader and summarises what the post is about.]
       </p>
     </header>
 
     <!-- ── ARTICLE BODY ────────────────────────────────────────────────
          Everything inside .article-body gets the long-form reading styles
-         (headings, paragraphs, lists, quotes, code). For CMS-generated
-         posts, this is where the rendered Markdown is dropped in. -->
+         (headings, paragraphs, lists, quotes, code). Replace the sample
+         blocks below with your real writing. -->
     <article class="article-body">
 
       <p>
-        When we started building games, the very first thing that confused us
-        was this: how does a game keep <em>moving</em> even when you're not
-        pressing anything? The answer is the <strong>game loop</strong> — a
-        piece of code that runs over and over, many times per second.
+        [PLACEHOLDER: your opening paragraph. Use normal HTML — &lt;p&gt; for
+        paragraphs, &lt;strong&gt; for bold, &lt;em&gt; for italics.]
       </p>
 
-      <h2>What is a game loop?</h2>
-      <p>
-        A game loop does three jobs, again and again, every single frame:
-      </p>
-      <ol>
-        <li><strong>Process input</strong> — did the player press a key?</li>
-        <li><strong>Update</strong> — move things, check collisions, update the score.</li>
-        <li><strong>Render</strong> — draw the new picture to the screen.</li>
-      </ol>
-      <p>
-        Do that 60 times a second and the human eye sees smooth motion. Stop
-        the loop and the game freezes.
-      </p>
+      <h2>[A section heading]</h2>
+      <p>[PLACEHOLDER paragraph.]</p>
+      <ul>
+        <li>[A bullet point.]</li>
+        <li>[Another bullet point.]</li>
+      </ul>
 
       <blockquote>
-        <p>
-          "A game is just a really fast flip-book that you get to control." —
-          something my son said that finally made it click for both of us.
-        </p>
+        <p>[PLACEHOLDER: a memorable quote or call-out, if you have one.]</p>
       </blockquote>
 
-      <h2>The simplest loop in JavaScript</h2>
+      <h2>[Another section heading]</h2>
       <p>
-        Browsers give us a perfect tool for this called
-        <code>requestAnimationFrame</code>. It politely asks the browser to run
-        our function right before the next repaint — usually 60 times a second.
-        Here's the tiny loop we started with:
+        [PLACEHOLDER paragraph. To show code, use the block below — wrap
+        coloured tokens in &lt;span class="tok-*"&gt; (optional).]
       </p>
 
       <!-- ── CODE BLOCK with lightweight syntax highlighting ──────────────
-           Wrap tokens in <span class="tok-*"> to colour them. The data-lang
-           attribute shows a little language badge in the corner. -->
-      <pre class="code-block" data-lang="js"><code><span class="tok-comment">// Our very first game loop</span>
-<span class="tok-key">let</span> score <span class="tok-punct">=</span> <span class="tok-num">0</span><span class="tok-punct">;</span>
+           The data-lang attribute shows a little language badge in the corner.
+           Token classes (optional): tok-comment, tok-key, tok-func, tok-num,
+           tok-str, tok-punct. -->
+      <pre class="code-block" data-lang="js"><code><span class="tok-comment">// [PLACEHOLDER code sample]</span>
+<span class="tok-key">function</span> <span class="tok-func">hello</span><span class="tok-punct">()</span> <span class="tok-punct">{</span>
+  <span class="tok-func">console</span><span class="tok-punct">.</span><span class="tok-func">log</span><span class="tok-punct">(</span><span class="tok-str">"Hello, world!"</span><span class="tok-punct">);</span>
+<span class="tok-punct">}</span></code></pre>
 
-<span class="tok-key">function</span> <span class="tok-func">gameLoop</span><span class="tok-punct">()</span> <span class="tok-punct">{</span>
-  <span class="tok-func">processInput</span><span class="tok-punct">();</span>   <span class="tok-comment">// 1. read the keyboard</span>
-  <span class="tok-func">update</span><span class="tok-punct">();</span>         <span class="tok-comment">// 2. move everything</span>
-  <span class="tok-func">render</span><span class="tok-punct">();</span>         <span class="tok-comment">// 3. draw the frame</span>
-
-  <span class="tok-comment">// Ask the browser to run us again next frame</span>
-  <span class="tok-func">requestAnimationFrame</span><span class="tok-punct">(</span>gameLoop<span class="tok-punct">);</span>
-<span class="tok-punct">}</span>
-
-<span class="tok-comment">// Kick it off!</span>
-<span class="tok-func">requestAnimationFrame</span><span class="tok-punct">(</span>gameLoop<span class="tok-punct">);</span></code></pre>
-
-      <h3>Why not just use <code>setInterval</code>?</h3>
-      <p>
-        Great question — and one we asked too. <code>setInterval</code> can run
-        code on a timer, but it doesn't sync with the screen's refresh rate, so
-        animations can look choppy and waste battery. <code>requestAnimationFrame</code>
-        is smarter: it pauses when the tab isn't visible and lines up perfectly
-        with each repaint.
-      </p>
-
-      <h2>What we learned</h2>
-      <ul>
-        <li>Games aren't magic — they're just fast loops.</li>
-        <li>Breaking a big idea into <em>input → update → render</em> makes it approachable.</li>
-        <li>Reading the docs (and asking AI to explain them) beats copy-pasting.</li>
-      </ul>
-
-      <p>
-        Next time we'll add a player you can actually move around. Until then,
-        try changing the loop above and see what breaks — that's where the real
-        learning happens.
-      </p>
+      <p>[PLACEHOLDER: closing thoughts / what's next.]</p>
 
     </article>
 
@@ -155,79 +145,35 @@
       <span class="share-label">Share this post</span>
       <div class="share-links">
         <a href="#" class="share-link" aria-label="Share on X (Twitter)">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M18.9 1h3.7l-8 9.2L24 23h-7.4l-5.8-7.5L4.5 23H.8l8.6-9.8L0 1h7.6l5.2 6.9L18.9 1zm-1.3 19.8h2L6.5 3.1H4.3l13.3 17.7z"/></svg>
+          <svg viewBox="0 0 24 24" xmlns="https://static.vecteezy.com/system/resources/thumbnails/010/703/132/small/like-love-comment-and-share-icon-on-square-button-social-media-elements-vector.jpg" aria-hidden="true"><path d="M18.9 1h3.7l-8 9.2L24 23h-7.4l-5.8-7.5L4.5 23H.8l8.6-9.8L0 1h7.6l5.2 6.9L18.9 1zm-1.3 19.8h2L6.5 3.1H4.3l13.3 17.7z"/></svg>
         </a>
         <a href="#" class="share-link" aria-label="Share on Facebook">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7v-3.5h3.1V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9v2.2h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>
+          <svg viewBox="0 0 24 24" xmlns="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Social_media_platter.svg/330px-Social_media_platter.svg.png" aria-hidden="true"><path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7v-3.5h3.1V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9v2.2h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>
         </a>
         <a href="#" class="share-link" aria-label="Copy link">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3.9 12a3.1 3.1 0 0 1 3.1-3.1h4V7h-4a5 5 0 0 0 0 10h4v-1.9h-4A3.1 3.1 0 0 1 3.9 12zM8 13h8v-2H8v2zm5-6v1.9h4a3.1 3.1 0 0 1 0 6.2h-4V17h4a5 5 0 0 0 0-10h-4z"/></svg>
+          <svg viewBox="0 0 24 24" xmlns="https://i.ytimg.com/vi/xLG8Z2r4FKU/maxresdefault.jpg" aria-hidden="true"><path d="M3.9 12a3.1 3.1 0 0 1 3.1-3.1h4V7h-4a5 5 0 0 0 0 10h4v-1.9h-4A3.1 3.1 0 0 1 3.9 12zM8 13h8v-2H8v2zm5-6v1.9h4a3.1 3.1 0 0 1 0 6.2h-4V17h4a5 5 0 0 0 0-10h-4z"/></svg>
         </a>
       </div>
     </div>
 
-    <!-- ── RELATED POSTS ──────────────────────────────────────────────── -->
-    <section class="related-posts" aria-labelledby="related-title">
-      <p class="section-eyebrow" id="related-title">// Keep Reading //</p>
-      <div class="blog-grid">
+    <!-- ── RELATED POSTS (optional) ───────────────────────────────────────
+         When you have more than one post, add cards here so readers can keep
+         browsing. Copy an <article class="blog-card"> block from blog.html and
+         point its links at the related post's /blog/<slug>.html page.
 
-        <article class="blog-card">
-          <div class="blog-thumb">
-            <span class="blog-tag">AI</span>
-            <span class="blog-thumb-label">AI<br>TEAMMATE</span>
-          </div>
-          <div class="blog-card-body">
-            <p class="post-meta">
-              <time datetime="2026-05-10">May 10, 2026</time>
-              <span class="meta-sep" aria-hidden="true">·</span>
-              <span>6 min read</span>
-            </p>
-            <h3 class="blog-card-title">
-              <a href="blog-post.html">How We Use AI Without Letting It Do Everything</a>
-            </h3>
-            <p class="blog-excerpt">
-              AI is an amazing tutor, but a terrible substitute for actually
-              understanding your code. Here's how we keep learning first.
-            </p>
-            <div class="blog-card-footer">
-              <a href="blog-post.html" class="btn btn-outline-green btn-sm">Read More →</a>
-            </div>
-          </div>
-        </article>
-
-        <article class="blog-card">
-          <div class="blog-thumb">
-            <span class="blog-tag">Learning</span>
-            <span class="blog-thumb-label">CSS<br>TRICKS</span>
-          </div>
-          <div class="blog-card-body">
-            <p class="post-meta">
-              <time datetime="2026-04-28">April 28, 2026</time>
-              <span class="meta-sep" aria-hidden="true">·</span>
-              <span>5 min read</span>
-            </p>
-            <h3 class="blog-card-title">
-              <a href="blog-post.html">5 CSS Tricks That Made Our Site Glow</a>
-            </h3>
-            <p class="blog-excerpt">
-              The five beginner-friendly CSS techniques that gave GRaiT GAMES
-              its retro-futuristic synthwave look.
-            </p>
-            <div class="blog-card-footer">
-              <a href="blog-post.html" class="btn btn-outline-green btn-sm">Read More →</a>
-            </div>
-          </div>
-        </article>
-
-      </div>
-    </section>
+         <section class="related-posts" aria-labelledby="related-title">
+           <p class="section-eyebrow" id="related-title">// Keep Reading //</p>
+           <div class="blog-grid"> … cards … </div>
+         </section>
+    -->
 
   </main>
 
   <!-- ── Scripts ──────────────────────────────────────────────────────
        nav.js   → injects the responsive navigation header
-       footer.js→ injects the site footer -->
-  <script src="nav.js"></script>
-  <script src="/footer.js"></script>
+       footer.js→ injects the site footer
+       (../ because published copies live one folder deep, in /blog/) -->
+  <script src="../nav.js"></script>
+  <script src="../footer.js"></script>
 </body>
 </html>
