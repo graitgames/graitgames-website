@@ -56,17 +56,19 @@ login popup, token hand-off, and your GitHub **callback URL** to all line up,
 **everything must use ONE domain.** See the exact fix in
 [Pitfall #1](#pitfall-1--www-vs-non-www-domain-mismatch-) below.
 
-> ✅ **Recommended:** Always use **`https://graitgames.com/admin/`** (no `www.`),
-> which matches `config.yml`, and set your GitHub OAuth callback to
-> `https://graitgames.com/api/callback`.
+> ✅ **Resolved:** Cloudflare redirects `graitgames.com` → `www.graitgames.com`,
+> so we standardised on the **www** domain. `config.yml` now uses
+> `base_url: https://www.graitgames.com`. Always open
+> **`https://www.graitgames.com/admin/`** and set your GitHub OAuth callback to
+> **`https://www.graitgames.com/api/callback`**.
 
 ### ✔️ Verify after re-deploying
 
-1. Open **`https://graitgames.com/api/auth`** directly.
+1. Open **`https://www.graitgames.com/api/auth`** directly.
    - ✅ It should now **redirect to GitHub's "Authorize" screen** (not a 404).
    - If you instead see *"Server is missing the GitHub OAuth client ID"*, the
      variables aren't attached to this deployment → re-check names & re-deploy.
-2. Then open **`https://graitgames.com/admin/`** and click **Login with GitHub**.
+2. Then open **`https://www.graitgames.com/admin/`** and click **Login with GitHub**.
 
 ---
 
