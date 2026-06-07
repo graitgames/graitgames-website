@@ -19,7 +19,7 @@ backend:
   # Cloudflare Pages is static, so GitHub login is handled by the small
   # serverless functions in /functions/api/ (auth.js + callback.js).
   # base_url is your live site origin; auth_endpoint is the function path.
-  base_url: https://graitgames.com
+  base_url: https://www.graitgames.com
   auth_endpoint: /api/auth
 
 # Editorial workflow gives you Draft → In Review → Ready columns and creates
