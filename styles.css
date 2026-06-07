@@ -1798,6 +1798,330 @@ select:disabled {
 
 
 /* ============================================================================
+   18. ABOUT PAGE — HERO, STORY, FEATURE GRID, TIMELINE, TECH STACK, CTA
+   ----------------------------------------------------------------------------
+   Used by about.html. All colours, spacing and fonts come from the CSS
+   variables defined in Section 2, so this section only adds *layout* and a
+   few decorative synthwave accents (gradient overlays, accent borders).
+
+   Building blocks:
+     • .about-hero        — full-width intro band with a synthwave gradient wash
+     • .about-section      — vertical rhythm wrapper for each content block
+     • .section-alt        — alternating darker background (Deep Space)
+     • .section-eyebrow    — small mono label above a section heading
+     • .feature-grid       — responsive grid of .feature-card items (The Vision)
+     • .feature-card        — icon + heading + copy card with hover lift
+     • .feature-icon        — emoji/CSS-shape icon badge
+     • .timeline            — vertical "Our Story" journey with accent dots
+     • .tech-grid           — compact grid of .tech-item chips (Tech Stack)
+     • .about-cta           — closing call-to-action band (newsletter + social)
+   ============================================================================ */
+
+/* --- HERO -------------------------------------------------------------------
+   A bold introduction band. The gradient overlay is purely decorative; the
+   text sits on the solid Space Black base so contrast stays WCAG AA. */
+.about-hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-4xl) 0 var(--space-3xl);
+  text-align: center;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-decorative);
+}
+
+/* Soft synthwave glow washing up from the bottom of the hero */
+.about-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(255, 107, 43, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% -20%, rgba(57, 255, 20, 0.12) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Faint pixel-grid texture overlay for retro flavour */
+.about-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(57, 255, 20, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 20, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Keep hero content above the decorative layers */
+.about-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.about-hero h1 {
+  margin-bottom: var(--space-md);
+}
+
+/* Mission statement — larger lead paragraph under the hero title */
+.about-mission {
+  max-width: 720px;
+  margin: 0 auto;
+  font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+  line-height: 1.7;
+  color: var(--text-description);
+}
+
+/* --- GENERIC ABOUT SECTION + ALTERNATING BACKGROUNDS ---------------------- */
+.about-section {
+  padding: var(--space-3xl) 0;
+}
+
+/* Alternating darker band (Deep Space) with subtle top/bottom dividers */
+.section-alt {
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-decorative);
+  border-bottom: 1px solid var(--border-decorative);
+}
+
+/* Small monospace eyebrow label above section headings */
+.section-eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-green);
+  margin-bottom: var(--space-sm);
+}
+
+/* Shared lead paragraph styling inside about sections */
+.about-lead {
+  color: var(--text-description);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  max-width: 760px;
+}
+
+/* Center the lead when used under a centered section header */
+.about-lead.is-centered {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- FEATURE GRID (The Vision) --------------------------------------------- */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-2xl);
+}
+
+.feature-card {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-decorative);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-xl);
+  transition: transform var(--transition-normal),
+              border-color var(--transition-normal),
+              box-shadow var(--transition-normal);
+}
+
+.feature-card:hover,
+.feature-card:focus-within {
+  transform: translateY(-4px);
+  border-color: var(--color-green);
+  box-shadow: 0 8px 28px rgba(57, 255, 20, 0.15);
+}
+
+/* Icon badge (emoji or CSS shape sits inside) */
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  font-size: 1.75rem;
+  line-height: 1;
+  border-radius: var(--border-radius-lg);
+  background-color: rgba(255, 107, 43, 0.1);
+  border: 1px solid var(--border-orange);
+  margin-bottom: var(--space-md);
+}
+
+/* Green icon-badge variant (alternate accent) */
+.feature-icon.is-green {
+  background-color: rgba(57, 255, 20, 0.1);
+  border-color: var(--border-green);
+}
+
+.feature-card h3 {
+  margin-bottom: var(--space-sm);
+  color: var(--text-primary);
+}
+
+.feature-card p {
+  color: var(--text-description);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+/* --- TIMELINE (Our Story journey) ------------------------------------------
+   A simple vertical line with accent dots marking each milestone. */
+.timeline {
+  position: relative;
+  margin-top: var(--space-2xl);
+  padding-left: var(--space-xl);
+}
+
+/* The vertical connecting line */
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 7px;
+  width: 2px;
+  background: linear-gradient(180deg,
+    var(--color-orange) 0%,
+    var(--color-green) 100%);
+}
+
+.timeline-item {
+  position: relative;
+  padding-bottom: var(--space-xl);
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+/* Accent dot on the line */
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-xl) + 1px);
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--bg-primary);
+  border: 3px solid var(--color-green);
+  box-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
+}
+
+.timeline-item h3 {
+  margin-bottom: var(--space-xs);
+  color: var(--color-orange);
+}
+
+.timeline-item p {
+  color: var(--text-description);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* --- TECH STACK GRID -------------------------------------------------------- */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-2xl);
+}
+
+.tech-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-decorative);
+  border-left: 3px solid var(--color-cyan);
+  border-radius: var(--border-radius);
+  padding: var(--space-md) var(--space-lg);
+  transition: border-color var(--transition-fast),
+              transform var(--transition-fast);
+}
+
+.tech-item:hover {
+  transform: translateX(4px);
+  border-left-color: var(--color-green);
+}
+
+.tech-item .tech-emoji {
+  font-size: 1.4rem;
+  line-height: 1.4;
+}
+
+.tech-item h4 {
+  margin: 0 0 var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--color-cyan-2);
+}
+
+.tech-item p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* --- CLOSING CALL-TO-ACTION ------------------------------------------------- */
+.about-cta {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  padding: var(--space-4xl) 0;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-decorative);
+}
+
+.about-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%,
+    rgba(255, 107, 43, 0.14) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.about-cta > * {
+  position: relative;
+  z-index: 1;
+}
+
+.about-cta p {
+  max-width: 600px;
+  margin: 0 auto var(--space-xl);
+  color: var(--text-description);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+/* Button group under the CTA — wraps neatly on small screens */
+.cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+/* --- ABOUT PAGE RESPONSIVE TWEAKS ------------------------------------------ */
+@media (max-width: 640px) {
+  .about-hero {
+    padding: var(--space-3xl) 0 var(--space-2xl);
+  }
+  .feature-card {
+    padding: var(--space-lg);
+  }
+  .cta-actions .btn {
+    width: 100%;
+  }
+}
+
+
+/* ============================================================================
    19. GAME CATALOG — SIDEBAR LAYOUT, CATEGORY FILTER & GAME CARDS
    ----------------------------------------------------------------------------
    Used by games.html (the Game Catalog page). Provides:
@@ -2175,6 +2499,7 @@ select:disabled {
    15. Form Elements
    16. Utility Classes
    17. Animation & Transitions
+   18. About Page (Hero, Story, Feature Grid, Timeline, Tech Stack, CTA)
    19. Game Catalog (Sidebar, Filters & Game Cards)
    20. Print Styles
    
