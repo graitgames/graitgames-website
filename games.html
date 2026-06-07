@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Catalog — GRaiT GAMES</title>
+  <meta name="description" content="Browse the GRaiT GAMES catalog of browser-based games — built with a little help from AI. Filter by category and jump straight into the action." />
+
+  <!-- Preconnect to Google Fonts for faster font loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Master design system -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Skip link for keyboard users (becomes visible on focus) -->
+  <a href="#catalog" class="skip-link">Skip to game catalog</a>
+
+  <!-- Navigation menu injected by nav.js -->
+  <nav id="main-nav"></nav>
+
+  <!-- =====================================================================
+       MAIN CONTENT
+       .container-wide keeps the catalog centered with a generous max-width.
+       ===================================================================== -->
+  <main class="container-wide section">
+
+    <!-- ── Page header ─────────────────────────────────────────────── -->
+    <header class="text-center mb-2xl">
+      <h1 class="text-cyan">// Game Catalog //</h1>
+      <p class="text-description">
+        Browser-based games built by us — with a little help from
+        <span class="text-green">AI</span>. Pick a category and press
+        <span class="text-orange">Play</span>.
+      </p>
+    </header>
+
+    <!-- ── Mobile-only button that opens the category sidebar ──────────
+         Hidden on desktop via CSS (.catalog-sidebar-toggle). -->
+    <button
+      type="button"
+      class="btn btn-outline-green catalog-sidebar-toggle"
+      id="sidebar-toggle"
+      aria-controls="catalog-sidebar"
+      aria-expanded="false">
+      ☰ Browse Categories
+    </button>
+
+    <!-- ── Two-column layout: sidebar + game grid ─────────────────────── -->
+    <div class="catalog-layout">
+
+      <!-- SIDEBAR: category filters -------------------------------------
+           On mobile this becomes a slide-in drawer (see styles.css). -->
+      <aside
+        class="catalog-sidebar"
+        id="catalog-sidebar"
+        aria-label="Game categories">
+        <h2 class="catalog-sidebar-title">Categories</h2>
+
+        <!-- Each button carries a data-category value that the filter
+             script in games.js matches against each card's data-category.
+             "all" is the default and starts active. -->
+        <ul class="category-list" role="list">
+          <li>
+            <button type="button" class="category-btn active" data-category="all" aria-pressed="true">
+              All Games <span class="category-count" data-count="all">0</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="category-btn" data-category="puzzle" aria-pressed="false">
+              Puzzle <span class="category-count" data-count="puzzle">0</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="category-btn" data-category="action" aria-pressed="false">
+              Action <span class="category-count" data-count="action">0</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="category-btn" data-category="strategy" aria-pressed="false">
+              Strategy <span class="category-count" data-count="strategy">0</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="category-btn" data-category="arcade" aria-pressed="false">
+              Arcade <span class="category-count" data-count="arcade">0</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="category-btn" data-category="adventure" aria-pressed="false">
+              Adventure <span class="category-count" data-count="adventure">0</span>
+            </button>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- CATALOG CONTENT: results bar + game grid ----------------------- -->
+      <section id="catalog" aria-label="Games">
+
+        <!-- Live results bar: announces the active filter + game count -->
+        <div class="catalog-results-bar">
+          <span>
+            Showing: <span class="text-green" id="active-category-label">All Games</span>
+          </span>
+          <span id="results-count" aria-live="polite">0 games</span>
+        </div>
+
+        <!-- GAME GRID -----------------------------------------------------
+             Each .game-card has a data-category used by the filter.
+             To add a real game later: copy a card, change the title,
+             description, category tag + data-category, and point the
+             "Play Now" button's href at the game's URL. -->
+        <div class="game-grid" id="game-grid">
+
+          <!-- 1. Puzzle -->
+          <article class="game-card" data-category="puzzle">
+            <div class="game-thumb">
+              <span class="game-tag">Puzzle</span>
+              <span class="game-thumb-label">NEON<br>BLOCKS</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Neon Blocks</h3>
+              <p class="game-card-desc">
+                A glowing twist on the classic falling-block puzzler. Clear lines,
+                chain combos, and chase a high score under the synthwave sky.
+              </p>
+              <div class="game-card-footer">
+                <a href="#" class="btn btn-secondary btn-block" aria-label="Play Neon Blocks (coming soon)">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2. Action -->
+          <article class="game-card" data-category="action">
+            <div class="game-thumb">
+              <span class="game-tag">Action</span>
+              <span class="game-thumb-label">LASER<br>RUNNER</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Laser Runner</h3>
+              <p class="game-card-desc">
+                Sprint through a grid-city at light speed, dodge hazards, and
+                blast obstacles. Fast reflexes earn the biggest combos.
+              </p>
+              <div class="game-card-footer">
+                <a href="#" class="btn btn-secondary btn-block" aria-label="Play Laser Runner (coming soon)">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 3. Strategy -->
+          <article class="game-card" data-category="strategy">
+            <div class="game-thumb">
+              <span class="game-tag">Strategy</span>
+              <span class="game-thumb-label">GRID<br>COMMANDER</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Grid Commander</h3>
+              <p class="game-card-desc">
+                Out-think the AI on a neon battlefield. Place your units, plan
+                your moves, and capture the grid before your rival does.
+              </p>
+              <div class="game-card-footer">
+                <a href="#" class="btn btn-secondary btn-block" aria-label="Play Grid Commander (coming soon)">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 4. Arcade -->
+          <article class="game-card" data-category="arcade">
+            <div class="game-thumb">
+              <span class="game-tag">Arcade</span>
+              <span class="game-thumb-label">PIXEL<br>PADDLE</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Pixel Paddle</h3>
+              <p class="game-card-desc">
+                A retro bat-and-ball arcade throwback with a modern glow. Easy to
+                pick up, tough to put down — perfect for a quick break.
+              </p>
+              <div class="game-card-footer">
+                <a href="#" class="btn btn-secondary btn-block" aria-label="Play Pixel Paddle (coming soon)">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 5. Adventure -->
+          <article class="game-card" data-category="adventure">
+            <div class="game-thumb">
+              <span class="game-tag">Adventure</span>
+              <span class="game-thumb-label">SYNTH<br>QUEST</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Synth Quest</h3>
+              <p class="game-card-desc">
+                Explore a sprawling retro-future world, solve light puzzles, and
+                uncover the secrets hidden inside the mainframe.
+              </p>
+              <div class="game-card-footer">
+                <a href="#" class="btn btn-secondary btn-block" aria-label="Play Synth Quest (coming soon)">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 6. Puzzle -->
+          <article class="game-card" data-category="puzzle">
+            <div class="game-thumb">
+              <span class="game-tag">Puzzle</span>
+              <span class="game-thumb-label">CIRCUIT<br>FLOW</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Circuit Flow</h3>
+              <p class="game-card-desc">
+                Connect the nodes and power up the board. Each level adds new
+                wires and tighter timing — a calm, brain-bending challenge.
+              </p>
+              <div class="game-card-footer">
+                <a href="#" class="btn btn-secondary btn-block" aria-label="Play Circuit Flow (coming soon)">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 7. Action -->
+          <article class="game-card" data-category="action">
+            <div class="game-thumb">
+              <span class="game-tag">Action</span>
+              <span class="game-thumb-label">STAR<br>DODGER</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Star Dodger</h3>
+              <p class="game-card-desc">
+                Weave through asteroid storms in your neon cruiser. Survive longer,
+                score higher, and climb the galactic leaderboard.
+              </p>
+              <div class="game-card-footer">
+                <a href="#" class="btn btn-secondary btn-block" aria-label="Play Star Dodger (coming soon)">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 8. Strategy -->
+          <article class="game-card" data-category="strategy">
+            <div class="game-thumb">
+              <span class="game-tag">Strategy</span>
+              <span class="game-thumb-label">TOWER<br>GRID</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Tower Grid</h3>
+              <p class="game-card-desc">
+                Build defenses, manage resources, and hold the line against waves
+                of glitching invaders. Every placement counts.
+              </p>
+              <div class="game-card-footer">
+                <a href="#" class="btn btn-secondary btn-block" aria-label="Play Tower Grid (coming soon)">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 9. Arcade -->
+          <article class="game-card" data-category="arcade">
+            <div class="game-thumb">
+              <span class="game-tag">Arcade</span>
+              <span class="game-thumb-label">RETRO<br>RACER</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Retro Racer</h3>
+              <p class="game-card-desc">
+                Burn rubber down an endless neon highway. Beat your best lap,
+                grab boosts, and feel that classic arcade rush.
+              </p>
+              <div class="game-card-footer">
+                <a href="#" class="btn btn-secondary btn-block" aria-label="Play Retro Racer (coming soon)">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- EMPTY STATE: shown by games.js when a filter has no matches -->
+          <p class="catalog-empty hidden" id="catalog-empty">
+            // No games in this category yet — check back soon!
+          </p>
+
+        </div><!-- /.game-grid -->
+      </section>
+    </div><!-- /.catalog-layout -->
+  </main>
+
+  <!-- Backdrop behind the mobile sidebar drawer (click to close) -->
+  <div class="catalog-backdrop" id="catalog-backdrop" hidden></div>
+
+  <!-- ── Scripts ──────────────────────────────────────────────────────
+       nav.js   → injects the responsive navigation header
+       games.js → sidebar toggle + category filtering
+       footer.js→ injects the site footer -->
+  <script src="nav.js"></script>
+  <script src="games.js"></script>
+  <script src="/footer.js"></script>
+</body>
+</html>

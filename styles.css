@@ -1798,7 +1798,314 @@ select:disabled {
 
 
 /* ============================================================================
-   18. PRINT STYLES
+   19. GAME CATALOG — SIDEBAR LAYOUT, CATEGORY FILTER & GAME CARDS
+   ----------------------------------------------------------------------------
+   Used by games.html (the Game Catalog page). Provides:
+     • .catalog-layout      — two-column grid (sidebar + content) on desktop
+     • .catalog-sidebar     — category navigation panel
+     • .category-btn        — individual filter buttons (with .active state)
+     • .game-grid           — responsive card grid (3 / 2 / 1 columns)
+     • .game-card           — single game thumbnail card
+   Everything reuses the brand variables defined in Section 2.
+   ============================================================================ */
+
+/* --- TWO-COLUMN PAGE LAYOUT (sidebar + catalog content) --- */
+.catalog-layout {
+  display: grid;
+  /* Desktop default: fixed-width sidebar on the left, content fills the rest */
+  grid-template-columns: 260px 1fr;
+  gap: var(--space-2xl);
+  align-items: start;
+}
+
+/* --- SIDEBAR PANEL --- */
+.catalog-sidebar {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-accessible);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-lg);
+  /* Keep the sidebar in view while the user scrolls the catalog.
+     96px ≈ sticky navbar height + a little breathing room. */
+  position: sticky;
+  top: 96px;
+}
+
+.catalog-sidebar-title {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-decorative);
+}
+
+/* --- CATEGORY FILTER LIST --- */
+.category-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+/* Each category is a real <button> for full keyboard + screen-reader support */
+.category-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius);
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.category-btn:hover {
+  color: var(--color-cyan);
+  background-color: rgba(0, 234, 255, 0.08);
+  border-color: var(--border-cyan);
+}
+
+/* Active category — uses the brand green to match the nav active state */
+.category-btn.active {
+  color: var(--color-green);
+  background-color: rgba(57, 255, 20, 0.1);
+  border-color: var(--color-green);
+}
+
+/* Small count badge on the right of each category */
+.category-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background-color: var(--bg-panel);
+  border-radius: 9999px;
+  padding: 0.1rem 0.5rem;
+  min-width: 1.6rem;
+  text-align: center;
+}
+
+.category-btn.active .category-count {
+  color: var(--color-green);
+}
+
+/* --- MOBILE SIDEBAR TOGGLE (hidden on desktop) --- */
+.catalog-sidebar-toggle {
+  display: none;
+  width: 100%;
+  margin-bottom: var(--space-lg);
+}
+
+/* --- CATALOG RESULTS HEADER (count + current category) --- */
+.catalog-results-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* --- RESPONSIVE GAME CARD GRID --- */
+.game-grid {
+  display: grid;
+  /* Desktop: 3 columns */
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+/* --- SINGLE GAME CARD --- */
+.game-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-accessible);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  transition: transform var(--transition-normal),
+              border-color var(--transition-normal),
+              box-shadow var(--transition-normal);
+}
+
+/* Synthwave hover: lift, green accent border + soft glow */
+.game-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--color-green);
+  box-shadow: var(--glow-green);
+}
+
+/* Thumbnail placeholder — gradient block with a pixel-font label.
+   Swap the background for a real <img> later (keep the 16:9 ratio). */
+.game-thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-panel) 100%);
+  border-bottom: 1px solid var(--border-decorative);
+  overflow: hidden;
+}
+
+/* Decorative scanline overlay on the thumbnail (purely cosmetic) */
+.game-thumb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.15) 3px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  pointer-events: none;
+}
+
+.game-thumb-label {
+  font-family: var(--font-logo);
+  font-size: clamp(0.7rem, 2.2vw, 1rem);
+  color: var(--color-orange);
+  letter-spacing: 0.05em;
+  z-index: 1;
+  text-align: center;
+  padding: var(--space-sm);
+}
+
+/* Category tag pinned to the top-left corner of the thumbnail */
+.game-tag {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  z-index: 2;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-green);
+  background-color: rgba(7, 7, 15, 0.85);
+  border: 1px solid var(--border-green);
+  border-radius: var(--border-radius);
+  padding: 0.15rem 0.5rem;
+}
+
+/* Card text/body */
+.game-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;  /* let bodies stretch so buttons line up across the row */
+  padding: var(--space-lg);
+}
+
+.game-card-title {
+  font-family: var(--font-headline);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.game-card-desc {
+  color: var(--text-description);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin-bottom: var(--space-lg);
+  flex: 1;
+}
+
+/* Push the Play button to the bottom of the card */
+.game-card-footer {
+  margin-top: auto;
+}
+
+/* --- EMPTY STATE (shown when a filter has no games) --- */
+.catalog-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-3xl) var(--space-md);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* --- BACKDROP behind the mobile off-canvas sidebar --- */
+.catalog-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(7, 7, 15, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 1050;
+}
+
+.catalog-backdrop.active {
+  display: block;
+}
+
+/* --- TABLET: 2-column game grid --- */
+@media (max-width: 1024px) {
+  .catalog-layout {
+    grid-template-columns: 220px 1fr;
+    gap: var(--space-lg);
+  }
+  .game-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* --- MOBILE: single column + off-canvas sidebar --- */
+@media (max-width: 768px) {
+  .catalog-layout {
+    grid-template-columns: 1fr;  /* stack everything */
+  }
+
+  /* Reveal the toggle button on mobile */
+  .catalog-sidebar-toggle {
+    display: inline-flex;
+  }
+
+  /* Slide-in sidebar drawer from the left */
+  .catalog-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 80%;
+    max-width: 320px;
+    border-radius: 0;
+    border-right: 2px solid var(--color-green);
+    z-index: 1060;
+    overflow-y: auto;
+    /* Hidden off-screen by default, slid in via .active */
+    transform: translateX(-105%);
+    transition: transform var(--transition-normal);
+  }
+
+  .catalog-sidebar.active {
+    transform: translateX(0);
+  }
+
+  /* Single-column cards on phones */
+  .game-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ============================================================================
+   20. PRINT STYLES
    ============================================================================ */
 @media print {
   /* Hide non-essential elements when printing */
@@ -1868,7 +2175,8 @@ select:disabled {
    15. Form Elements
    16. Utility Classes
    17. Animation & Transitions
-   18. Print Styles
+   19. Game Catalog (Sidebar, Filters & Game Cards)
+   20. Print Styles
    
    Questions? Refer to the brand guide at:
    /home/ubuntu/grait-games-brand-summary.md

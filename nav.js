@@ -110,7 +110,7 @@
      -------------------------------------------------------------------------- */
   var links = [
     { label: 'Home',  href: 'index.html' },
-    { label: 'Games', href: '#' },
+    { label: 'Games', href: 'games.html' },
     { label: 'About', href: '#' },
     { label: 'Blog',  href: '#' }
   ];
