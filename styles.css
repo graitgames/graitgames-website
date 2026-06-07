@@ -2877,7 +2877,328 @@ select:disabled {
 
 
 /* ============================================================================
-   21. PRINT STYLES
+   21. HOMEPAGE / COMING SOON — HERO, DECORATIVE FX, STATUS BAR, SOCIALS
+   ----------------------------------------------------------------------------
+   Used by index.html (the "Coming Soon" landing page). Reuses the shared
+   .about-hero / .about-cta / .feature-grid / .section-eyebrow patterns and
+   adds only the homepage-specific pieces below. All colours/spacing/fonts
+   come from the CSS variables in Section 2.
+
+   ⚠️ ACCESSIBILITY: Every glow/animation here lives on DECORATIVE elements
+   only (logo flourish, divider, background FX). Body copy and headlines stay
+   on the solid Space Black base for WCAG 2.1 AA contrast.
+
+   Building blocks:
+     • .fx-starfield / .fx-grid / .fx-scanlines — fixed full-page background FX
+     • .home-hero            — transparent hero so the starfield shows through
+     • .home-logo            — large pixel-font GRaiT GAMES wordmark
+     • .home-headline        — the "Coming Soon" headline
+     • .retro-divider        — neon line + pulsing diamond separator
+     • .status-bar           — playful "IN DEV / BUILD / AI ON" status chips
+     • .home-socials         — secondary social-follow CTA row
+   ============================================================================ */
+
+/* --- FIXED BACKGROUND FX (purely decorative, pointer-events: none) ----------
+   These sit behind all content (z-index 0). Hero is transparent so they show
+   through; solid sections below simply cover them as you scroll. */
+.fx-starfield,
+.fx-grid,
+.fx-scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Animated neon starfield canvas (drawn by home.js) */
+.fx-starfield {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Faint synthwave pixel-grid, masked so it fades top & bottom */
+.fx-grid {
+  background-image:
+    linear-gradient(rgba(57, 255, 20, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 20, 0.06) 1px, transparent 1px);
+  background-size: 50px 50px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 30%, rgba(0,0,0,0.6) 70%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 30%, rgba(0,0,0,0.6) 70%, transparent 100%);
+}
+
+/* Subtle CRT scanlines drifting slowly down the screen */
+.fx-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.18) 0px,
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  animation: fx-scanmove 8s linear infinite;
+}
+
+@keyframes fx-scanmove {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 -300px; }
+}
+
+/* Make sure the navbar, main content and footer sit ABOVE the background FX */
+#grait-navbar,
+#grait-footer,
+.home-hero,
+main {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- HERO (transparent so the starfield shows through) --------------------- */
+.home-hero {
+  position: relative;
+  text-align: center;
+  padding: var(--space-4xl) 0 var(--space-3xl);
+  background-color: transparent;  /* let .fx-* layers show through */
+}
+
+/* Small mono "LOADING PLAYER ONE" eyebrow (reuses .section-eyebrow colour) */
+.home-eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-green);
+  margin-bottom: var(--space-lg);
+}
+
+/* Large pixel-font wordmark. Glow is decorative; the letters themselves are
+   bright brand colours on the dark base, so contrast remains strong. */
+.home-logo {
+  font-family: var(--font-logo);
+  font-size: clamp(1.6rem, 6vw, 3.75rem);
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-xl);
+  display: block;
+}
+
+.home-logo .glow-o { text-shadow: var(--glow-orange); }
+.home-logo .glow-g { text-shadow: var(--glow-green); }
+
+/* "Coming Soon" headline (Orbitron via h1 base styles) */
+.home-headline {
+  font-family: var(--font-headline);
+  font-size: clamp(1.5rem, 5vw, 3rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  margin-bottom: var(--space-lg);
+  color: var(--text-primary);
+}
+
+/* The flickering accent word — decorative animation only */
+.home-headline .flicker-word {
+  color: var(--color-orange);
+  display: inline-block;
+  text-shadow: var(--glow-orange);
+  animation: home-flicker 4s infinite;
+}
+
+@keyframes home-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 22%, 24%, 55% { opacity: 0.65; }
+}
+
+/* Lead tagline under the headline */
+.home-tagline {
+  max-width: 640px;
+  margin: 0 auto var(--space-xl);
+  font-size: clamp(1rem, 2.4vw, 1.25rem);
+  line-height: 1.8;
+  color: var(--text-description);
+}
+
+/* --- RETRO DIVIDER (neon line + pulsing diamond) --------------------------- */
+.retro-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: 460px;
+  margin: var(--space-xl) auto;
+}
+
+.retro-divider .divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-green), transparent);
+}
+
+.retro-divider .divider-diamond {
+  width: 8px;
+  height: 8px;
+  background: var(--color-green);
+  transform: rotate(45deg);
+  box-shadow: var(--glow-green);
+  animation: home-diamond-pulse 2s ease-in-out infinite;
+}
+
+@keyframes home-diamond-pulse {
+  0%, 100% { opacity: 1;   transform: rotate(45deg) scale(1); }
+  50%      { opacity: 0.4; transform: rotate(45deg) scale(0.7); }
+}
+
+/* --- STATUS BAR ("IN DEV / BUILD / AI ON") --------------------------------- */
+.status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2xl);
+  margin: var(--space-2xl) auto 0;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.status-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-orange);
+}
+
+.status-value {
+  font-family: var(--font-logo);
+  font-size: 0.7rem;
+  color: var(--color-green);
+}
+
+/* Decorative build "progress" bar (loops; not a real percentage) */
+.status-progress {
+  width: 100px;
+  height: 6px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--color-green);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.status-progress-fill {
+  height: 100%;
+  background: var(--gradient-green);
+  animation: home-loadbar 3s ease-in-out infinite alternate;
+}
+
+@keyframes home-loadbar {
+  0%   { width: 55%; }
+  100% { width: 85%; }
+}
+
+/* --- NEWSLETTER / SOCIALS SECTION ------------------------------------------ */
+/* The Beehiiv embed is injected by their loader script; give it a sensible
+   max-width and centre it. */
+.newsletter-embed {
+  max-width: 520px;
+  margin: var(--space-lg) auto 0;
+  width: 100%;
+}
+
+/* "Follow the Journey" label above the social buttons */
+.home-follow-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-orange);
+  margin-top: var(--space-2xl);
+  margin-bottom: var(--space-md);
+}
+
+/* Secondary CTA: social follow buttons */
+.home-socials {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-2xl);
+}
+
+.home-social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1.5px solid var(--color-green);
+  border-radius: var(--border-radius);
+  background-color: rgba(57, 255, 20, 0.05);
+  color: var(--color-green);
+  transition: transform var(--transition-fast),
+              background-color var(--transition-fast),
+              color var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+.home-social-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.home-social-btn:hover {
+  transform: translateY(-3px);
+  background-color: var(--color-green);
+  color: var(--bg-primary);
+  box-shadow: var(--glow-green);
+}
+
+/* Orange-accent variant (first button, e.g. YouTube) for brand balance */
+.home-social-btn.is-orange {
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+  background-color: rgba(255, 107, 43, 0.05);
+}
+
+.home-social-btn.is-orange:hover {
+  background-color: var(--color-orange);
+  color: var(--bg-primary);
+  box-shadow: var(--glow-orange);
+}
+
+/* --- HOMEPAGE RESPONSIVE TWEAKS -------------------------------------------- */
+@media (max-width: 640px) {
+  .home-hero {
+    padding: var(--space-3xl) 0 var(--space-2xl);
+  }
+  .status-bar {
+    gap: var(--space-lg);
+  }
+  .cta-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Respect reduced-motion: freeze the decorative homepage animations.
+   (Global reduced-motion rules in Section 12 already cover transitions;
+   this explicitly stops the looping background/headline FX.) */
+@media (prefers-reduced-motion: reduce) {
+  .fx-scanlines,
+  .retro-divider .divider-diamond,
+  .home-headline .flicker-word,
+  .status-progress-fill {
+    animation: none !important;
+  }
+}
+
+
+/* ============================================================================
+   22. PRINT STYLES
    ============================================================================ */
 @media print {
   /* Hide non-essential elements when printing */
@@ -2950,7 +3271,8 @@ select:disabled {
    18. About Page (Hero, Story, Feature Grid, Timeline, Tech Stack, CTA)
    19. Game Catalog (Sidebar, Filters & Game Cards)
    20. Blog Page (Post Grid, Cards, Article Typography, Code Highlighting)
-   21. Print Styles
+   21. Homepage / Coming Soon (Hero, Background FX, Status Bar, Socials)
+   22. Print Styles
    
    Questions? Refer to the brand guide at:
    /home/ubuntu/grait-games-brand-summary.md
