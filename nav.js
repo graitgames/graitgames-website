@@ -38,6 +38,23 @@
   /* Guard: never inject twice (e.g. if script is included on the page twice) */
   if (document.getElementById('grait-navbar')) return;
 
+   /* --------------------------------------------------------------------------
+     0. GOOGLE ANALYTICS 4
+     -------------------------------------------------------------------------- */
+  if (!document.getElementById('grait-ga4')) {
+    var gaScript = document.createElement('script');
+    gaScript.id  = 'grait-ga4';
+    gaScript.async = true;
+    gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-3K11JCXJ0G';
+    document.head.appendChild(gaScript);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ window.dataLayer.push(arguments); }
+    window.gtag = gtag; // Make globally accessible
+    gtag('js', new Date());
+    gtag('config', 'G-3K11JCXJ0G');
+  }
+   
   /* --------------------------------------------------------------------------
      1. SUPPLEMENTAL STYLES (not present in styles.css yet — see note above)
      -------------------------------------------------------------------------- */
