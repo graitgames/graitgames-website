@@ -936,7 +936,12 @@
                letter label on top. Each quadrant is tinted by that board's
                best-known status for this letter. */
             var status = keyState[k.toLowerCase()]; /* array[4] or undefined */
-            var hasHint = false; /* true if any quadrant is green/orange */
+            /* hasHint = true only if this letter still gives USEFUL information,
+               i.e. it has a green/orange status on a board that's NOT yet solved.
+               Colored hints on already-solved boards don't count — that info is
+               spent — so a letter whose only colors are on solved boards becomes
+               dead. */
+            var hasHint = false;
             for (var q = 0; q < 4; q++) {
               var quad = document.createElement('span');
               quad.className = 'quad q' + q;
@@ -948,14 +953,18 @@
               if (st && !(solved[q] && st === 'correct')) {
                 quad.classList.add(st);
               }
-              if (st === 'correct' || st === 'present') hasHint = true;
+              /* Only an unsolved board's colored status keeps the letter alive. */
+              if (!solved[q] && (st === 'correct' || st === 'present')) {
+                hasHint = true;
+              }
               btn.appendChild(quad);
             }
 
-            /* "Dead" letter: used in a guess but NOT in any of the four words
-               (no green or orange quadrant anywhere). Give the whole key a grey
-               background so eliminated letters are obvious at a glance — a
-               double cue alongside the grey label. */
+            /* "Dead" letter: used in a guess but no longer useful — it has no
+               green/orange status on ANY unsolved board (either it's in none of
+               the words, or its only colored boards are already solved). Give
+               the whole key a grey background so eliminated letters are obvious
+               at a glance — a double cue alongside the grey label. */
             if (status && !hasHint) btn.classList.add('dead');
 
             var label = document.createElement('span');
