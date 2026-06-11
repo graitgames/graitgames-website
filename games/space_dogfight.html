@@ -117,12 +117,15 @@
       background: linear-gradient(to bottom, rgba(7,7,15,0.8), transparent);
     }
 
-    /* Player info panels */
+    /* Player info panels — allowed to shrink so two panels + the centre score
+       always fit inside the arena width on narrow (mobile) viewports. */
     .pinfo {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      min-width: 160px;
+      min-width: 0;
+      flex: 0 1 auto;
+      max-width: 42%;
       pointer-events: all;
     }
     .pinfo.right { align-items: flex-end; }
@@ -137,9 +140,12 @@
     .pname.player { color: var(--color-orange); }
     .pname.ai-name { color: var(--color-green); }
 
-    /* Health / shield bars */
+    /* Health / shield bars — fluid width that fits the (possibly narrow) panel
+       while capping at the original 160px on larger screens. */
     .bar-track {
-      width: 160px;
+      width: 100%;
+      max-width: 160px;
+      min-width: 80px;
       height: 8px;
       background: rgba(255,255,255,0.1);
       border-radius: 4px;
@@ -160,8 +166,9 @@
     /* Center HUD */
     #hud-center {
       text-align: center;
-      flex: 1;
-      padding: 4px 16px;
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 4px 8px;
     }
     #round-info {
       font-family: var(--font-mono);
@@ -202,6 +209,16 @@
     #pause-btn.active {
       border-color: var(--color-orange);
       color: var(--color-orange);
+    }
+
+    /* Narrow phones: tighten HUD padding and bar widths so the AI panel and
+       pause button stay fully inside the arena. */
+    @media (max-width: 480px) {
+      #hud { padding: 10px 10px; }
+      .bar-track { max-width: 130px; }
+      .pname { font-size: 10px; letter-spacing: 1px; }
+      #score-display { font-size: 17px; }
+      #pause-btn { padding: 3px 8px; }
     }
 
     /* ============================================
