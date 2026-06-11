@@ -11,6 +11,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
 
+  <!-- Master design system (one level up from /games/) — provides the shared
+       nav, footer, button and layout styles used across the site. -->
+  <link rel="stylesheet" href="../styles.css" />
+
   <style>
     /* ============================================
        GRAIT GAMES BRAND VARIABLES
@@ -44,7 +48,14 @@
       background-color: var(--bg-primary);
       color: var(--text-primary);
       font-family: var(--font-body);
-      overflow: hidden;
+    }
+
+    /* Wrapper that centres the game arena and the back button, matching the
+       site's container conventions used on the other game pages. */
+    .game-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: var(--space-lg, 24px) var(--space-md, 16px);
     }
 
     /* Skip link for screen readers */
@@ -67,10 +78,14 @@
        ============================================ */
     #game {
       position: relative;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: min(80vh, 720px);
       display: flex;
       flex-direction: column;
+      border: 1px solid var(--border-accessible);
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: #000;
     }
 
     /* ============================================
@@ -284,6 +299,13 @@
     .btn-hard   { background: var(--color-orange); border-color: var(--color-orange); color: #000; }
     .btn-hard:hover   { box-shadow: var(--glow-orange); }
 
+    /* Re-assert the shared "Back to Catalog" outline button. This page defines
+       its own .btn base (above) with a transparent border, which would otherwise
+       override the master .btn-outline-cyan border. Keeps it consistent with the
+       other game pages (memory-match, 4ordle). */
+    .btn-outline-cyan { background: transparent; border-color: var(--color-cyan-2); color: var(--color-cyan-2); }
+    .btn-outline-cyan:hover { background-color: var(--color-cyan); color: #000; box-shadow: var(--glow-cyan); }
+
     /* Stats panel (end screen) */
     .stats-panel {
       margin: 16px 0;
@@ -347,10 +369,18 @@
 <!-- Skip link for keyboard / screen reader users -->
 <a href="#game" class="skip-link">Skip to game</a>
 
+<!-- Navigation injected by site's nav.js -->
+<nav id="main-nav"></nav>
+
 <!-- ============================================
      MAIN GAME AREA
      ============================================ -->
-<main id="game" aria-label="Space Dogfight game">
+<main class="game-wrap" aria-label="Space Dogfight">
+
+  <!-- Back to catalog (site navigation) -->
+  <a href="/games.html" class="btn btn-outline-cyan btn-sm mb-xl">← Back to Catalog</a>
+
+  <div id="game" aria-label="Space Dogfight game">
 
   <!-- Canvas (full screen) -->
   <canvas id="game-canvas" aria-label="Space Dogfight arena — player ship vs AI ship"></canvas>
@@ -425,7 +455,9 @@
     </div>
   </div>
 
-</main><!-- /game -->
+  </div><!-- /#game arena -->
+
+</main><!-- /game-wrap -->
 
 <script>
 (function () {
@@ -502,8 +534,11 @@
      CANVAS RESIZE
      ============================================ */
   function resizeCanvas() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+    /* Size the canvas to its container (the #game arena) rather than the whole
+       window, so the game sits cleanly within the page alongside the nav and
+       footer. clientWidth/Height give the CSS pixel size of the rendered box. */
+    W = canvas.width  = canvas.clientWidth  || canvas.parentNode.clientWidth;
+    H = canvas.height = canvas.clientHeight || canvas.parentNode.clientHeight;
   }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
@@ -519,7 +554,13 @@
     if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
   });
   document.addEventListener('keyup',      function (e) { keys[e.code] = false; });
-  document.addEventListener('mousemove',  function (e) { mouseX = e.clientX; mouseY = e.clientY; });
+  document.addEventListener('mousemove',  function (e) {
+    /* Map viewport mouse coords to canvas-local coords so aiming stays accurate
+       now that the canvas no longer fills the whole window. */
+    var rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+  });
   document.addEventListener('mousedown',  function (e) { if (e.button === 0) keys['Space'] = true; });
   document.addEventListener('mouseup',    function (e) { if (e.button === 0) keys['Space'] = false; });
 
@@ -545,7 +586,7 @@
   function setupTouchControls() {
     var tc = document.createElement('div');
     tc.setAttribute('aria-label', 'Mobile touch controls');
-    tc.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:140px;display:flex;gap:12px;padding:12px;pointer-events:all;z-index:30';
+    tc.style.cssText = 'position:absolute;bottom:0;left:0;right:0;height:140px;display:flex;gap:12px;padding:12px;pointer-events:all;z-index:30';
     tc.innerHTML =
       '<div id="dpad" aria-label="Move ship" style="width:130px;height:120px;position:relative;flex-shrink:0">' +
         '<div style="position:absolute;inset:0;background:rgba(255,255,255,.06);border-radius:50%;border:1px solid rgba(255,255,255,0.15)"></div>' +
@@ -553,7 +594,9 @@
       '<div style="flex:1;display:flex;align-items:center;justify-content:flex-end;padding-right:16px">' +
         '<button id="fire-btn" aria-label="Fire weapon" style="width:80px;height:80px;background:rgba(255,107,43,.2);border:2px solid var(--color-orange);border-radius:50%;color:var(--color-orange);font-family:var(--font-headline);font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer">FIRE</button>' +
       '</div>';
-    document.body.appendChild(tc);
+    /* Anchor the controls inside the game arena (which is position:relative) so
+       they sit at the bottom of the arena rather than the page. */
+    (document.getElementById('game') || document.body).appendChild(tc);
 
     var dp = document.getElementById('dpad');
     var dpRect, dpActive = false, dpId = null;
@@ -1217,6 +1260,10 @@
 
 })();
 </script>
+
+<!-- Site nav and footer injected by these scripts (one level up) -->
+<script src="../nav.js"></script>
+<script src="../footer.js"></script>
 
 </body>
 </html>
