@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Space Dogfight — GRaiT GAMES</title>
   <meta name="description" content="Space Dogfight — A fast-paced 1v1 space shooter where you battle an AI opponent. A GRaiT GAMES original." />
 
@@ -48,6 +48,9 @@
       background-color: var(--bg-primary);
       color: var(--text-primary);
       font-family: var(--font-body);
+      /* Stop the whole page from rubber-band scrolling / bouncing, which on
+         mobile shows & hides the browser chrome and resizes vh-based layouts. */
+      overscroll-behavior: none;
     }
 
     /* Wrapper that centres the game arena and the back button, matching the
@@ -79,13 +82,24 @@
     #game {
       position: relative;
       width: 100%;
+      /* vh fallback first, then svh ("small viewport height"). svh is locked to
+         the layout viewport WITH browser chrome visible, so it does NOT change
+         when the mobile address bar shows/hides during touch — preventing the
+         expand/contract jitter while using the on-screen joystick. */
       height: min(80vh, 720px);
+      height: min(80svh, 720px);
       display: flex;
       flex-direction: column;
       border: 1px solid var(--border-accessible);
       border-radius: 8px;
       overflow: hidden;
       background-color: #000;
+      /* Touches inside the arena should never pan/zoom the page. */
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     /* ============================================
@@ -537,11 +551,21 @@
     /* Size the canvas to its container (the #game arena) rather than the whole
        window, so the game sits cleanly within the page alongside the nav and
        footer. clientWidth/Height give the CSS pixel size of the rendered box. */
-    W = canvas.width  = canvas.clientWidth  || canvas.parentNode.clientWidth;
-    H = canvas.height = canvas.clientHeight || canvas.parentNode.clientHeight;
+    var newW = canvas.clientWidth  || canvas.parentNode.clientWidth;
+    var newH = canvas.clientHeight || canvas.parentNode.clientHeight;
+    /* On mobile, the browser fires "resize" when the address bar slides in/out
+       during touch, nudging the height by a few px. Ignore sub-threshold height
+       changes so the arena (and ship positions) don't jitter mid-game; only a
+       real orientation/width change triggers a true resize. */
+    if (W && H && newW === W && Math.abs(newH - H) < 120) return;
+    W = canvas.width  = newW;
+    H = canvas.height = newH;
   }
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(resizeCanvas, 200);
+  });
 
   /* ============================================
      INPUT HANDLING
@@ -608,9 +632,11 @@
         var t = e.changedTouches[i];
         if (t.target === dp || dp.contains(t.target)) { dpId = t.identifier; break; }
       }
+      e.preventDefault();
     }
     function dpMove(e) {
       if (!dpActive) return;
+      e.preventDefault(); /* block page scroll/chrome toggle while steering */
       for (var i = 0; i < e.changedTouches.length; i++) {
         var t = e.changedTouches[i];
         if (t.identifier === dpId) {
@@ -628,13 +654,16 @@
         if (e.changedTouches[i].identifier === dpId) { dpActive = false; touchDx = 0; touchDy = 0; dpId = null; }
       }
     }
-    dp.addEventListener('touchstart', dpStart, { passive: true });
-    document.addEventListener('touchmove',  dpMove, { passive: true });
+    /* touchmove/touchstart are NON-passive so preventDefault() can stop the
+       page from scrolling (and thus toggling the mobile browser chrome) while
+       the joystick is in use. */
+    dp.addEventListener('touchstart', dpStart, { passive: false });
+    document.addEventListener('touchmove',  dpMove, { passive: false });
     document.addEventListener('touchend',   dpEnd,  { passive: true });
 
     var fb = document.getElementById('fire-btn');
-    fb.addEventListener('touchstart', function () { touchFire = true;  }, { passive: true });
-    fb.addEventListener('touchend',   function () { touchFire = false; }, { passive: true });
+    fb.addEventListener('touchstart', function (e) { touchFire = true;  e.preventDefault(); }, { passive: false });
+    fb.addEventListener('touchend',   function (e) { touchFire = false; e.preventDefault(); }, { passive: false });
   }
   setupTouchControls();
 
