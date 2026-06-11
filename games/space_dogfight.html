@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Space Dogfight — GRaiT GAMES</title>
+  <meta name="description" content="Space Dogfight — A fast-paced 1v1 space shooter where you battle an AI opponent. A GRaiT GAMES original." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================
+       GRAIT GAMES BRAND VARIABLES
+       ============================================ */
+    :root {
+      --color-orange:       #FF6B2B;
+      --color-green:        #39FF14;
+      --bg-primary:         #07070F;
+      --bg-secondary:       #0D0D1A;
+      --bg-panel:           #131323;
+      --border-accessible:  rgba(255, 255, 255, 0.15);
+      --text-primary:       #FFFFFF;
+      --text-muted:         rgba(255, 255, 255, 0.6);
+      --text-description:   rgba(255, 255, 255, 0.75);
+      --color-cyan:         #00EAFF;
+      --color-cyan-2:       #00C8DC;
+      --font-headline:      'Orbitron', sans-serif;
+      --font-body:          'Rajdhani', sans-serif;
+      --font-mono:          'Share Tech Mono', monospace;
+      --glow-green:         0 0 12px rgba(57, 255, 20, 0.4);
+      --glow-orange:        0 0 12px rgba(255, 107, 43, 0.4);
+      --glow-cyan:          0 0 12px rgba(0, 234, 255, 0.4);
+    }
+
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      overflow: hidden;
+    }
+
+    /* Skip link for screen readers */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--color-cyan);
+      color: #000;
+      padding: 8px 16px;
+      z-index: 9999;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      transition: top 0.2s;
+    }
+    .skip-link:focus { top: 0; }
+
+    /* ============================================
+       LAYOUT
+       ============================================ */
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ============================================
+       HUD (Heads-Up Display)
+       ============================================ */
+    #hud {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 12px 16px;
+      z-index: 10;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(7,7,15,0.8), transparent);
+    }
+
+    /* Player info panels */
+    .pinfo {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 160px;
+      pointer-events: all;
+    }
+    .pinfo.right { align-items: flex-end; }
+
+    .pname {
+      font-family: var(--font-headline);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .pname.player { color: var(--color-orange); }
+    .pname.ai-name { color: var(--color-green); }
+
+    /* Health / shield bars */
+    .bar-track {
+      width: 160px;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border-accessible);
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.1s ease;
+    }
+    .bar-fill.hp-player { background: var(--color-orange); box-shadow: var(--glow-orange); }
+    .bar-fill.hp-ai     { background: var(--color-green);  box-shadow: var(--glow-green); }
+    .bar-fill.shield    { background: var(--color-cyan);   box-shadow: var(--glow-cyan); height: 4px; }
+
+    .bar-track.shield-track { height: 4px; margin-top: 2px; }
+
+    /* Center HUD */
+    #hud-center {
+      text-align: center;
+      flex: 1;
+      padding: 4px 16px;
+    }
+    #round-info {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    #score-display {
+      font-family: var(--font-headline);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-top: 2px;
+    }
+
+    /* Pause button */
+    #pause-btn {
+      margin-top: 6px;
+      padding: 4px 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-accessible);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1px;
+      border-radius: 3px;
+      cursor: pointer;
+      pointer-events: all;
+      text-transform: uppercase;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #pause-btn:hover, #pause-btn:focus {
+      border-color: var(--color-cyan);
+      color: var(--color-cyan);
+      outline: none;
+    }
+    #pause-btn.active {
+      border-color: var(--color-orange);
+      color: var(--color-orange);
+    }
+
+    /* ============================================
+       CANVAS
+       ============================================ */
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ============================================
+       OVERLAYS
+       ============================================ */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      background-color: rgba(7, 7, 15, 0.92);
+      backdrop-filter: blur(4px);
+      z-index: 20;
+    }
+    .overlay.hidden { display: none; }
+
+    /* GRaiT GAMES logo */
+    .grait-logo {
+      font-family: var(--font-headline);
+      font-size: 13px;
+      letter-spacing: 3px;
+      margin-bottom: 16px;
+      opacity: 0.8;
+    }
+
+    /* Game title */
+    .overlay h1 {
+      font-family: var(--font-headline);
+      font-size: clamp(20px, 4vw, 32px);
+      font-weight: 900;
+      color: var(--color-orange);
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+      /* No text glow per accessibility guidelines */
+    }
+
+    .overlay .subtitle {
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--text-description);
+      margin-bottom: 6px;
+      max-width: 480px;
+    }
+
+    /* Power-up legend */
+    .powerup-legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 12px 0 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .pu-item { display: flex; align-items: center; gap: 5px; }
+    .pu-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+    /* Difficulty buttons */
+    .diff-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .diff-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      font-family: var(--font-headline);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      border: 2px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: box-shadow 0.2s, transform 0.1s;
+    }
+    .btn:focus { outline: 2px solid var(--color-cyan); outline-offset: 3px; }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-easy   { background: transparent; border-color: var(--color-green);  color: var(--color-green); }
+    .btn-easy:hover   { box-shadow: var(--glow-green); }
+
+    .btn-medium { background: var(--color-cyan); border-color: var(--color-cyan); color: #000; }
+    .btn-medium:hover { box-shadow: var(--glow-cyan); }
+
+    .btn-hard   { background: var(--color-orange); border-color: var(--color-orange); color: #000; }
+    .btn-hard:hover   { box-shadow: var(--glow-orange); }
+
+    /* Stats panel (end screen) */
+    .stats-panel {
+      margin: 16px 0;
+      padding: 14px 28px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-accessible);
+      border-radius: 6px;
+    }
+    .stats-panel .stat-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .stats-panel .stat-value {
+      font-family: var(--font-headline);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--color-orange);
+    }
+    .stats-panel .high-score {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-green);
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+
+    /* Round banner */
+    #round-banner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-headline);
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 900;
+      letter-spacing: 4px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 15;
+    }
+
+    /* ============================================
+       REDUCED MOTION
+       ============================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Skip link for keyboard / screen reader users -->
+<a href="#game" class="skip-link">Skip to game</a>
+
+<!-- ============================================
+     MAIN GAME AREA
+     ============================================ -->
+<main id="game" aria-label="Space Dogfight game">
+
+  <!-- Canvas (full screen) -->
+  <canvas id="game-canvas" aria-label="Space Dogfight arena — player ship vs AI ship"></canvas>
+
+  <!-- HUD (health bars, score, pause) -->
+  <div id="hud" role="status" aria-live="polite" aria-label="Game status">
+
+    <!-- Player info (left) -->
+    <div class="pinfo left">
+      <span class="pname player">YOU</span>
+      <div class="bar-track" role="progressbar" aria-label="Player health" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+        <div class="bar-fill hp-player" id="p-hp" style="width:100%"></div>
+      </div>
+      <div class="bar-track shield-track">
+        <div class="bar-fill shield" id="p-sh" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Centre (round + score) -->
+    <div id="hud-center">
+      <div id="round-info">Round 1 · Easy</div>
+      <div id="score-display" aria-label="Score: player 0, AI 0">0 — 0</div>
+    </div>
+
+    <!-- AI info (right) -->
+    <div class="pinfo right">
+      <span class="pname ai-name">AI</span>
+      <div class="bar-track" role="progressbar" aria-label="AI health" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+        <div class="bar-fill hp-ai" id="a-hp" style="width:100%"></div>
+      </div>
+      <div class="bar-track shield-track">
+        <div class="bar-fill shield" id="a-sh" style="width:0%"></div>
+      </div>
+      <!-- Pause button sits under AI bar per design request -->
+      <button id="pause-btn" aria-label="Pause game" aria-pressed="false">⏸ Pause</button>
+    </div>
+
+  </div><!-- /hud -->
+
+  <!-- Round win/lose flash banner -->
+  <div id="round-banner" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- ============================================
+       TITLE / MENU OVERLAY
+       ============================================ -->
+  <div class="overlay" id="overlay-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+    <p class="grait-logo">
+      <span style="color:var(--color-orange)">GR</span><span style="color:var(--color-green)">ai</span><span style="color:var(--color-orange)">T</span>
+      <span style="color:var(--color-green)">GAMES</span>
+    </p>
+    <h1 id="menu-title">Space Dogfight</h1>
+    <p class="subtitle">
+      Aim with your <span style="color:var(--color-orange)">mouse</span>, move with
+      <span style="color:var(--color-cyan)">WASD / Arrows</span>, shoot with
+      <span style="color:var(--color-green)">Space or Click</span>.
+      Survive as long as you can — the AI gets faster every round!
+    </p>
+
+    <!-- Power-up legend -->
+    <div class="powerup-legend" aria-label="Power-up types">
+      <div class="pu-item"><div class="pu-dot" style="background:#FFD700"></div>Spread Shot</div>
+      <div class="pu-item"><div class="pu-dot" style="background:var(--color-cyan)"></div>Shield</div>
+      <div class="pu-item"><div class="pu-dot" style="background:var(--color-orange)"></div>Speed Boost</div>
+      <div class="pu-item"><div class="pu-dot" style="background:#CC44FF"></div>Tracking Bullets</div>
+    </div>
+
+    <p class="diff-label">Choose Difficulty</p>
+    <div class="diff-buttons">
+      <button class="btn btn-easy"   onclick="startGame('easy')"   aria-label="Start on Easy difficulty">Easy</button>
+      <button class="btn btn-medium" onclick="startGame('medium')" aria-label="Start on Medium difficulty">Medium</button>
+      <button class="btn btn-hard"   onclick="startGame('hard')"   aria-label="Start on Hard difficulty">Hard</button>
+    </div>
+  </div>
+
+</main><!-- /game -->
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================
+     CONSTANTS & CONFIGURATION
+     ============================================ */
+  var MAX_HP      = 100;
+  var BULLET_SPD  = 9;
+  var SHIP_SPD    = 3.5;
+  var FIRE_RATE   = 200; // ms between player shots
+
+  /* Brand colors used on canvas */
+  var COLOR_PLAYER  = '#FF6B2B'; // GRaiT orange
+  var COLOR_AI      = '#39FF14'; // GRaiT green
+  var COLOR_CYAN    = '#00EAFF';
+  var COLOR_BG      = '#07070F';
+
+  /* Difficulty profiles */
+  var DIFF = {
+    easy:   { fireRate:2000, speedMult:0.7,  reactionLag:0.04, dodgeStr:0.008, label:'Easy',   roundSpeedInc:0.02, roundFireInc:15,  cap:0.6  },
+    medium: { fireRate:1200, speedMult:1.0,  reactionLag:0.08, dodgeStr:0.02,  label:'Medium', roundSpeedInc:0.05, roundFireInc:35,  cap:1.4  },
+    hard:   { fireRate:600,  speedMult:1.3,  reactionLag:0.14, dodgeStr:0.05,  label:'Hard',   roundSpeedInc:0.10, roundFireInc:70,  cap:2.4  },
+  };
+
+  /* ============================================
+     DOM REFERENCES
+     ============================================ */
+  var canvas      = document.getElementById('game-canvas');
+  var ctx         = canvas.getContext('2d');
+  var elPHP       = document.getElementById('p-hp');
+  var elPSH       = document.getElementById('p-sh');
+  var elAHP       = document.getElementById('a-hp');
+  var elASH       = document.getElementById('a-sh');
+  var elScore     = document.getElementById('score-display');
+  var elRound     = document.getElementById('round-info');
+  var elBanner    = document.getElementById('round-banner');
+  var elMenu      = document.getElementById('overlay-menu');
+  var elPauseBtn  = document.getElementById('pause-btn');
+
+  /* ============================================
+     GAME STATE
+     ============================================ */
+  var W, H;                         // canvas dimensions
+  var gameState   = 'menu';         // 'menu' | 'playing' | 'roundOver'
+  var paused      = false;
+  var round       = 1;
+  var scores      = [0, 0];         // [player, ai]
+  var highScore   = 0;
+  var difficulty  = 'medium';
+  var rafId;
+  var lastTime    = 0;
+
+  // Game objects
+  var playerShip, aiShip;
+  var bullets, particles, powerups, stars;
+
+  // Timers
+  var aiFireTimer     = 0;
+  var aiFireRate      = 1200;
+  var playerFireTimer = 0;
+  var nextPowerupTime = 0;
+
+  // Screen shake
+  var shakeX = 0, shakeY = 0;
+
+  // Input state
+  var keys    = {};
+  var mouseX  = 0, mouseY = 0;
+  var touchDx = 0, touchDy = 0, touchFire = false;
+
+  /* ============================================
+     CANVAS RESIZE
+     ============================================ */
+  function resizeCanvas() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  /* ============================================
+     INPUT HANDLING
+     ============================================ */
+  document.addEventListener('keydown', function (e) {
+    keys[e.code] = true;
+    if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) {
+      e.preventDefault();
+    }
+    if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
+  });
+  document.addEventListener('keyup',      function (e) { keys[e.code] = false; });
+  document.addEventListener('mousemove',  function (e) { mouseX = e.clientX; mouseY = e.clientY; });
+  document.addEventListener('mousedown',  function (e) { if (e.button === 0) keys['Space'] = true; });
+  document.addEventListener('mouseup',    function (e) { if (e.button === 0) keys['Space'] = false; });
+
+  /* Pause / resume */
+  function togglePause() {
+    if (gameState !== 'playing' && !paused) return;
+    paused = !paused;
+    elPauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    if (paused) {
+      elPauseBtn.textContent = '▶ Resume';
+      elPauseBtn.classList.add('active');
+    } else {
+      elPauseBtn.textContent = '⏸ Pause';
+      elPauseBtn.classList.remove('active');
+      lastTime = performance.now(); // avoid dt spike on resume
+    }
+  }
+  elPauseBtn.addEventListener('click', togglePause);
+
+  /* ============================================
+     TOUCH CONTROLS (mobile D-pad + fire)
+     ============================================ */
+  function setupTouchControls() {
+    var tc = document.createElement('div');
+    tc.setAttribute('aria-label', 'Mobile touch controls');
+    tc.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:140px;display:flex;gap:12px;padding:12px;pointer-events:all;z-index:30';
+    tc.innerHTML =
+      '<div id="dpad" aria-label="Move ship" style="width:130px;height:120px;position:relative;flex-shrink:0">' +
+        '<div style="position:absolute;inset:0;background:rgba(255,255,255,.06);border-radius:50%;border:1px solid rgba(255,255,255,0.15)"></div>' +
+      '</div>' +
+      '<div style="flex:1;display:flex;align-items:center;justify-content:flex-end;padding-right:16px">' +
+        '<button id="fire-btn" aria-label="Fire weapon" style="width:80px;height:80px;background:rgba(255,107,43,.2);border:2px solid var(--color-orange);border-radius:50%;color:var(--color-orange);font-family:var(--font-headline);font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer">FIRE</button>' +
+      '</div>';
+    document.body.appendChild(tc);
+
+    var dp = document.getElementById('dpad');
+    var dpRect, dpActive = false, dpId = null;
+
+    function dpStart(e) {
+      dpRect = dp.getBoundingClientRect();
+      dpActive = true;
+      for (var i = 0; i < e.changedTouches.length; i++) {
+        var t = e.changedTouches[i];
+        if (t.target === dp || dp.contains(t.target)) { dpId = t.identifier; break; }
+      }
+    }
+    function dpMove(e) {
+      if (!dpActive) return;
+      for (var i = 0; i < e.changedTouches.length; i++) {
+        var t = e.changedTouches[i];
+        if (t.identifier === dpId) {
+          var cx = dpRect.left + dpRect.width / 2;
+          var cy = dpRect.top  + dpRect.height / 2;
+          var dx = t.clientX - cx, dy = t.clientY - cy;
+          var dist = Math.sqrt(dx*dx + dy*dy), maxR = 50;
+          touchDx = Math.abs(dx) > 8 ? dx / Math.max(dist, maxR) * Math.min(dist, maxR) / maxR : 0;
+          touchDy = Math.abs(dy) > 8 ? dy / Math.max(dist, maxR) * Math.min(dist, maxR) / maxR : 0;
+        }
+      }
+    }
+    function dpEnd(e) {
+      for (var i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === dpId) { dpActive = false; touchDx = 0; touchDy = 0; dpId = null; }
+      }
+    }
+    dp.addEventListener('touchstart', dpStart, { passive: true });
+    document.addEventListener('touchmove',  dpMove, { passive: true });
+    document.addEventListener('touchend',   dpEnd,  { passive: true });
+
+    var fb = document.getElementById('fire-btn');
+    fb.addEventListener('touchstart', function () { touchFire = true;  }, { passive: true });
+    fb.addEventListener('touchend',   function () { touchFire = false; }, { passive: true });
+  }
+  setupTouchControls();
+
+  /* ============================================
+     SHIP FACTORY
+     Creates a ship object with all properties
+     ============================================ */
+  function makeShip(x, y, isAI) {
+    return {
+      x: x, y: y,
+      vx: 0, vy: 0,
+      hp: MAX_HP, maxHp: MAX_HP,
+      shield: 0, shieldTime: 0,
+      spread: false, spreadTime: 0,
+      speedBoost: 1, speedTime: 0,
+      track: false, trackTime: 0,
+      isAI: isAI,
+      angle: isAI ? Math.PI / 2 : -Math.PI / 2,
+      nozzleSide: 0  // alternates 0/1 for dual-nozzle firing
+    };
+  }
+
+  /* ============================================
+     ROUND INITIALISATION
+     ============================================ */
+  function initRound() {
+    /* Randomise spawn positions — player left half, AI right half */
+    var pad = 60;
+    playerShip = makeShip(
+      pad + Math.random() * (W / 2 - pad * 2),
+      pad + Math.random() * (H - pad * 2),
+      false
+    );
+    aiShip = makeShip(
+      W / 2 + pad + Math.random() * (W / 2 - pad * 2),
+      pad + Math.random() * (H - pad * 2),
+      true
+    );
+    bullets    = [];
+    particles  = [];
+    powerups   = [];
+    stars      = generateStars();
+    aiFireTimer     = 500;
+    playerFireTimer = 0;
+    scheduleNextPowerup();
+    gameState = 'playing';
+  }
+
+  /* ============================================
+     STARFIELD
+     Generates a static background star field
+     ============================================ */
+  function generateStars() {
+    var starArray = [];
+    for (var i = 0; i < 90; i++) {
+      starArray.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.4 + 0.3,
+        opacity: Math.random() * 0.5 + 0.2
+      });
+    }
+    return starArray;
+  }
+
+  /* ============================================
+     POWER-UPS
+     ============================================ */
+  function scheduleNextPowerup() {
+    nextPowerupTime = Date.now() + 3000 + Math.random() * 4000;
+  }
+
+  function spawnPowerup() {
+    var types  = ['spread', 'shield', 'speed', 'track'];
+    var colors = { spread:'#FFD700', shield:COLOR_CYAN, speed:COLOR_PLAYER, track:'#CC44FF' };
+    var t = types[Math.floor(Math.random() * types.length)];
+    powerups.push({ x: W*0.2 + Math.random()*W*0.6, y: H*0.15 + Math.random()*H*0.7, type: t, color: colors[t], r: 10, life: 1 });
+    scheduleNextPowerup();
+  }
+
+  function applyPowerup(ship, p) {
+    p.life = -1;
+    if      (p.type === 'spread') { ship.spread = true;     ship.spreadTime = 5000; }
+    else if (p.type === 'shield') { ship.shield = 100;      ship.shieldTime = 6000; }
+    else if (p.type === 'speed')  { ship.speedBoost = 1.8;  ship.speedTime  = 4000; }
+    else if (p.type === 'track')  { ship.track = true;      ship.trackTime  = 5000; }
+  }
+
+  /* ============================================
+     FIRING — Bullets exit from the two prongs
+     alternating left/right nozzle each shot
+     ============================================ */
+  function fireBullet(ship, spread) {
+    var baseAngle = ship.angle - Math.PI / 2;
+    var spd       = BULLET_SPD * (ship.speedBoost > 1 ? 1.2 : 1);
+    var owner     = ship.isAI ? 'ai' : 'player';
+    /* Tracking bullets glow purple; player=orange, AI=green */
+    var col       = ship.track ? '#CC44FF' : (ship.isAI ? COLOR_AI : COLOR_PLAYER);
+    var tracking  = ship.track;
+
+    /* Convert local nozzle offsets to world space using ship rotation */
+    var cos = Math.cos(ship.angle), sin = Math.sin(ship.angle);
+    function localToWorld(lx, ly) {
+      return { x: ship.x + lx*cos - ly*sin, y: ship.y + lx*sin + ly*cos };
+    }
+    function addBullet(angle, ox, oy) {
+      var o = localToWorld(ox, oy);
+      bullets.push({ x:o.x, y:o.y, vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd, owner:owner, color:col, life:1, tracking:tracking });
+    }
+
+    if (spread) {
+      /* Spread: fire both nozzles with wide angles simultaneously */
+      addBullet(baseAngle - 0.25, -6.5, -34);
+      addBullet(baseAngle,        -6.5, -34);
+      addBullet(baseAngle + 0.25,  6.5, -34);
+      addBullet(baseAngle,         6.5, -34);
+    } else {
+      /* Normal: alternate between left (−6.5) and right (+6.5) nozzle */
+      var nx = ship.nozzleSide === 0 ? -6.5 : 6.5;
+      addBullet(baseAngle, nx, -34);
+      ship.nozzleSide = ship.nozzleSide === 0 ? 1 : 0;
+    }
+  }
+
+  /* ============================================
+     PARTICLES — explosion / hit effects
+     ============================================ */
+  function addParticles(x, y, color, count) {
+    count = count || 10;
+    for (var i = 0; i < count; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var spd   = 1 + Math.random() * 3;
+      particles.push({ x:x, y:y, vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd, life:1, color:color, r:2 + Math.random()*2 });
+    }
+  }
+
+  function screenShake(amt) {
+    shakeX = (Math.random() - 0.5) * amt;
+    shakeY = (Math.random() - 0.5) * amt;
+  }
+
+  function clampShip(s) {
+    s.x = Math.max(20, Math.min(W - 20, s.x + s.vx));
+    s.y = Math.max(20, Math.min(H - 20, s.y + s.vy));
+  }
+
+  /* ============================================
+     AI BEHAVIOUR
+     The AI tries to:
+     1. Keep an ideal range of ~200px from the player
+     2. Dodge incoming bullets
+     3. Chase nearby power-ups aggressively
+     4. Face and shoot at the player
+     Difficulty scales speed, fire rate, and dodge strength.
+     ============================================ */
+  function updateAI(dt) {
+    var s  = aiShip;
+    var px = playerShip.x, py = playerShip.y;
+    var dx = px - s.x, dy = py - s.y;
+    var dist  = Math.sqrt(dx*dx + dy*dy);
+    var ideal = 200;
+    var d     = DIFF[difficulty];
+
+    /* Scale speed with round number — capped to prevent impossibility */
+    var roundScale = 1 + Math.min((round - 1) * d.roundSpeedInc, d.cap);
+    var spd = SHIP_SPD * d.speedMult * roundScale * (s.speedBoost > 1 ? s.speedBoost : 1) * 1.05;
+
+    /* Steering: seek ideal range */
+    var tx = 0, ty = 0;
+    if (dist > ideal + 40) { tx = dx / dist; ty = dy / dist; }
+    else if (dist < ideal - 40) { tx = -dx / dist; ty = -dy / dist; }
+
+    /* Dodge player bullets */
+    for (var i = 0; i < bullets.length; i++) {
+      var b = bullets[i];
+      if (b.owner === 'player') {
+        var bx = b.x - s.x, by = b.y - s.y;
+        if (Math.sqrt(bx*bx + by*by) < 120) {
+          tx -= by * d.dodgeStr;
+          ty += bx * d.dodgeStr;
+        }
+      }
+    }
+
+    /* Chase nearest power-up if within range */
+    var bestPowerup = null, bestPDist = Infinity;
+    for (var j = 0; j < powerups.length; j++) {
+      var p = powerups[j];
+      if (p.life <= 0) continue;
+      var pd = Math.sqrt(Math.pow(p.x - s.x, 2) + Math.pow(p.y - s.y, 2));
+      if (pd < bestPDist) { bestPDist = pd; bestPowerup = p; }
+    }
+    if (bestPowerup && bestPDist < 280) {
+      tx += (bestPowerup.x - s.x) / bestPDist * 0.9;
+      ty += (bestPowerup.y - s.y) / bestPDist * 0.9;
+    }
+
+    /* Apply steering with inertia */
+    s.vx += (tx - s.vx) * d.reactionLag * spd;
+    s.vy += (ty - s.vy) * d.reactionLag * spd;
+    var spd2 = Math.sqrt(s.vx*s.vx + s.vy*s.vy);
+    if (spd2 > spd) { s.vx = s.vx / spd2 * spd; s.vy = s.vy / spd2 * spd; }
+
+    /* Face the player */
+    s.angle = Math.atan2(py - s.y, px - s.x) + Math.PI / 2;
+    clampShip(s);
+
+    /* AI shooting — fire rate scales with round + difficulty */
+    aiFireTimer -= dt;
+    var baseFireRate = d.fireRate / roundScale;
+    aiFireRate = Math.max(baseFireRate * 0.4, baseFireRate - (round - 1) * d.roundFireInc);
+    if (aiFireTimer <= 0) {
+      fireBullet(s, s.spread);
+      aiFireTimer = aiFireRate;
+    }
+
+    /* AI picks up power-ups on contact */
+    for (var k = 0; k < powerups.length; k++) {
+      var pu = powerups[k];
+      if (pu.life <= 0) continue;
+      if (Math.sqrt(Math.pow(pu.x - s.x, 2) + Math.pow(pu.y - s.y, 2)) < pu.r + 14) {
+        applyPowerup(s, pu);
+      }
+    }
+  }
+
+  /* ============================================
+     GAME LOOP
+     ============================================ */
+  function loop(ts) {
+    rafId = requestAnimationFrame(loop);
+    var dt = Math.min(ts - lastTime, 50);
+    lastTime = ts;
+    if (paused || gameState !== 'playing') { draw(); return; }
+    update(dt);
+    draw();
+  }
+
+  /* ============================================
+     UPDATE — runs every frame when playing
+     ============================================ */
+  function update(dt) {
+    /* -- Player movement -- */
+    var sp = SHIP_SPD * (playerShip.speedBoost > 1 ? playerShip.speedBoost : 1);
+    var mvx = 0, mvy = 0;
+    if (keys['ArrowLeft']  || keys['KeyA'] || touchDx < -0.1) mvx = -1;
+    if (keys['ArrowRight'] || keys['KeyD'] || touchDx >  0.1) mvx =  1;
+    if (keys['ArrowUp']    || keys['KeyW'] || touchDy < -0.1) mvy = -1;
+    if (keys['ArrowDown']  || keys['KeyS'] || touchDy >  0.1) mvy =  1;
+    playerShip.vx = mvx * sp;
+    playerShip.vy = mvy * sp;
+    /* Player always faces mouse cursor */
+    playerShip.angle = Math.atan2(mouseY - playerShip.y, mouseX - playerShip.x) + Math.PI / 2;
+    clampShip(playerShip);
+
+    /* -- Player shooting -- */
+    playerFireTimer -= dt;
+    if ((keys['Space'] || touchFire) && playerFireTimer <= 0) {
+      fireBullet(playerShip, playerShip.spread);
+      playerFireTimer = FIRE_RATE;
+    }
+
+    /* -- AI update -- */
+    updateAI(dt);
+
+    /* -- Power-up timer countdowns -- */
+    var ships = [playerShip, aiShip];
+    for (var si = 0; si < ships.length; si++) {
+      var sh = ships[si];
+      if (sh.spreadTime > 0) { sh.spreadTime -= dt; if (sh.spreadTime <= 0) sh.spread = false; }
+      if (sh.shieldTime > 0) { sh.shieldTime -= dt; if (sh.shieldTime <= 0) sh.shield = 0; }
+      if (sh.speedTime  > 0) { sh.speedTime  -= dt; if (sh.speedTime  <= 0) sh.speedBoost = 1; }
+      if (sh.trackTime  > 0) { sh.trackTime  -= dt; if (sh.trackTime  <= 0) sh.track = false; }
+    }
+
+    /* -- Bullet homing (tracking bullets curve toward target) -- */
+    for (var bi = 0; bi < bullets.length; bi++) {
+      var bl = bullets[bi];
+      if (bl.tracking) {
+        var tgt = bl.owner === 'player' ? aiShip : playerShip;
+        var bdx = tgt.x - bl.x, bdy = tgt.y - bl.y;
+        var bd  = Math.sqrt(bdx*bdx + bdy*bdy);
+        if (bd > 0) {
+          bl.vx += bdx / bd * 0.045;
+          bl.vy += bdy / bd * 0.045;
+          var bs = Math.sqrt(bl.vx*bl.vx + bl.vy*bl.vy);
+          if (bs > BULLET_SPD * 1.1) { bl.vx = bl.vx/bs * BULLET_SPD*1.1; bl.vy = bl.vy/bs * BULLET_SPD*1.1; }
+        }
+      }
+      bl.x += bl.vx; bl.y += bl.vy;
+      bl.life -= dt / 3000;
+    }
+
+    /* -- Bullet vs ship collision -- */
+    for (var ci = 0; ci < bullets.length; ci++) {
+      var cb = bullets[ci];
+      if (cb.life <= 0) continue;
+      var ctgt = cb.owner === 'player' ? aiShip : playerShip;
+      var ddx = cb.x - ctgt.x, ddy = cb.y - ctgt.y;
+      if (Math.sqrt(ddx*ddx + ddy*ddy) < 18) {
+        cb.life = -1;
+        addParticles(cb.x, cb.y, cb.color, 6);
+        screenShake(5);
+        if (ctgt.shield > 0) ctgt.shield = Math.max(0, ctgt.shield - 30);
+        else ctgt.hp = Math.max(0, ctgt.hp - 12);
+      }
+    }
+    bullets = bullets.filter(function (b) { return b.life > 0 && b.x > -50 && b.x < W+50 && b.y > -50 && b.y < H+50; });
+
+    /* -- Particle physics -- */
+    for (var pi2 = 0; pi2 < particles.length; pi2++) {
+      var pt = particles[pi2];
+      pt.x += pt.vx; pt.y += pt.vy;
+      pt.life -= dt / 600;
+      pt.vx *= 0.95; pt.vy *= 0.95;
+    }
+    particles = particles.filter(function (p) { return p.life > 0; });
+
+    /* -- Power-up spawning and collection -- */
+    if (Date.now() > nextPowerupTime && powerups.filter(function(p){return p.life>0;}).length < 2) spawnPowerup();
+    for (var pui = 0; pui < powerups.length; pui++) {
+      var pu2 = powerups[pui];
+      if (pu2.life <= 0) continue;
+      pu2.life -= dt / 8000;
+      if (Math.sqrt(Math.pow(pu2.x - playerShip.x, 2) + Math.pow(pu2.y - playerShip.y, 2)) < pu2.r + 14) {
+        applyPowerup(playerShip, pu2);
+      }
+    }
+    powerups = powerups.filter(function (p) { return p.life > 0; });
+
+    /* -- Shake decay -- */
+    shakeX *= 0.8; shakeY *= 0.8;
+
+    /* -- Win condition check -- */
+    if (playerShip.hp <= 0 || aiShip.hp <= 0) {
+      var winner = playerShip.hp <= 0 ? 'ai' : 'player';
+      if (winner === 'player') scores[0]++; else scores[1]++;
+      endRound(winner);
+    }
+
+    updateHUD();
+  }
+
+  /* ============================================
+     HUD UPDATE — refreshes DOM health bars + score
+     ============================================ */
+  function updateHUD() {
+    elPHP.style.width = (playerShip.hp / playerShip.maxHp * 100) + '%';
+    elAHP.style.width = (aiShip.hp    / aiShip.maxHp    * 100) + '%';
+    elPSH.style.width = playerShip.shield + '%';
+    elASH.style.width = aiShip.shield    + '%';
+    elScore.textContent = scores[0] + ' — ' + scores[1];
+    elScore.setAttribute('aria-label', 'Score: player ' + scores[0] + ', AI ' + scores[1]);
+    elRound.textContent = 'Round ' + round + ' · ' + DIFF[difficulty].label;
+  }
+
+  /* ============================================
+     ROUND END
+     ============================================ */
+  function endRound(winner) {
+    gameState = 'roundOver';
+    if (winner === 'ai') {
+      /* Player lost — show end screen */
+      elBanner.textContent = 'DEFEATED';
+      elBanner.style.color = COLOR_PLAYER;
+      elBanner.style.opacity = '1';
+      setTimeout(function () { elBanner.style.opacity = '0'; showEndScreen(); }, 2000);
+    } else {
+      /* Player won this round — continue */
+      round++;
+      elBanner.textContent = 'ROUND WIN!';
+      elBanner.style.color = COLOR_AI;
+      elBanner.style.opacity = '1';
+      setTimeout(function () { elBanner.style.opacity = '0'; initRound(); }, 1800);
+    }
+  }
+
+  /* ============================================
+     END SCREEN — shows score, high score, replay
+     ============================================ */
+  function showEndScreen() {
+    gameState = 'menu';
+    if (scores[0] > highScore) highScore = scores[0];
+    var roundsLabel = (round - 1) === 1 ? 'round' : 'rounds';
+
+    elMenu.innerHTML =
+      '<p class="grait-logo">' +
+        '<span style="color:var(--color-orange)">GR</span>' +
+        '<span style="color:var(--color-green)">ai</span>' +
+        '<span style="color:var(--color-orange)">T</span> ' +
+        '<span style="color:var(--color-green)">GAMES</span>' +
+      '</p>' +
+      '<h1 style="color:var(--color-orange)">Defeated</h1>' +
+      '<p class="subtitle">You survived <strong style="color:#fff">' + (round - 1) + '</strong> ' + roundsLabel + '.</p>' +
+      '<div class="stats-panel">' +
+        '<div class="stat-label">Final Score</div>' +
+        '<div class="stat-value">' + scores[0] + ' <span style="color:var(--text-muted);font-size:18px">vs</span> <span style="color:var(--color-green)">' + scores[1] + '</span></div>' +
+        '<div class="high-score">🏆 High Score: ' + highScore + '</div>' +
+      '</div>' +
+      '<p class="diff-label">Play Again</p>' +
+      '<div class="diff-buttons">' +
+        '<button class="btn btn-easy"   onclick="startGame(\'easy\')"   aria-label="Restart on Easy">Easy</button>' +
+        '<button class="btn btn-medium" onclick="startGame(\'medium\')" aria-label="Restart on Medium">Medium</button>' +
+        '<button class="btn btn-hard"   onclick="startGame(\'hard\')"   aria-label="Restart on Hard">Hard</button>' +
+      '</div>';
+
+    elMenu.classList.remove('hidden');
+  }
+
+  /* ============================================
+     DRAW — renders everything each frame
+     ============================================ */
+  function draw() {
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    /* Clear with brand background */
+    ctx.fillStyle = COLOR_BG;
+    ctx.fillRect(-10, -10, W + 20, H + 20);
+
+    /* Starfield */
+    if (stars) {
+      for (var si = 0; si < stars.length; si++) {
+        var st = stars[si];
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,' + st.opacity + ')';
+        ctx.fill();
+      }
+    }
+
+    /* Power-ups — glowing squares */
+    for (var pui = 0; pui < powerups.length; pui++) {
+      var pu = powerups[pui];
+      if (pu.life <= 0) continue;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, pu.life * 3);
+      ctx.shadowColor = pu.color;
+      ctx.shadowBlur  = 10;
+      ctx.fillStyle   = pu.color;
+      ctx.fillRect(pu.x - pu.r, pu.y - pu.r, pu.r * 2, pu.r * 2);
+      ctx.restore();
+    }
+
+    /* Bullets */
+    for (var bi = 0; bi < bullets.length; bi++) {
+      var bl = bullets[bi];
+      ctx.beginPath();
+      ctx.arc(bl.x, bl.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle   = bl.color;
+      ctx.shadowColor = bl.color;
+      ctx.shadowBlur  = 6;
+      ctx.fill();
+      ctx.shadowBlur  = 0;
+    }
+
+    /* Particles */
+    for (var pi = 0; pi < particles.length; pi++) {
+      var pt = particles[pi];
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.r * pt.life, 0, Math.PI * 2);
+      ctx.fillStyle  = pt.color;
+      ctx.globalAlpha = pt.life;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    /* Ships */
+    if (playerShip) drawShip(playerShip, COLOR_PLAYER);
+    if (aiShip)     drawShip(aiShip,     COLOR_AI);
+
+    /* Pause overlay drawn on canvas */
+    if (paused) {
+      ctx.fillStyle = 'rgba(7,7,15,0.75)';
+      ctx.fillRect(-10, -10, W + 20, H + 20);
+      ctx.fillStyle   = '#fff';
+      ctx.font        = 'bold 32px "Orbitron", sans-serif';
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('PAUSED', W / 2, H / 2);
+      ctx.font        = '14px "Share Tech Mono", monospace';
+      ctx.fillStyle   = 'rgba(255,255,255,0.6)';
+      ctx.fillText('Press P, Esc, or click Resume', W / 2, H / 2 + 44);
+      ctx.textAlign   = 'left';
+      ctx.textBaseline = 'alphabetic';
+    }
+
+    ctx.restore();
+  }
+
+  /* ============================================
+     DRAW SHIP
+     Renders the custom rocket design from concept art:
+     - Two prong antennae at top
+     - Wide trapezoidal hull
+     - Cockpit window with glint
+     - Belt/thruster ring at waist
+     - Animated multi-flame engine trail
+     ============================================ */
+  function drawShip(s, color) {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.angle);
+
+    var t = Date.now() / 80; // time for flame animation
+
+    /* Shield ring — cyan glow circle */
+    if (s.shield > 0) {
+      ctx.beginPath();
+      ctx.arc(0, 0, 26, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,234,255,' + (s.shield / 100 * 0.7) + ')';
+      ctx.lineWidth   = 3;
+      ctx.shadowColor = COLOR_CYAN;
+      ctx.shadowBlur  = 12;
+      ctx.stroke();
+      ctx.shadowBlur  = 0;
+    }
+
+    /* Engine flames — four animated jets at bottom */
+    var flameOffsets = [-8, -3, 3, 8];
+    for (var fi = 0; fi < flameOffsets.length; fi++) {
+      var fx   = flameOffsets[fi];
+      var flen = 10 + Math.sin(t + fi * 1.3) * 4;
+      var grad = ctx.createLinearGradient(fx, 14, fx, 14 + flen + 6);
+      grad.addColorStop(0,   '#fff');
+      grad.addColorStop(0.4, color);
+      grad.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.moveTo(fx - 3, 16);
+      ctx.quadraticCurveTo(fx, 14 + flen + 6 + Math.sin(t * 1.2 + fi) * 2, fx + 3, 16);
+      ctx.fillStyle  = grad;
+      ctx.shadowColor = color;
+      ctx.shadowBlur  = 8;
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+
+    /* Main hull — wide trapezoid */
+    ctx.shadowColor = color;
+    ctx.shadowBlur  = 10;
+    ctx.beginPath();
+    ctx.moveTo(0, -20);
+    ctx.lineTo(-14, 2);
+    ctx.lineTo(-10, 14);
+    ctx.lineTo( 10, 14);
+    ctx.lineTo( 14, 2);
+    ctx.closePath();
+    ctx.fillStyle   = color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth   = 1;
+    ctx.stroke();
+
+    /* Left prong */
+    ctx.fillStyle   = color;
+    ctx.beginPath(); ctx.rect(-9, -34, 5, 16); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke();
+
+    /* Right prong */
+    ctx.beginPath(); ctx.rect(4, -34, 5, 16); ctx.fill(); ctx.stroke();
+
+    /* Belt / thruster ring */
+    ctx.beginPath();
+    ctx.ellipse(0, 10, 13, 4, 0, 0, Math.PI * 2);
+    var beltGrad = ctx.createLinearGradient(-13, 10, 13, 10);
+    beltGrad.addColorStop(0,   'rgba(255,255,255,0.05)');
+    beltGrad.addColorStop(0.5, 'rgba(255,255,255,0.45)');
+    beltGrad.addColorStop(1,   'rgba(255,255,255,0.05)');
+    ctx.fillStyle = beltGrad;
+    ctx.fill();
+
+    /* Cockpit window */
+    ctx.beginPath();
+    ctx.ellipse(0, -10, 6, 4, 0, 0, Math.PI * 2);
+    ctx.fillStyle   = 'rgba(255,255,255,0.12)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth   = 1.2;
+    ctx.stroke();
+
+    /* Cockpit glint */
+    ctx.beginPath();
+    ctx.ellipse(-1.5, -11.5, 2, 1.2, -0.4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  /* ============================================
+     START GAME — called by difficulty buttons
+     ============================================ */
+  window.startGame = function (diff) {
+    difficulty = diff || difficulty;
+    paused     = false;
+    elPauseBtn.textContent = '⏸ Pause';
+    elPauseBtn.classList.remove('active');
+    elPauseBtn.setAttribute('aria-pressed', 'false');
+    elMenu.classList.add('hidden');
+    round  = 1;
+    scores = [0, 0];
+    initRound();
+    lastTime = performance.now();
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  };
+
+  /* ============================================
+     BOOT — draw static starfield before start
+     ============================================ */
+  stars = generateStars();
+  (function staticDraw() {
+    ctx.fillStyle = COLOR_BG;
+    ctx.fillRect(0, 0, W, H);
+    for (var i = 0; i < stars.length; i++) {
+      var st = stars[i];
+      ctx.beginPath();
+      ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,' + st.opacity + ')';
+      ctx.fill();
+    }
+  }());
+
+})();
+</script>
+
+</body>
+</html>
