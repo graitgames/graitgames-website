@@ -438,7 +438,7 @@
       <span id="status" aria-live="polite" aria-atomic="true">Loading…</span>
 
       <!-- New Game button (disabled until dictionary is loaded) -->
-      <button class="btn-new" id="newBtn" onclick="newGame()" disabled
+      <button class="btn-new" id="newBtn" disabled
               aria-label="Start a new 4ordle game">
         ▶ New Game
       </button>
@@ -1095,7 +1095,12 @@
        ============================================ */
     (async function init() {
       await loadDictionary();
-      document.getElementById('newBtn').disabled = false;
+      var newBtn = document.getElementById('newBtn');
+      newBtn.disabled = false;
+      /* Attach the click handler here (inside the IIFE) so it can reach the
+         private newGame() function. The old inline onclick="newGame()" failed
+         because newGame is not on the global scope. */
+      newBtn.addEventListener('click', newGame);
       newGame();
     }());
 
