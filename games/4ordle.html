@@ -366,6 +366,12 @@
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
     }
 
+    /* Used letters: dim the label from white to grey. The dark text-shadow
+       above keeps it legible where it overlaps a coloured quadrant. */
+    .klabel.used {
+      color: var(--text-muted);
+    }
+
     .key:hover:not(:disabled) { filter: brightness(1.2); }
 
     .key:focus-visible {
@@ -924,11 +930,20 @@
               var quad = document.createElement('span');
               quad.className = 'quad q' + q;
               var st = status ? status[q] : null;
-              if (st) quad.classList.add(st);
+              /* Once a board is solved, drop its green (correct) hint so the
+                 quadrant reads as default/grey — the board's done, so the
+                 "correct letter" cue is no longer useful. Orange (present) and
+                 dark (absent) hints are kept for the still-active boards. */
+              if (st && !(solved[q] && st === 'correct')) {
+                quad.classList.add(st);
+              }
               btn.appendChild(quad);
             }
             var label = document.createElement('span');
             label.className = 'klabel';
+            /* Dim letters that have already been used in a guess (white -> grey)
+               so players can see at a glance which letters they've tried. */
+            if (status) label.classList.add('used');
             label.textContent = k;
             btn.appendChild(label);
           }
