@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>4ordle — GRaiT GAMES</title>
   <meta name="description" content="4ordle — Solve four Wordles at once! A GRaiT GAMES original." />
 
@@ -62,6 +62,10 @@
       flex-direction: column;
       align-items: center;
       padding: 10px 8px 40px;
+      /* Disable the browser's double-tap-to-zoom gesture (which fires when a
+         player taps the same on-screen key twice quickly) while still allowing
+         normal page scrolling. */
+      touch-action: manipulation;
     }
 
     /* ============================================
@@ -286,22 +290,27 @@
        ON-SCREEN KEYBOARD
        ============================================ */
     #keyboard {
-      margin-top: 14px;
+      margin: 14px auto 0;   /* auto left/right margins centre the keyboard */
       width: 100%;
       max-width: 600px;
       display: flex;
       flex-direction: column;
+      align-items: center;   /* centre the rows within the keyboard block */
       gap: 6px;
     }
 
     .krow {
       display: flex;
       justify-content: center;
+      width: 100%;
       gap: 5px;
     }
 
     .key {
-      /* Base key style — neutral grey */
+      /* Base key style — neutral grey. position:relative + overflow:hidden so
+         the four coloured quadrant layers can be absolutely positioned inside. */
+      position: relative;
+      overflow: hidden;
       background: var(--bg-panel);
       border: 1px solid var(--border-accessible);
       color: var(--text-primary);
@@ -316,6 +325,9 @@
       flex: 1;
       max-width: 42px;
       transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      /* Prevent double-tap zoom on the keys themselves */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .key.wide {
@@ -325,21 +337,33 @@
       letter-spacing: 0;
     }
 
-    /* Key states match tile states */
-    .key.correct {
-      background: var(--tile-correct);
-      border-color: var(--tile-correct);
-      color: var(--bg-primary);
+    /* ---- Quadrant coloring (one per board, like Quordle) ----
+       Each letter key holds four .quad layers, arranged 2×2:
+         q0 = board 1 (top-left)     q1 = board 2 (top-right)
+         q2 = board 3 (bottom-left)  q3 = board 4 (bottom-right)
+       Each quadrant is tinted green/orange/dark per that board's status. */
+    .quad {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      background: transparent;   /* unknown letters: show the neutral key bg */
+      pointer-events: none;
     }
-    .key.present {
-      background: var(--tile-present);
-      border-color: var(--tile-present);
-      color: var(--bg-primary);
-    }
-    .key.absent {
-      background: var(--tile-absent);
-      border-color: rgba(255, 255, 255, 0.05);
-      color: var(--text-muted);
+    .quad.q0 { top: 0;    left: 0; }
+    .quad.q1 { top: 0;    right: 0; }
+    .quad.q2 { bottom: 0; left: 0; }
+    .quad.q3 { bottom: 0; right: 0; }
+
+    .quad.correct { background: var(--tile-correct); }
+    .quad.present { background: var(--tile-present); }
+    .quad.absent  { background: var(--tile-absent); }
+
+    /* The letter label sits above the quadrant layers. A subtle dark drop
+       shadow (not a glow) keeps it legible over any quadrant colour. */
+    .klabel {
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
     }
 
     .key:hover:not(:disabled) { filter: brightness(1.2); }
@@ -472,70 +496,66 @@
       "agent","agree","ahead","alarm","album","alert","alike","alive","alley","allow",
       "alone","along","alter","amber","among","angel","anger","angle","angry","anime",
       "ankle","apart","apple","apply","apron","arena","argue","arise","array","arrow",
-      "aside","asset","atlas","attic","audit","avoid","awake","award","aware","awful",
+      "aside","asset","attic","audit","avoid","awake","award","aware","awful",
       /* --- B --- */
-      "bacon","badge","baker","bases","basic","basis","batch","beach","beard","beast",
-      "began","begin","begun","being","below","bench","birch","birth","black","blade",
-      "blame","bland","blank","blast","blaze","bleak","blend","bless","blind","blink",
-      "block","blood","bloom","blown","blues","blunt","board","bonus","boost","booth",
-      "bound","boxed","brain","brand","brass","brave","bread","break","breed","brick",
-      "brief","brisk","broth","brine","bring","broad","broke","brook","broom","brown",
-      "brush","build","built","bulge","bulky","burst","buyer",
+      "bacon","badge","baker","basic","basis","batch","beach","beard","beast","began",
+      "begin","begun","being","below","bench","birch","birth","black","blade","blame",
+      "bland","blank","blast","blaze","bleak","blend","bless","blind","blink","block",
+      "blood","bloom","blown","blunt","board","bonus","boost","booth","bound","brain",
+      "brand","brass","brave","bread","break","breed","brick","brief","brine","bring",
+      "brisk","broad","broke","brook","broom","broth","brown","brush","build","built",
+      "bulge","bulky","burst","buyer",
       /* --- C --- */
-      "cabin","cable","camel","candy","cargo","carry","catch","cause","caves","cedar",
-      "chain","chair","chalk","chaos","chart","chase","cheap","check","cheek","cheer",
-      "chess","chest","chief","child","china","choir","chose","civic","civil","claim",
-      "clamp","clash","class","clean","clear","clerk","click","cliff","climb","cling",
-      "clock","close","cloth","cloud","clown","coach","coast","comet","comic","coral",
-      "could","count","court","cover","cozy","craft","cramp","crash","crazy","cream",
-      "creek","crime","crisp","cross","crowd","crown","cruel","crumb","crush","curve",
-      "cycle",
+      "cabin","cable","camel","candy","cargo","carry","catch","cause","cedar","chain",
+      "chair","chalk","chaos","chart","chase","cheap","check","cheek","cheer","chess",
+      "chest","chief","child","china","choir","chose","civic","civil","claim","clamp",
+      "clash","class","clean","clear","clerk","click","cliff","climb","cling","clock",
+      "close","cloth","cloud","clown","coach","coast","comet","comic","coral","could",
+      "count","court","cover","craft","cramp","crash","crazy","cream","creek","crime",
+      "crisp","cross","crowd","crown","cruel","crumb","crush","curve","cycle",
       /* --- D --- */
-      "daily","daisy","dance","dated","dealt","death","debut","decoy","defer","delay",
-      "delta","dense","depot","depth","derby","digit","dirty","disco","dizzy","doing",
-      "doubt","dough","dozen","draft","drain","drama","drape","drawn","dread","dream",
-      "dress","dried","drift","drill","drink","drive","drove","drums","dryer","dwarf",
-      "dying",
+      "daily","daisy","dance","dealt","death","debut","decoy","defer","delay","delta",
+      "dense","depot","depth","derby","digit","dirty","disco","dizzy","doing","doubt",
+      "dough","dozen","draft","drain","drama","drape","drawn","dread","dream","dress",
+      "dried","drift","drill","drink","drive","drove","dryer","dwarf","dying",
       /* --- E --- */
-      "eager","early","earth","eight","eight","elite","ember","empty","enemy","enjoy",
-      "enter","entry","equal","error","essay","event","every","exact","exist","extra",
+      "eager","early","earth","eight","elite","ember","empty","enemy","enjoy","enter",
+      "entry","equal","error","essay","event","every","exact","exist","extra",
       /* --- F --- */
       "fable","faith","false","fancy","fault","feast","fence","ferry","fever","fiber",
-      "field","fifth","fifty","fight","final","finch","first","fixed","fjord","flare",
-      "flash","fleet","flesh","float","floor","fluid","flute","focus","foggy","force",
-      "forge","forth","forty","forum","found","frame","frank","fraud","fresh","front",
-      "frost","fruit","fully","funny","fuzzy",
+      "field","fifth","fifty","fight","final","finch","first","fjord","flare","flash",
+      "fleet","flesh","float","floor","fluid","flute","focus","foggy","force","forge",
+      "forth","forty","forum","found","frame","frank","fraud","fresh","front","frost",
+      "fruit","fully","funny","fuzzy",
       /* --- G --- */
-      "gauze","giant","given","gizmo","glade","glass","gleam","glide","globe","gloom",
-      "gloss","glove","going","grace","grade","grand","grant","grasp","grass","grate",
-      "grave","graze","great","greed","green","greet","grief","grill","groan","groin",
-      "grope","gross","group","grove","grown","gruff","guard","guava","guess","guest",
-      "guide","guile","guise","gulch","gully","gusto","gypsy",
+      "gauze","giant","given","glade","glass","gleam","glide","globe","gloom","gloss",
+      "glove","going","grace","grade","grand","grant","grasp","grass","grate","grave",
+      "graze","great","greed","green","greet","grief","grill","groan","groin","grope",
+      "gross","group","grove","grown","gruff","guard","guava","guess","guest","guide",
+      "guile","guise","gulch","gully","gusto","gypsy",
       /* --- H --- */
-      "habit","happy","harsh","heart","heavy","hedge","helix","hence","herbs","hippo",
-      "holly","homer","honey","honor","horse","hotel","house","human","humid","hurry",
-      "hyena",
+      "habit","happy","harsh","heart","heavy","hedge","helix","hence","hippo","holly",
+      "homer","honey","honor","horse","hotel","house","human","humid","hurry","hyena",
       /* --- I --- */
-      "iceberg","icing","ideal","image","inbox","index","indie","inept","infer","inner",
-      "input","irony","issue","ivory",
+      "icing","ideal","image","inbox","index","inept","infer","inner","input","irony",
+      "issue","ivory",
       /* --- J --- */
       "jazzy","jewel","jiffy","jolly","joust","judge","juice","juicy","jumbo","jumpy",
       /* --- K --- */
-      "kayak","kazoo","kebab","khaki","kinky","kitty","knack","kneel","knelt","knife",
-      "knock","knoll","known",
+      "kayak","kebab","khaki","kinky","kitty","knack","kneel","knelt","knife","knock",
+      "knoll","known",
       /* --- L --- */
-      "label","lance","large","laser","later","laugh","layer","leafy","learn","lease",
-      "least","leave","ledge","legal","level","light","limit","links","liver","lives",
-      "llama","local","lodge","logic","loose","lower","lucky","lunar","lunch","lusty",
-      "lying",
+      "label","lance","large","later","laugh","layer","leafy","learn","lease","least",
+      "leave","ledge","legal","level","light","limit","liver","llama","local","lodge",
+      "logic","loose","lower","lucky","lunar","lunch","lusty","lying",
       /* --- M --- */
       "magic","major","maker","manor","maple","march","masse","match","maxim","mayor",
-      "meant","media","mercy","merit","metal","milky","mimic","minor","minus","mixed",
-      "model","money","month","moral","mossy","motor","mount","mouse","mouth","movie",
-      "muddy","mulch","music","musty","myrrh",
+      "meant","media","mercy","merit","metal","milky","mimic","minor","minus","model",
+      "money","month","moral","mossy","motor","mount","mouse","mouth","movie","muddy",
+      "mulch","music","musty","myrrh",
       /* --- N --- */
-      "naive","nasty","needs","never","newly","night","noble","noise","north","noted",
-      "novel","nudge","nurse","nutty","nymph",
+      "naive","nasty","never","newly","night","noble","noise","north","novel","nudge",
+      "nurse","nutty","nymph",
       /* --- O --- */
       "occur","ocean","offer","often","olive","onion","optic","orbit","order","other",
       "ought","outdo","outer","ovary","ozone",
@@ -544,8 +564,8 @@
       "penny","perch","pesky","phase","phone","photo","piano","piece","pilot","pinch",
       "pitch","pixel","pizza","place","plaid","plain","plane","plank","plant","plate",
       "plaza","plead","pluck","plumb","plume","plump","plunk","point","polar","polka",
-      "pound","power","press","price","pride","prime","print","prior","prize","prism",
-      "probe","prone","proof","proud","prove","prowl","pulse","puffy","puppy","purse",
+      "pound","power","press","price","pride","prime","print","prior","prism","prize",
+      "probe","prone","proof","proud","prove","prowl","puffy","pulse","puppy","purse",
       /* --- Q --- */
       "qualm","queen","query","quest","queue","quick","quiet","quirk","quite","quota",
       "quoth",
@@ -560,41 +580,41 @@
       "serve","seven","shack","shade","shady","shaft","shake","shaky","shall","shame",
       "shape","share","shark","sharp","shawl","sheen","sheep","sheer","sheet","shelf",
       "shell","shift","shirt","shock","shoot","short","shown","shrug","siege","sight",
-      "since","sixth","sixty","sized","skate","skill","skimp","skull","slang","slash",
-      "sleep","sleet","slide","slime","slimy","sling","sloth","small","smart","smear",
-      "smile","smirk","smite","smoke","snack","snail","snake","snare","sneak","sniff",
-      "snore","snowy","solar","solid","solve","sorry","sound","south","space","spare",
-      "spark","spawn","speak","spear","speed","spend","spicy","spill","spine","spite",
-      "split","spoke","spoof","spook","sport","spout","staff","stage","stain","stake",
-      "stale","stall","stand","stare","stark","start","state","stavy","steam","steel",
-      "steep","steer","stern","stick","stiff","still","stock","stomp","stone","stood",
-      "store","stork","storm","story","stout","strap","straw","strip","strut","stuck",
-      "study","stuff","stump","stung","style","sugar","suite","sulky","super","surge",
-      "swamp","swear","sweat","sweep","sweet","swift","swirl","swoop",
+      "since","sixth","sixty","skate","skill","skimp","skull","slang","slash","sleep",
+      "sleet","slide","slime","slimy","sling","sloth","small","smart","smear","smile",
+      "smirk","smite","smoke","snack","snail","snake","snare","sneak","sniff","snore",
+      "snowy","solar","solid","solve","sorry","sound","south","space","spare","spark",
+      "spawn","speak","spear","speed","spend","spicy","spill","spine","spite","split",
+      "spoke","spoof","spook","sport","spout","staff","stage","stain","stake","stale",
+      "stall","stand","stare","stark","start","state","steam","steel","steep","steer",
+      "stern","stick","stiff","still","stock","stomp","stone","stood","store","stork",
+      "storm","story","stout","strap","straw","strip","strut","stuck","study","stuff",
+      "stump","stung","style","sugar","suite","sulky","super","surge","swamp","swear",
+      "sweat","sweep","sweet","swift","swirl","swoop",
       /* --- T --- */
-      "table","taken","tango","tangy","tardy","taste","taxes","teach","teeth","tempo",
-      "tense","tenth","thank","theft","their","theme","there","these","thick","thing",
-      "think","third","those","three","threw","throw","thumb","tidal","tiger","tight",
-      "timid","tired","title","today","token","tonic","topic","total","touch","tough",
-      "tower","toxic","track","trade","trail","train","tramp","trash","treat","trend",
-      "trial","tried","tries","troop","trout","trove","truce","truck","truly","trump",
-      "trunk","trust","truth","tulip","twice","twixt","typed",
+      "table","taken","tango","tangy","tardy","taste","teach","teeth","tempo","tense",
+      "tenth","thank","theft","their","theme","there","these","thick","thing","think",
+      "third","those","three","threw","throw","thumb","tidal","tiger","tight","timid",
+      "title","today","token","tonic","topic","total","touch","tough","tower","toxic",
+      "track","trade","trail","train","tramp","trash","treat","trend","trial","tried",
+      "troop","trout","trove","truce","truck","truly","trump","trunk","trust","truth",
+      "tulip","twice","twixt",
       /* --- U --- */
       "udder","ulcer","unfit","unity","until","upper","upset","urban","usage","usual",
       "utter",
       /* --- V --- */
-      "valid","valor","valve","vapor","vault","vaunt","venom","verge","vigor","viral",
-      "virus","visit","visor","vista","vital","vivid","vixen","voice","vomit","voter",
-      "vouch","vague",
+      "vague","valid","valor","valve","vapor","vault","vaunt","venom","verge","vigor",
+      "viral","virus","visit","visor","vista","vital","vivid","vixen","voice","vomit",
+      "voter","vouch",
       /* --- W --- */
       "waltz","waste","watch","water","weary","weave","wedge","weedy","weird","whale",
       "wheat","wheel","where","which","while","white","whole","whose","widow","wield",
       "windy","witty","woman","women","world","worry","worse","worst","worth","would",
       "wound","wrath","write","wrong","wrote",
       /* --- Y --- */
-      "yacht","yearn","yield","young","youth","yummy",
+      "yacht","yearn","yield","young","youth",
       /* --- Z --- */
-      "zappy","zebra","zesty","zilch","zippy","zonal"
+      "zebra","zesty","zonal"
     ];
 
     /* ============================================
@@ -621,7 +641,7 @@
           var arr = JSON.parse(cached);
           if (Array.isArray(arr) && arr.length > 5000) {
             VALID_GUESSES = new Set(arr);
-            setDictStatus('Dictionary loaded from cache (' + arr.length.toLocaleString() + ' words).');
+            setDictStatus(''); /* loaded silently — no debug text on screen */
             return;
           }
         }
@@ -646,7 +666,7 @@
         /* Cache for next visit */
         try { localStorage.setItem(DICT_CACHE_KEY, JSON.stringify(words)); } catch (e) {}
 
-        setDictStatus('Dictionary loaded from GitHub (' + words.length.toLocaleString() + ' valid words). Cached for next visit.');
+        setDictStatus(''); /* loaded silently — no debug text on screen */
 
       } catch (networkError) {
         /* Graceful fallback: use answer pool only */
@@ -771,10 +791,15 @@
        ============================================ */
     var STATUS_RANK = { absent: 1, present: 2, correct: 3 };
 
-    function bumpKeyState(letter, newStatus) {
-      var currentStatus = keyState[letter];
+    /* keyState[letter] is an array of 4 statuses — one per board — so the
+       on-screen key can show each board's progress in its own quadrant.
+       For a given board we keep the BEST status seen (correct > present >
+       absent), exactly like the official Quordle keyboard. */
+    function bumpKeyState(letter, boardIndex, newStatus) {
+      if (!keyState[letter]) keyState[letter] = [null, null, null, null];
+      var currentStatus = keyState[letter][boardIndex];
       if (!currentStatus || STATUS_RANK[newStatus] > STATUS_RANK[currentStatus]) {
-        keyState[letter] = newStatus;
+        keyState[letter][boardIndex] = newStatus;
       }
     }
 
@@ -884,14 +909,29 @@
           btn.className = 'key';
           btn.type = 'button';
 
-          if (k === 'ENTER' || k === 'BACK') btn.classList.add('wide');
+          var isAction = (k === 'ENTER' || k === 'BACK');
 
-          /* Display: BACK shows backspace symbol, others show the letter */
-          btn.textContent = k === 'BACK' ? '⌫' : k;
-
-          /* Apply best-known status styling */
-          var status = keyState[k.toLowerCase()];
-          if (status) btn.classList.add(status);
+          if (isAction) {
+            btn.classList.add('wide');
+            /* Action keys have no quadrants: BACK shows ⌫, ENTER shows label */
+            btn.textContent = k === 'BACK' ? '⌫' : k;
+          } else {
+            /* Letter key: render four quadrant layers (one per board) then the
+               letter label on top. Each quadrant is tinted by that board's
+               best-known status for this letter. */
+            var status = keyState[k.toLowerCase()]; /* array[4] or undefined */
+            for (var q = 0; q < 4; q++) {
+              var quad = document.createElement('span');
+              quad.className = 'quad q' + q;
+              var st = status ? status[q] : null;
+              if (st) quad.classList.add(st);
+              btn.appendChild(quad);
+            }
+            var label = document.createElement('span');
+            label.className = 'klabel';
+            label.textContent = k;
+            btn.appendChild(label);
+          }
 
           /* Accessible label for screen readers */
           btn.setAttribute('aria-label',
@@ -990,9 +1030,9 @@
 
         var score = scoreGuess(currentGuess, targets[b]);
 
-        /* Update keyboard colour for each letter */
+        /* Update keyboard colour for each letter, per board */
         for (var i = 0; i < WORD_LEN; i++) {
-          bumpKeyState(currentGuess[i], score[i]);
+          bumpKeyState(currentGuess[i], b, score[i]);
         }
 
         /* Check if this guess solves this board */
