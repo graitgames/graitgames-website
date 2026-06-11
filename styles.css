@@ -2326,6 +2326,25 @@ select:disabled {
   padding: 0.15rem 0.5rem;
 }
 
+/* Creator tag (Father / Son) pinned to the top-right corner of the thumbnail.
+   Mirrors .game-tag styling but uses the brand orange to distinguish it from
+   the green category tag on the left. */
+.game-creator-tag {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 2;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-orange);
+  background-color: rgba(7, 7, 15, 0.85);
+  border: 1px solid var(--border-orange);
+  border-radius: var(--border-radius);
+  padding: 0.15rem 0.5rem;
+}
+
 /* Card text/body */
 .game-card-body {
   display: flex;
