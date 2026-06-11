@@ -372,6 +372,16 @@
       color: var(--text-muted);
     }
 
+    /* "Dead" key: a used letter that's in none of the four words. Fill the key
+       with a clearly distinct mid-grey (darker than the grey label so contrast
+       holds) and flatten the quadrants, so eliminated letters read as one solid
+       grey block — an unmistakable double cue alongside the grey label. */
+    .key.dead {
+      background: #3a3a45;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    .key.dead .quad { background: transparent; }
+
     .key:hover:not(:disabled) { filter: brightness(1.2); }
 
     .key:focus-visible {
@@ -926,6 +936,7 @@
                letter label on top. Each quadrant is tinted by that board's
                best-known status for this letter. */
             var status = keyState[k.toLowerCase()]; /* array[4] or undefined */
+            var hasHint = false; /* true if any quadrant is green/orange */
             for (var q = 0; q < 4; q++) {
               var quad = document.createElement('span');
               quad.className = 'quad q' + q;
@@ -937,8 +948,16 @@
               if (st && !(solved[q] && st === 'correct')) {
                 quad.classList.add(st);
               }
+              if (st === 'correct' || st === 'present') hasHint = true;
               btn.appendChild(quad);
             }
+
+            /* "Dead" letter: used in a guess but NOT in any of the four words
+               (no green or orange quadrant anywhere). Give the whole key a grey
+               background so eliminated letters are obvious at a glance — a
+               double cue alongside the grey label. */
+            if (status && !hasHint) btn.classList.add('dead');
+
             var label = document.createElement('span');
             label.className = 'klabel';
             /* Dim letters that have already been used in a guess (white -> grey)
