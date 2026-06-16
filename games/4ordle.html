@@ -69,6 +69,18 @@
     }
 
     /* ============================================
+       GAME FONT OVERRIDE
+       Use Arial throughout the game and force all
+       text uppercase. Scoped to #game so the injected
+       site nav/footer keep their own brand fonts.
+       ============================================ */
+    #game,
+    #game * {
+      font-family: Arial, Helvetica, sans-serif !important;
+      text-transform: uppercase !important;
+    }
+
+    /* ============================================
        SKIP LINK (Accessibility)
        Allows keyboard/screen-reader users to skip
        directly to the game content.
@@ -115,18 +127,6 @@
     /* "4" in cyan, "ordle" in orange — brand-forward naming */
     .title-4     { color: var(--color-cyan); }
     .title-ordle { color: var(--color-orange); }
-
-    /* Small GRaiT GAMES logo below the title */
-    .brand-logo {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.6rem;
-      letter-spacing: 1px;
-      margin-top: 4px;
-    }
-    .logo-gr { color: var(--color-orange); }
-    .logo-ai { color: var(--color-green); }
-    .logo-t  { color: var(--color-orange); }
-    .logo-games { color: var(--color-green); }
 
     /* Status text (e.g. "2 / 4 solved · Guess 4 / 9") */
     #status {
@@ -319,7 +319,7 @@
       border-radius: 5px;
       font-family: 'Orbitron', sans-serif;
       font-weight: 700;
-      font-size: 0.72rem;
+      font-size: 0.845rem; /* +2px larger than the original 0.72rem */
       text-transform: uppercase;
       cursor: pointer;
       flex: 1;
@@ -333,7 +333,7 @@
     .key.wide {
       flex: 1.7;
       max-width: 68px;
-      font-size: 0.6rem;
+      font-size: 0.725rem; /* +2px larger than the original 0.6rem */
       letter-spacing: 0;
     }
 
@@ -396,7 +396,7 @@
     @media (max-width: 600px) {
       .tile  { width: 28px; height: 28px; font-size: 0.8rem; }
       .game-title { font-size: 0.9rem; }
-      .key   { padding: 10px 4px; font-size: 0.6rem; }
+      .key   { padding: 10px 4px; font-size: 0.725rem; } /* +2px larger than the original 0.6rem */
       #boards { gap: 6px; }
     }
 
@@ -437,15 +437,12 @@
          ============================================ -->
     <header role="banner">
       <div>
-        <!-- Game title: "4" in cyan, "ordle" in orange -->
+        <!-- Game title: "4" in cyan, "ordle" in orange.
+             The GRaiT GAMES wordmark is already shown in the site nav (nav.js),
+             so we don't repeat a brand logo here. -->
         <h1 class="game-title">
           <span class="title-4">4</span><span class="title-ordle">ordle</span>
         </h1>
-        <!-- GRaiT GAMES logo treatment per brand guidelines -->
-        <div class="brand-logo" aria-label="GRaiT GAMES">
-          <span class="logo-gr">GR</span><span class="logo-ai">ai</span><span class="logo-t">T</span>
-          <span class="logo-games"> GAMES</span>
-        </div>
       </div>
 
       <!-- Live status: boards solved + current guess count -->
@@ -996,13 +993,21 @@
 
     /* ============================================
        UPDATE STATUS BAR
-       Shows "X / 4 solved · Guess N / 9"
+       While playing: "X / 4 solved · Guess N / 9"
+       When all solved: "4 / 4 solved · N Guesses"
        ============================================ */
     function updateStatus() {
       var solvedCount = solved.filter(Boolean).length;
-      var guessNum    = Math.min(guesses.length + 1, MAX_GUESSES);
-      document.getElementById('status').textContent =
-        solvedCount + ' / 4 solved · Guess ' + guessNum + ' / ' + MAX_GUESSES;
+      var statusEl    = document.getElementById('status');
+      if (solvedCount === 4) {
+        var used = guesses.length;
+        statusEl.textContent =
+          '4 / 4 solved · ' + used + (used === 1 ? ' Guess' : ' Guesses');
+      } else {
+        var guessNum = Math.min(guesses.length + 1, MAX_GUESSES);
+        statusEl.textContent =
+          solvedCount + ' / 4 solved · Guess ' + guessNum + ' / ' + MAX_GUESSES;
+      }
     }
 
     /* ============================================
