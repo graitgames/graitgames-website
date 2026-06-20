@@ -2378,7 +2378,8 @@ select:disabled {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.08em;
-  text-align: center;
+  text-align: center !important;
+  width: 100%;
   margin-top: var(--space-sm);
 }
 .game-card-lb-label.has-lb { color: var(--color-green); }
