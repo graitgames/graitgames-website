@@ -306,7 +306,7 @@
       justify-content: center;
     }
 
-    .btn {
+    .game-wrap .btn {
       padding: 10px 24px;
       font-family: var(--font-headline);
       font-size: 12px;
@@ -318,24 +318,17 @@
       text-transform: uppercase;
       transition: box-shadow 0.2s, transform 0.1s;
     }
-    .btn:focus { outline: 2px solid var(--color-cyan); outline-offset: 3px; }
-    .btn:active { transform: scale(0.97); }
+    .game-wrap .btn:focus { outline: 2px solid var(--color-cyan); outline-offset: 3px; }
+    .game-wrap .btn:active { transform: scale(0.97); }
 
-    .btn-easy   { background: transparent; border-color: var(--color-green);  color: var(--color-green); }
-    .btn-easy:hover   { box-shadow: var(--glow-green); }
+    .game-wrap .btn-easy   { background: transparent; border-color: var(--color-green);  color: var(--color-green); }
+    .game-wrap .btn-easy:hover   { box-shadow: var(--glow-green); }
 
-    .btn-medium { background: var(--color-cyan); border-color: var(--color-cyan); color: #000; }
-    .btn-medium:hover { box-shadow: var(--glow-cyan); }
+    .game-wrap .btn-medium { background: var(--color-cyan); border-color: var(--color-cyan); color: #000; }
+    .game-wrap .btn-medium:hover { box-shadow: var(--glow-cyan); }
 
-    .btn-hard   { background: var(--color-orange); border-color: var(--color-orange); color: #000; }
-    .btn-hard:hover   { box-shadow: var(--glow-orange); }
-
-    /* Re-assert the shared "Back to Catalog" outline button. This page defines
-       its own .btn base (above) with a transparent border, which would otherwise
-       override the master .btn-outline-cyan border. Keeps it consistent with the
-       other game pages (memory-match, 4ordle). */
-    .btn-outline-cyan { background: transparent; border-color: var(--color-cyan-2); color: var(--color-cyan-2); }
-    .btn-outline-cyan:hover { background-color: var(--color-cyan); color: #000; box-shadow: var(--glow-cyan); }
+    .game-wrap .btn-hard   { background: var(--color-orange); border-color: var(--color-orange); color: #000; }
+    .game-wrap .btn-hard:hover   { box-shadow: var(--glow-orange); }
 
     /* Stats panel (end screen) */
     .stats-panel {
