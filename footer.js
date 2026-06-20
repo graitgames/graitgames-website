@@ -12,7 +12,7 @@
   if (!document.querySelector('link[href*="Press+Start+2P"]')) {
     const link = document.createElement('link');
     link.rel  = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap';
     document.head.appendChild(link);
   }
 
@@ -24,7 +24,7 @@
       border-top: 2px solid #39ff14;
       box-shadow: 0 -4px 24px rgba(57,255,20,.18);
       padding: 2.8rem 1.5rem 2rem;
-      font-family: 'Rajdhani', sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       color: #e8e8f0;
       overflow: hidden;
     }
@@ -79,7 +79,7 @@
       text-shadow: 0 0 8px #39ff14, 0 0 24px rgba(57,255,20,.4);
     }
     .gf-news-copy {
-      font-family: 'Rajdhani', sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 1rem;
       line-height: 1.6;
       color: #b8b8d0;
