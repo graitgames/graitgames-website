@@ -20,7 +20,7 @@ const GAME_CAPS = {
   'snake':        4000,
   'space-dogfight': 9999,
   '4ordle':       9999,
-  'memory-match': 9999,
+  'memory-match': 8000,
   'tic-tac-toe':  9999,
 };
 
