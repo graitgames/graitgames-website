@@ -366,7 +366,7 @@
       font-size: 1.27rem;
       letter-spacing: 0;
     }
-    .key[data-key="ENTER"] { font-size: 0.725rem; }
+    .key[data-key="ENTER"] { font-size: 10.6px; }
 
     /* ---- Quadrant coloring (one per board, like Quordle) ----
        Each letter key holds four .quad layers, arranged 2×2:
@@ -432,7 +432,7 @@
       .row.row-empty .tile { height: 20px; }
       .game-title { font-size: 0.9rem; }
       .key   { padding: 10px 4px; font-size: 1.27rem; }
-      .key[data-key="ENTER"] { font-size: 0.725rem; }
+      .key[data-key="ENTER"] { font-size: 10.6px; }
       #boards { gap: 4px; }
     }
 
@@ -940,7 +940,7 @@
     var KEY_ROWS = [
       'qwertyuiop'.split(''),
       'asdfghjkl'.split(''),
-      ['ENTER', 'z','x','c','v','b','n','m', 'BACK']
+      ['BACK', 'z','x','c','v','b','n','m', 'ENTER']
     ];
 
     function renderKeyboard() {
