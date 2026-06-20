@@ -181,7 +181,7 @@
       '<ul class="nav-menu" id="grait-nav-menu" role="menubar" aria-label="Main navigation">' +
         linksHTML +
         '<li role="none">' +
-          '<a role="menuitem" class="btn btn-primary nav-cta" href="/index.html#newsletter">Newsletter</a>' +
+          '<a role="menuitem" class="btn btn-primary nav-cta" href="#footer-newsletter">Newsletter</a>' +
         '</li>' +
       '</ul>' +
 

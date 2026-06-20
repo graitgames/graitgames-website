@@ -1,4 +1,13 @@
 (function () {
+  /* ── MailerLite Universal (load only once) ── */
+  if (!window.ml) {
+    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+    ml('account', '2458872');
+  }
+
   /* ── Google Fonts (load only once) ── */
   if (!document.querySelector('link[href*="Press+Start+2P"]')) {
     const link = document.createElement('link');
@@ -76,34 +85,6 @@
       color: #b8b8d0;
       max-width: 520px;
       margin: 0 auto 1.6rem;
-    }
-    /* the single, centred call-to-action button */
-    .gf-news-btn {
-      display: inline-block;
-      font-family: 'Press Start 2P', monospace;
-      font-size: .7rem;
-      letter-spacing: .04em;
-      color: #07070f;
-      background: #ff6b1a;
-      padding: .95rem 1.7rem;
-      text-decoration: none;
-      border: 2px solid #ff6b1a;
-      border-radius: 2px;
-      box-shadow: 0 0 16px rgba(255,107,26,.45);
-      transition: background .2s, border-color .2s, color .2s, box-shadow .2s, transform .15s;
-    }
-    .gf-news-btn:hover,
-    .gf-news-btn:focus-visible {
-      background: #39ff14;
-      border-color: #39ff14;
-      color: #07070f;
-      box-shadow: 0 0 20px rgba(57,255,20,.55);
-      transform: translateY(-2px);
-      outline: none;
-    }
-    .gf-news-btn:focus-visible {
-      outline: 2px solid #00eaff;
-      outline-offset: 3px;
     }
 
     .gf-inner {
@@ -228,11 +209,8 @@
   footer.id = 'grait-footer';
   footer.innerHTML = `
 
-    <!-- ── Newsletter signup (site-wide CTA, shown above the footer row) ──
-         A single, centred "Subscribe" button links to our Beehiiv page.
-         We intentionally do NOT embed the Beehiiv loader script here so it
-         never double-loads alongside the live form on the home page. -->
-    <section class="gf-newsletter" aria-labelledby="gf-news-title">
+    <!-- ── Newsletter signup (site-wide CTA, shown above the footer row) ── -->
+    <section class="gf-newsletter" id="footer-newsletter" aria-labelledby="gf-news-title">
       <p class="gf-news-eyebrow">// Join the Crew //</p>
       <h2 class="gf-news-title" id="gf-news-title">
         Subscribe to the <span class="gf-orange">News</span><span class="gf-green">letter</span>
@@ -241,11 +219,7 @@
         Get game drops, behind-the-scenes devlogs, and the occasional story
         straight from the workshop — delivered to your inbox.
       </p>
-      <a class="gf-news-btn"
-         href="https://graitgames.beehiiv.com/subscribe"
-         target="_blank" rel="noopener">
-        Subscribe to the Newsletter
-      </a>
+      <div class="ml-embedded" data-form="tksuAT"></div>
     </section>
 
     <div class="gf-inner">
