@@ -29,6 +29,10 @@ const MAX_SUBMISSIONS_PER_MONTH = 5;
 export async function onRequestPost(context) {
   const { env, request } = context;
 
+  if (!env.DB) {
+    return respond({ error: 'Database binding (DB) not configured on this deployment' }, 503);
+  }
+
   let body;
   try {
     body = await request.json();

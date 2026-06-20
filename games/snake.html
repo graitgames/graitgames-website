@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../styles.css" />
 
   <style>
-    .game-stage { max-width: 560px; margin: 0 auto; }
+    .game-stage { max-width: 560px; margin: 0 auto; position: relative; }
 
     .game-stats {
       display: flex;
@@ -162,15 +162,24 @@
       margin-top: var(--space-md);
     }
 
-    /* ── Leaderboard (right-aligned panel below canvas) ─────────── */
+    /* ── Leaderboard (absolutely positioned, left edge = restart button right edge) */
     .leaderboard {
+      position: absolute;
+      left: calc(100% + 14px);
+      top: 0;
       width: 250px;
-      margin-left: auto;
-      margin-top: var(--space-lg);
       background: var(--bg-secondary);
       border: 1px solid var(--border-accessible);
       border-radius: var(--border-radius-lg);
       padding: var(--space-md);
+    }
+    /* Stack below game on narrow viewports */
+    @media (max-width: 960px) {
+      .leaderboard {
+        position: static;
+        width: 250px;
+        margin: var(--space-lg) 0 0 auto;
+      }
     }
     .lb-heading {
       font-family: var(--font-mono);
@@ -376,7 +385,12 @@
 
     function fetchLeaderboard() {
       fetch('/api/scores?game=' + GAME_KEY)
-        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (r) {
+          return r.json().then(function (data) {
+            if (!r.ok) console.error('[leaderboard] GET /api/scores failed:', r.status, data);
+            return r.ok ? data : null;
+          });
+        })
         .then(function (data) {
           if (data && data.scores) {
             cachedScores = data.scores;
@@ -385,7 +399,7 @@
             renderLeaderboard([], null);
           }
         })
-        .catch(function () { renderLeaderboard([], null); });
+        .catch(function (err) { console.error('[leaderboard] fetch error:', err); renderLeaderboard([], null); });
     }
 
     function renderLeaderboard(scores, newInitials) {
@@ -482,7 +496,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ game: GAME_KEY, initials: initials, score: score })
       })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          return r.json().then(function (data) {
+            if (!r.ok) console.error('[leaderboard] POST /api/submit-score failed:', r.status, data);
+            return data;
+          });
+        })
         .then(function (data) {
           if (data.accepted && data.scores) {
             cachedScores = data.scores;

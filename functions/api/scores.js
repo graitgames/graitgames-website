@@ -15,6 +15,11 @@ const ALLOWED_GAMES = new Set(['snake', 'space-dogfight', '4ordle', 'memory-matc
 
 export async function onRequestGet(context) {
   const { env, request } = context;
+
+  if (!env.DB) {
+    return respond({ error: 'Database binding (DB) not configured on this deployment' }, 503);
+  }
+
   const url = new URL(request.url);
   const game = url.searchParams.get('game');
 
