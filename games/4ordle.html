@@ -98,18 +98,26 @@
       flex-wrap: wrap;
     }
 
-    /* Game title using Press Start 2P for that retro feel */
+    /* Game title — centered between the two icon buttons */
     .game-title {
       margin: 0;
       font-family: 'Press Start 2P', monospace;
-      font-size: 1.3rem;
+      font-size: 1.8rem;
       letter-spacing: 2px;
-      line-height: 1.4;
+      line-height: 1;
+      color: var(--color-cyan);
+      display: flex;
+      align-items: center;
+      height: 2.4rem;
     }
 
-    /* "4" in cyan, "ordle" in orange — brand-forward naming */
-    .title-4     { color: var(--color-cyan); }
-    .title-ordle { color: var(--color-orange); }
+    /* Status bar — sits below the title row */
+    .game-status-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding-top: 6px;
+    }
 
     /* Status text (e.g. "2 / 4 solved · Guess 4 / 9") */
     #status {
@@ -455,8 +463,8 @@
       <!-- Back to catalog -->
       <a href="/games.html" class="btn btn-outline-cyan btn-sm" aria-label="Back to Catalog" style="display:inline-flex;align-items:center;justify-content:center;width:2.4rem;height:2.4rem;padding:0;font-size:1.4rem;line-height:1;"><span style="display:inline-block;transform:translateY(-1px);">←</span></a>
 
-      <!-- Live status: boards solved + current guess count -->
-      <span id="status" aria-live="polite" aria-atomic="true">Loading…</span>
+      <!-- Game title -->
+      <h1 class="game-title">4ORDLE</h1>
 
       <!-- New Game button (disabled until dictionary is loaded) -->
       <button class="btn-new" id="newBtn" disabled
@@ -464,6 +472,11 @@
         <span style="display:inline-block;transform:translateY(-1px);">↺</span>
       </button>
     </header>
+
+    <!-- Live status: boards solved + current guess count -->
+    <div class="game-status-bar">
+      <span id="status" aria-live="polite" aria-atomic="true">Loading…</span>
+    </div>
 
     <!-- ============================================
          FOUR GAME BOARDS
