@@ -177,7 +177,8 @@
       <!-- Win banner (hidden until the player wins) -->
       <div class="win-banner hidden" id="win-banner" role="alert">
         <h2>🏆 You Win!</h2>
-        <p class="mb-0" id="win-summary">Nice memory!</p>
+        <p id="win-summary">Nice memory!</p>
+        <button type="button" class="btn btn-primary" id="win-play-again">▶ Play Again</button>
       </div>
 
       <!-- The board (cards injected by JS) -->
@@ -199,7 +200,8 @@
     var pointsEl   = document.getElementById('points');
     var winBanner  = document.getElementById('win-banner');
     var winSummary = document.getElementById('win-summary');
-    var restartBtn = document.getElementById('restart');
+    var restartBtn    = document.getElementById('restart');
+    var winPlayAgain  = document.getElementById('win-play-again');
 
     var firstCard, secondCard, lockBoard;
     var moves, matchedPairs, points, seconds, timerId, started;
@@ -306,12 +308,13 @@
     function win() {
       stopTimer();
       Leaderboard.trySubmit(points, function () {
-        winSummary.textContent = 'Solved in ' + moves + ' moves and ' + formatTime(seconds) + '. Can you do better?';
+        winSummary.textContent = 'Solved in ' + moves + ' moves and ' + formatTime(seconds) + '.';
         winBanner.classList.remove('hidden');
       });
     }
 
     restartBtn.addEventListener('click', init);
+    winPlayAgain.addEventListener('click', init);
 
     init();
     Leaderboard.init({ gameKey: 'memory-match' });
