@@ -77,7 +77,46 @@
     }
     .overlay.hidden { display: none; }
     .overlay h2 { color: var(--color-orange); margin-bottom: var(--space-sm); }
-    .overlay p { color: var(--text-description); margin-bottom: var(--space-lg); }
+    .overlay p  { color: var(--text-description); margin-bottom: var(--space-lg); }
+
+    /* Initials entry panel (inside overlay) */
+    #ov-initials { display: none; }
+    #ov-initials h2 { color: var(--color-green); }
+    #ov-initials p  { margin-bottom: var(--space-md); }
+
+    .initials-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin: var(--space-sm) 0 var(--space-lg);
+    }
+    .initial-box {
+      width: 52px;
+      height: 60px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--color-green);
+      border-radius: var(--border-radius);
+      color: var(--color-green);
+      font-family: var(--font-logo);
+      font-size: 1.3rem;
+      text-align: center;
+      text-transform: uppercase;
+      caret-color: transparent;
+      outline: none;
+      box-shadow: var(--glow-green);
+      transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+    .initial-box:focus {
+      border-color: var(--color-cyan);
+      color: var(--color-cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .initials-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
 
     .game-controls {
       display: flex;
@@ -122,6 +161,48 @@
       color: var(--text-muted);
       margin-top: var(--space-md);
     }
+
+    /* ── Leaderboard ──────────────────────────────────────────────── */
+    .leaderboard {
+      margin-top: var(--space-xl);
+    }
+    .lb-heading {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-green);
+      text-align: center;
+      margin-bottom: var(--space-md);
+    }
+    .lb-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .lb-table th {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border-accessible);
+      text-align: left;
+    }
+    .lb-table th:last-child,
+    .lb-table td:last-child { text-align: right; }
+    .lb-table td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+    }
+    .lb-rank  { color: var(--text-muted); width: 2.2rem; }
+    .lb-name  { color: var(--color-cyan); font-weight: 600; letter-spacing: 0.18em; }
+    .lb-score { color: var(--color-green); }
+    .lb-empty { text-align: center; color: var(--text-muted); padding: 20px 8px; }
+    tr.lb-new .lb-name,
+    tr.lb-new .lb-score { color: var(--color-orange); }
   </style>
 </head>
 <body>
@@ -164,11 +245,38 @@
         <canvas id="snake-canvas" width="400" height="400"
                 aria-label="Snake game board"></canvas>
 
-        <!-- Start / Game-over overlay -->
+        <!-- Overlay — shared by: ready, paused, game-over, initials-entry -->
         <div class="overlay" id="overlay">
-          <h2 id="overlay-title">Ready?</h2>
-          <p id="overlay-text">Use the arrow keys (or the buttons below) to steer.</p>
-          <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+
+          <!-- Standard state: ready / paused / game-over -->
+          <div id="ov-standard">
+            <h2 id="overlay-title">Ready?</h2>
+            <p id="overlay-text">Use the arrow keys (or the buttons below) to steer.</p>
+            <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+          </div>
+
+          <!-- Initials entry: shown when score qualifies for top 10 -->
+          <div id="ov-initials">
+            <h2>🏆 Top Score!</h2>
+            <p id="ov-score-label"></p>
+            <p style="margin-bottom:0;">Enter your initials:</p>
+            <div class="initials-row">
+              <input class="initial-box" id="i0" type="text" maxlength="1"
+                     inputmode="text" autocomplete="off" spellcheck="false"
+                     aria-label="First initial" />
+              <input class="initial-box" id="i1" type="text" maxlength="1"
+                     inputmode="text" autocomplete="off" spellcheck="false"
+                     aria-label="Second initial" />
+              <input class="initial-box" id="i2" type="text" maxlength="1"
+                     inputmode="text" autocomplete="off" spellcheck="false"
+                     aria-label="Third initial" />
+            </div>
+            <div class="initials-actions">
+              <button type="button" class="btn btn-primary" id="submit-initials">Submit</button>
+              <button type="button" class="btn btn-outline-cyan" id="skip-initials">Skip</button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -181,12 +289,32 @@
       </div>
 
       <p class="hint">Tip: press <span class="text-green">Space</span> to pause.</p>
+
+      <!-- Leaderboard -->
+      <section class="leaderboard" aria-labelledby="lb-heading">
+        <p class="lb-heading" id="lb-heading">// Top 10 This Month //</p>
+        <table class="lb-table" aria-label="Monthly leaderboard">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Score</th>
+            </tr>
+          </thead>
+          <tbody id="lb-body">
+            <tr><td colspan="3" class="lb-empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </section>
+
     </div>
   </main>
 
   <script>
   (function () {
     'use strict';
+
+    var GAME_KEY = 'snake';
 
     var canvas = document.getElementById('snake-canvas');
     var ctx = canvas.getContext('2d');
@@ -203,14 +331,29 @@
       food: '#FF6B2B'
     };
 
-    /* DOM refs */
-    var scoreEl   = document.getElementById('score');
-    var highEl    = document.getElementById('highscore');
-    var overlay   = document.getElementById('overlay');
-    var ovTitle   = document.getElementById('overlay-title');
-    var ovText    = document.getElementById('overlay-text');
-    var startBtn  = document.getElementById('start-btn');
-    var restartBtn= document.getElementById('restart');
+    /* DOM refs — game */
+    var scoreEl    = document.getElementById('score');
+    var highEl     = document.getElementById('highscore');
+    var overlay    = document.getElementById('overlay');
+    var ovStandard = document.getElementById('ov-standard');
+    var ovInitials = document.getElementById('ov-initials');
+    var ovTitle    = document.getElementById('overlay-title');
+    var ovText     = document.getElementById('overlay-text');
+    var ovScoreLbl = document.getElementById('ov-score-label');
+    var startBtn   = document.getElementById('start-btn');
+    var restartBtn = document.getElementById('restart');
+
+    /* DOM refs — initials */
+    var initBoxes      = [
+      document.getElementById('i0'),
+      document.getElementById('i1'),
+      document.getElementById('i2')
+    ];
+    var submitInitials = document.getElementById('submit-initials');
+    var skipInitials   = document.getElementById('skip-initials');
+
+    /* DOM refs — leaderboard */
+    var lbBody = document.getElementById('lb-body');
 
     /* Game state */
     var snake, dir, nextDir, food, score, speed, loopId, running, paused;
@@ -219,6 +362,151 @@
     var HS_KEY = 'graitSnakeHighScore';
     var highScore = parseInt(localStorage.getItem(HS_KEY) || '0', 10);
     highEl.textContent = highScore;
+
+    /* Cached leaderboard for qualifying check */
+    var cachedScores = [];
+
+    /* ── Leaderboard helpers ────────────────────────────────────────── */
+
+    function fetchLeaderboard() {
+      fetch('/api/scores?game=' + GAME_KEY)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (data && data.scores) {
+            cachedScores = data.scores;
+            renderLeaderboard(cachedScores, null);
+          }
+        })
+        .catch(function () { /* silently ignore — leaderboard is non-critical */ });
+    }
+
+    function renderLeaderboard(scores, newInitials) {
+      if (!scores || scores.length === 0) {
+        lbBody.innerHTML = '<tr><td colspan="3" class="lb-empty">No scores yet this month. Be first!</td></tr>';
+        return;
+      }
+      lbBody.innerHTML = scores.map(function (row, i) {
+        var rank = i + 1;
+        var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank + '.';
+        var isNew = newInitials && row.initials === newInitials && i === scores.findIndex(function (s) { return s.initials === newInitials; });
+        return '<tr' + (isNew ? ' class="lb-new"' : '') + '>' +
+          '<td class="lb-rank">' + medal + '</td>' +
+          '<td class="lb-name">'  + escHtml(row.initials) + '</td>' +
+          '<td class="lb-score">' + row.score + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function qualifiesForLeaderboard(s) {
+      if (s <= 0) return false;
+      if (cachedScores.length < 10) return true;
+      return s > cachedScores[cachedScores.length - 1].score;
+    }
+
+    /* ── Initials entry ─────────────────────────────────────────────── */
+
+    function showInitialsEntry() {
+      ovScoreLbl.textContent = 'You scored ' + score + '!';
+      ovStandard.style.display = 'none';
+      ovInitials.style.display = '';
+      resetInitialBoxes();
+      initBoxes[0].focus();
+    }
+
+    function resetInitialBoxes() {
+      initBoxes.forEach(function (b) { b.value = ''; });
+    }
+
+    function showStandardOverlay(title, text, btnText) {
+      ovInitials.style.display = 'none';
+      ovStandard.style.display = '';
+      ovTitle.textContent = title;
+      if (text !== null) ovText.innerHTML = text;
+      startBtn.textContent = btnText;
+      overlay.classList.remove('hidden');
+    }
+
+    /* Wire up each initial box: only A-Z, auto-advance, backspace goes back */
+    initBoxes.forEach(function (box, idx) {
+      box.addEventListener('keydown', function (e) {
+        if (e.key === 'Backspace') {
+          e.preventDefault();
+          box.value = '';
+          if (idx > 0) initBoxes[idx - 1].focus();
+          return;
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitInitials.click();
+          return;
+        }
+        if (e.key === 'ArrowLeft' && idx > 0) { e.preventDefault(); initBoxes[idx - 1].focus(); return; }
+        if (e.key === 'ArrowRight' && idx < 2) { e.preventDefault(); initBoxes[idx + 1].focus(); return; }
+      });
+
+      box.addEventListener('input', function () {
+        // Keep only the last typed character, uppercase, A-Z
+        var val = box.value.replace(/[^A-Za-z]/g, '').slice(-1).toUpperCase();
+        box.value = val;
+        if (val && idx < 2) {
+          initBoxes[idx + 1].focus();
+        }
+      });
+    });
+
+    submitInitials.addEventListener('click', function () {
+      var initials = initBoxes.map(function (b) { return b.value.toUpperCase(); }).join('');
+      if (!/^[A-Z]{3}$/.test(initials)) {
+        initBoxes[initials.replace(/[^A-Z]/g, '').length] && initBoxes[initials.replace(/[^A-Z]/g, '').length].focus();
+        return;
+      }
+
+      submitInitials.disabled = true;
+      skipInitials.disabled = true;
+      submitInitials.textContent = 'Saving…';
+
+      fetch('/api/submit-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game: GAME_KEY, initials: initials, score: score })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.accepted && data.scores) {
+            cachedScores = data.scores;
+            renderLeaderboard(cachedScores, initials);
+          }
+          showStandardOverlay(
+            data.accepted ? '✓ Score Saved!' : '💀 Game Over',
+            data.accepted
+              ? 'You scored <strong class="text-green">' + score + '</strong>. Check the leaderboard!'
+              : 'You scored <strong class="text-green">' + score + '</strong>. ' + (score >= highScore ? 'New best!' : 'Best: ' + highScore),
+            '▶ Play Again'
+          );
+        })
+        .catch(function () {
+          showStandardOverlay('💀 Game Over',
+            'You scored <strong class="text-green">' + score + '</strong>. ' + (score >= highScore ? 'New best!' : 'Best: ' + highScore),
+            '▶ Play Again');
+        })
+        .finally(function () {
+          submitInitials.disabled = false;
+          skipInitials.disabled = false;
+          submitInitials.textContent = 'Submit';
+        });
+    });
+
+    skipInitials.addEventListener('click', function () {
+      showStandardOverlay('💀 Game Over',
+        'You scored <strong class="text-green">' + score + '</strong>. ' + (score >= highScore ? 'New best!' : 'Best: ' + highScore),
+        '▶ Play Again');
+    });
+
+    /* ── Game logic ─────────────────────────────────────────────────── */
 
     function reset() {
       snake = [{ x: 8, y: 10 }, { x: 7, y: 10 }, { x: 6, y: 10 }];
@@ -324,6 +612,8 @@
     function startGame() {
       reset();
       running = true;
+      ovInitials.style.display = 'none';
+      ovStandard.style.display = '';
       overlay.classList.add('hidden');
       startLoop();
     }
@@ -336,20 +626,26 @@
         localStorage.setItem(HS_KEY, String(highScore));
         highEl.textContent = highScore;
       }
-      ovTitle.textContent = '💀 Game Over';
-      ovText.innerHTML = 'You scored <strong class="text-green">' + score + '</strong>. ' +
-                         (score >= highScore ? 'New best!' : 'Best: ' + highScore);
-      startBtn.textContent = '▶ Play Again';
+
       overlay.classList.remove('hidden');
+
+      if (qualifiesForLeaderboard(score)) {
+        showInitialsEntry();
+      } else {
+        showStandardOverlay(
+          '💀 Game Over',
+          'You scored <strong class="text-green">' + score + '</strong>. ' +
+            (score >= highScore ? 'New best!' : 'Best: ' + highScore),
+          '▶ Play Again'
+        );
+      }
     }
 
     function togglePause() {
       if (!running) return;
       paused = !paused;
       if (paused) {
-        ovTitle.textContent = '⏸ Paused';
-        ovText.textContent = 'Press Space or Start to resume.';
-        startBtn.textContent = '▶ Resume';
+        showStandardOverlay('⏸ Paused', 'Press Space or Start to resume.', '▶ Resume');
         overlay.classList.remove('hidden');
       } else {
         overlay.classList.add('hidden');
@@ -373,6 +669,9 @@
     }
 
     document.addEventListener('keydown', function (e) {
+      /* Don't hijack arrow keys when the user is typing initials */
+      if (document.activeElement && document.activeElement.classList.contains('initial-box')) return;
+
       var keys = {
         ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
         w: 'up', s: 'down', a: 'left', d: 'right'
@@ -391,8 +690,9 @@
     });
     restartBtn.addEventListener('click', startGame);
 
-    /* Initial render (board visible behind the overlay) */
+    /* Initial render (board visible behind the overlay) + load leaderboard */
     reset();
+    fetchLeaderboard();
   })();
   </script>
 
