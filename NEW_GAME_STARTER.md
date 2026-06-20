@@ -5,7 +5,7 @@ Use this file whenever you want to prototype a new game in **Claude Artifacts**.
 **How to use:**
 1. Click the copy button on the block below (top-right corner of the grey box).
 2. Paste into a new Claude Artifacts conversation.
-3. Fill in the three placeholders — `[GAME NAME]`, `[GAME TITLE IN CAPS]`, and the description lines — then send.
+3. Fill in the three placeholders — `[GAME NAME]`, `[GAME TITLE IN CAPS]`, and the description lines — then decide on the leaderboard line and send.
 4. Once the game plays well in Artifacts, follow the **Integration Checklist** at the bottom to wire it into the live site.
 
 ---
@@ -16,6 +16,10 @@ Use this file whenever you want to prototype a new game in **Claude Artifacts**.
 Build a browser game for GRaiT GAMES called [GAME NAME].
 
 [1–2 sentence description of the game concept and win condition.]
+
+LEADERBOARD DECISION (delete one before sending):
+> This game DOES have a leaderboard. Include all sections marked [LEADERBOARD].
+> This game DOES NOT have a leaderboard. Delete all sections marked [LEADERBOARD].
 
 ---
 
@@ -210,6 +214,76 @@ body {
 .btn-outline-cyan { background: transparent; color: var(--color-cyan); border-color: var(--color-cyan); }
 .btn-outline-cyan:hover { background: rgba(0,234,255,0.08); box-shadow: var(--glow-cyan); }
 
+/* ── [LEADERBOARD] Initials entry (shown inside overlay on qualifying score) ── */
+#ov-initials { display: none; }
+#ov-initials h2 { color: var(--color-green); }
+.initials-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 12px 0 20px;
+}
+.initial-box {
+  width: 52px;
+  height: 60px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--color-green);
+  border-radius: var(--border-radius);
+  color: var(--color-green);
+  font-family: var(--font-logo);
+  font-size: 1.3rem;
+  text-align: center;
+  text-transform: uppercase;
+  caret-color: transparent;
+  outline: none;
+  box-shadow: var(--glow-green);
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.initial-box:focus { border-color: var(--color-cyan); color: var(--color-cyan); box-shadow: var(--glow-cyan); }
+.initials-actions { display: flex; gap: 12px; justify-content: center; }
+
+/* ── [LEADERBOARD] Top 10 panel (positioned right of game-stage) ── */
+.game-stage { position: relative; }
+.leaderboard {
+  position: absolute;
+  left: calc(100% + 14px);
+  top: 0;
+  width: 250px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-accessible);
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+}
+@media (max-width: 960px) {
+  .leaderboard { position: static; width: 250px; margin: 20px 0 0 auto; }
+}
+.lb-heading {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-green);
+  text-align: center;
+  margin-bottom: 12px;
+}
+.lb-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.85rem; }
+.lb-table th {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-accessible);
+  text-align: left;
+}
+.lb-table th:last-child, .lb-table td:last-child { text-align: right; }
+.lb-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.lb-rank  { color: var(--text-muted); width: 2.2rem; }
+.lb-name  { color: var(--color-cyan); font-weight: 600; letter-spacing: 0.18em; }
+.lb-score { color: var(--color-green); }
+.lb-empty { text-align: center; color: var(--text-muted); padding: 20px 8px; }
+tr.lb-new .lb-name, tr.lb-new .lb-score { color: var(--color-orange); }
+
 ---
 
 ### Required HTML structure — paste inside <body>
@@ -243,24 +317,68 @@ body {
       </button>
     </div>
 
-    <!-- Description line — sits directly below the header bar -->
+    <!-- Description line -->
     <p style="text-align:center; color:var(--text-description); margin-bottom:24px; font-family:var(--font-body);">
-      [One-sentence description. Highlight key terms in
-      <span style="color:var(--color-orange)">orange</span> or
-      <span style="color:var(--color-green)">green</span>.]
+      [One-sentence description.]
     </p>
 
-    <!-- Stats row — optional, use for score / time / lives etc. -->
+    <!-- Stats row -->
     <div class="game-stats">
       <div class="stat-box">
         <div class="stat-label">Score</div>
         <div class="stat-value" id="score">0</div>
       </div>
-      <!-- add more .stat-box divs as needed -->
     </div>
 
-    <!-- Game area: canvas, board grid, etc. -->
-    <!-- [YOUR GAME MARKUP HERE] -->
+    <!-- Game area — add class="game-stage" so the leaderboard can anchor to it [LEADERBOARD] -->
+    <div class="game-stage">
+
+      <!-- [YOUR GAME MARKUP HERE] -->
+
+      <!-- ── [LEADERBOARD] Overlay must contain BOTH panels ── -->
+      <!-- Standard overlay (ready / paused / game-over) -->
+      <div class="overlay" id="overlay">
+        <div id="ov-standard">
+          <h2 id="overlay-title">Ready?</h2>
+          <p id="overlay-text">[Start instructions]</p>
+          <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+        </div>
+
+        <!-- [LEADERBOARD] Initials entry panel — hidden until a qualifying score -->
+        <div id="ov-initials">
+          <h2>🏆 Top Score!</h2>
+          <p id="ov-score-label"></p>
+          <p style="margin-bottom:0;">Enter your initials:</p>
+          <div class="initials-row">
+            <input class="initial-box" id="i0" type="text" maxlength="1"
+                   inputmode="text" autocomplete="off" spellcheck="false" aria-label="First initial" />
+            <input class="initial-box" id="i1" type="text" maxlength="1"
+                   inputmode="text" autocomplete="off" spellcheck="false" aria-label="Second initial" />
+            <input class="initial-box" id="i2" type="text" maxlength="1"
+                   inputmode="text" autocomplete="off" spellcheck="false" aria-label="Third initial" />
+          </div>
+          <div class="initials-actions">
+            <button type="button" class="btn btn-primary"      id="submit-initials">Submit</button>
+            <button type="button" class="btn btn-outline-cyan" id="skip-initials">Skip</button>
+          </div>
+        </div>
+      </div>
+      <!-- ── end overlay ── -->
+
+      <!-- [LEADERBOARD] Top 10 panel — sits to the right of the game on desktop -->
+      <section class="leaderboard" aria-labelledby="lb-heading">
+        <p class="lb-heading" id="lb-heading">// Top 10 This Month //</p>
+        <table class="lb-table" aria-label="Monthly leaderboard">
+          <thead>
+            <tr><th scope="col">#</th><th scope="col">Name</th><th scope="col">Score</th></tr>
+          </thead>
+          <tbody id="lb-body">
+            <tr><td colspan="3" class="lb-empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </div><!-- /.game-stage -->
 
   </div>
 
@@ -268,9 +386,132 @@ body {
   (function () {
     'use strict';
 
-    // [YOUR GAME LOGIC HERE]
+    /* ── [LEADERBOARD] Config ── */
+    var GAME_KEY = '[game-key]';  /* e.g. 'snake', 'space-dogfight' — must match GAME_CAPS in submit-score.js */
+    var cachedScores = [];
+
+    /* ── [LEADERBOARD] DOM refs ── */
+    var ovStandard    = document.getElementById('ov-standard');
+    var ovInitials    = document.getElementById('ov-initials');
+    var ovScoreLbl    = document.getElementById('ov-score-label');
+    var submitInitBtn = document.getElementById('submit-initials');
+    var skipInitBtn   = document.getElementById('skip-initials');
+    var initBoxes     = [document.getElementById('i0'), document.getElementById('i1'), document.getElementById('i2')];
+    var lbBody        = document.getElementById('lb-body');
+
+    /* ── [LEADERBOARD] Fetch top 10 on page load ── */
+    function fetchLeaderboard() {
+      fetch('/api/scores?game=' + GAME_KEY)
+        .then(function (r) { return r.json().then(function (d) { return r.ok ? d : null; }); })
+        .then(function (data) { renderLeaderboard(data && data.scores ? data.scores : [], null); })
+        .catch(function ()   { renderLeaderboard([], null); });
+    }
+
+    function renderLeaderboard(scores, newInitials) {
+      if (!scores || scores.length === 0) {
+        lbBody.innerHTML = '<tr><td colspan="3" class="lb-empty">No scores yet this month. Be first!</td></tr>';
+        return;
+      }
+      lbBody.innerHTML = scores.map(function (row, i) {
+        var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+        var isNew = newInitials && i === scores.findIndex(function (s) { return s.initials === newInitials; });
+        return '<tr' + (isNew ? ' class="lb-new"' : '') + '>' +
+          '<td class="lb-rank">'  + medal + '</td>' +
+          '<td class="lb-name">'  + row.initials + '</td>' +
+          '<td class="lb-score">' + row.score + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function qualifiesForLeaderboard(s) {
+      if (s <= 0) return false;
+      if (cachedScores.length < 10) return true;
+      return s > cachedScores[cachedScores.length - 1].score;
+    }
+
+    /* ── [LEADERBOARD] Overlay helpers ── */
+    function showInitialsEntry(currentScore) {
+      ovScoreLbl.textContent = 'You scored ' + currentScore + '!';
+      ovStandard.style.display = 'none';
+      ovInitials.style.display = 'block';
+      initBoxes.forEach(function (b) { b.value = ''; });
+      initBoxes[0].focus();
+    }
+
+    function showStandardOverlay(title, text, btnText) {
+      ovInitials.style.display = 'none';
+      ovStandard.style.display = '';
+      document.getElementById('overlay-title').textContent = title;
+      document.getElementById('overlay-text').innerHTML = text;
+      document.getElementById('start-btn').textContent = btnText;
+      document.getElementById('overlay').classList.remove('hidden');
+    }
+
+    /* ── [LEADERBOARD] Initials box keyboard handling ── */
+    initBoxes.forEach(function (box, idx) {
+      box.addEventListener('keydown', function (e) {
+        if (e.key === 'Backspace')  { e.preventDefault(); box.value = ''; if (idx > 0) initBoxes[idx - 1].focus(); return; }
+        if (e.key === 'Enter')      { e.preventDefault(); submitInitBtn.click(); return; }
+        if (e.key === 'ArrowLeft'  && idx > 0) { e.preventDefault(); initBoxes[idx - 1].focus(); return; }
+        if (e.key === 'ArrowRight' && idx < 2) { e.preventDefault(); initBoxes[idx + 1].focus(); return; }
+      });
+      box.addEventListener('input', function () {
+        var val = box.value.replace(/[^A-Za-z]/g, '').slice(-1).toUpperCase();
+        box.value = val;
+        if (val && idx < 2) initBoxes[idx + 1].focus();
+      });
+    });
+
+    /* ── [LEADERBOARD] Submit initials ── */
+    submitInitBtn.addEventListener('click', function () {
+      var initials = initBoxes.map(function (b) { return b.value.toUpperCase(); }).join('');
+      if (!/^[A-Z]{3}$/.test(initials)) return;
+      submitInitBtn.disabled = true; skipInitBtn.disabled = true;
+      submitInitBtn.textContent = 'Saving…';
+      fetch('/api/submit-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game: GAME_KEY, initials: initials, score: currentScore })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.accepted && data.scores) { cachedScores = data.scores; renderLeaderboard(cachedScores, initials); }
+          showStandardOverlay(
+            data.accepted ? '✓ Score Saved!' : '💀 Game Over',
+            data.accepted ? 'Check the leaderboard!' : 'Better luck next time.',
+            '▶ Play Again'
+          );
+        })
+        .catch(function () { showStandardOverlay('💀 Game Over', 'Better luck next time.', '▶ Play Again'); })
+        .finally(function () { submitInitBtn.disabled = false; skipInitBtn.disabled = false; submitInitBtn.textContent = 'Submit'; });
+    });
+
+    skipInitBtn.addEventListener('click', function () {
+      showStandardOverlay('💀 Game Over', 'Better luck next time.', '▶ Play Again');
+    });
+    /* ── end [LEADERBOARD] ── */
+
+
+    /* ── YOUR GAME LOGIC HERE ── */
+    var currentScore = 0;  /* [LEADERBOARD] keep this var in scope for submitInitBtn */
+
+    function gameOver() {
+      /* [LEADERBOARD] replace your standard overlay call with this block: */
+      if (qualifiesForLeaderboard(currentScore)) {
+        document.getElementById('overlay').classList.remove('hidden');
+        showInitialsEntry(currentScore);
+      } else {
+        showStandardOverlay('💀 Game Over', 'Better luck next time.', '▶ Play Again');
+      }
+      /* [NO LEADERBOARD] just show your standard overlay instead */
+    }
 
     document.getElementById('restartBtn').addEventListener('click', init);
+
+    function init() {
+      currentScore = 0;
+      /* [LEADERBOARD] */ fetchLeaderboard();
+    }
 
     init();
   })();
@@ -311,6 +552,7 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 - [ ] Remove the inlined `:root` variables block — already in `styles.css`
 - [ ] Remove the inlined `.game-header`, `.game-title-bar`, `.btn-icon`, `.btn-restart`, `.stat-box`, `.btn` rules — already in `styles.css`
 - [ ] Keep only game-specific rules in the inline `<style>` block
+- [ ] [LEADERBOARD] Keep the `.leaderboard`, `.lb-*`, `.initials-*`, `.initial-box`, `#ov-initials` rules
 
 **HTML head**
 - [ ] Replace the Artifact font `<link>` with the full stack:
@@ -320,8 +562,9 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 **HTML body**
 - [ ] Add `<a href="#game" class="skip-link">Skip to game</a>` as the first element inside `<body>`
 - [ ] Add `<nav id="main-nav"></nav>` immediately before `<main>` (nav.js replaces this)
-- [ ] Wrap game content in `<main class="container-narrow section" id="game">` (or `container-wide` for large canvases)
+- [ ] Wrap game content in `<main class="container-narrow section" id="game">`
 - [ ] Add `<script src="../nav.js"></script>` and `<script src="../footer.js"></script>` before `</body>`
+- [ ] [LEADERBOARD] Add the game key to `GAME_CAPS` in `functions/api/submit-score.js`
 
 **Catalog**
 - [ ] Add a game card to `games.html` (copy an existing card; update title, description, category, href)
@@ -332,6 +575,8 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 - [ ] Test restart button — confirm it resets all game state cleanly
 - [ ] Check focus rings are visible on all interactive elements (keyboard nav)
 - [ ] Verify ARIA labels on both icon buttons and live regions on dynamic score/status displays
+- [ ] [LEADERBOARD] Play a round with a qualifying score — confirm initials prompt appears and score saves
+- [ ] [LEADERBOARD] Refresh the page — confirm the saved score appears in the Top 10 panel
 
 ---
 
