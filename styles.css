@@ -3253,6 +3253,7 @@ main {
 
 .game-header {
   display: flex;
+  flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
   width: 100%;
@@ -3280,9 +3281,11 @@ main {
   justify-content: center;
   width: 2.4rem !important;
   height: 2.4rem !important;
+  min-height: 2.4rem !important;
   padding: 0 !important;
   font-size: 1.4rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .btn-icon span {
@@ -3302,7 +3305,9 @@ main {
   justify-content: center;
   width: 2.4rem;
   height: 2.4rem;
+  min-height: 2.4rem;
   padding: 0;
+  flex-shrink: 0;
   transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
 .btn-restart:hover {
