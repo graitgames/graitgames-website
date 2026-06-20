@@ -3244,7 +3244,84 @@ main {
 
 
 /* ============================================================================
-   22. PRINT STYLES
+   22. GAME PAGE COMPONENTS
+   Shared header bar, title, and control buttons used across all game pages.
+   Add .game-header to the top bar wrapper, .game-title-bar to the title
+   element, .btn-restart to the restart icon button, and .btn-icon to any
+   square icon-only button (e.g. the Back to Catalog link).
+   ============================================================================ */
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  border-bottom: 1px solid var(--border-accessible);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.game-title-bar {
+  margin: 0;
+  font-family: var(--font-logo) !important;
+  font-size: 1.8rem !important;
+  letter-spacing: 2px;
+  line-height: 1 !important;
+  color: var(--color-cyan);
+  display: flex;
+  align-items: center;
+  height: 2.4rem;
+}
+
+/* Square icon-only button — combine with .btn-outline-cyan (back) or .btn-restart */
+.btn-icon {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem !important;
+  height: 2.4rem !important;
+  padding: 0 !important;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.btn-icon span {
+  display: inline-block;
+  transform: translateY(-1px);
+}
+
+.btn-restart {
+  background: transparent;
+  color: var(--color-green);
+  border: 2px solid var(--color-green);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.btn-restart:hover {
+  background: var(--color-green);
+  color: var(--bg-primary);
+  box-shadow: var(--glow-green);
+}
+.btn-restart:disabled {
+  border-color: var(--border-accessible);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+.btn-restart:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 3px;
+}
+
+/* ============================================================================
+   23. PRINT STYLES
    ============================================================================ */
 @media print {
   /* Hide non-essential elements when printing */
