@@ -3,14 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GRaiT GAMES — Coming Soon</title>
-  <meta name="description" content="GRaiT GAMES is a father-and-son team building AI-powered, browser-based arcade games. Something awesome is coming soon — join the newsletter for early access." />
+  <title>Free AI Arcade Games and AI Game Building</title>
+  <meta name="description" content="Play free arcade games built by a father and son using AI — Space Dogfight, 4ordle, Memory Match and more. No download, just play." />
 
   <!-- Open Graph / social preview -->
-  <meta property="og:title" content="GRaiT GAMES — Coming Soon" />
-  <meta property="og:description" content="A father-and-son team building AI-powered arcade games. Coming soon." />
+  <meta property="og:title" content="GRaiT GAMES — Free AI Arcade Games" />
+  <meta property="og:description" content="Play free arcade games built by a father and son using AI — Space Dogfight, 4ordle, Memory Match and more. No download, just play." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://graitgames.com" />
+
+  <!-- Twitter / X card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@graitgames" />
+  <meta name="twitter:title" content="GRaiT GAMES — Free AI Arcade Games" />
+  <meta name="twitter:description" content="Play free arcade games built by a father and son using AI — Space Dogfight, 4ordle, Memory Match and more. No download, just play." />
 
   <!-- Preconnect to Google Fonts for faster font loading -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -56,6 +62,8 @@
           <span class="divider-line"></span>
         </div>
 
+        <h1 class="home-headline">Free Arcade Games Built with AI and Love</h1>
+
         <!-- Brief mission tagline -->
         <p class="home-tagline">
           A <span class="text-green">father-and-son</span> team building
@@ -64,15 +72,16 @@
 
         <!-- Primary + secondary calls-to-action -->
         <div class="cta-actions">
-          <a href="games.html" class="btn btn-outline-green">Explore Games</a>
+          <a href="games.html" class="btn btn-outline-green">Play Games</a>
           <a href="about.html" class="btn btn-outline-cyan">About Us</a>
+          <a href="blog.html" class="btn btn-outline-orange">Read Blog</a>
         </div>
 
         <!-- Playful "build status" bar (decorative, looping) -->
         <div class="status-bar" aria-hidden="true">
           <div class="status-item">
             <span class="status-label">Status</span>
-            <span class="status-value">IN DEV</span>
+            <span class="status-value">LIVE</span>
           </div>
           <div class="status-item">
             <span class="status-label">Build</span>
@@ -88,7 +97,65 @@
     </section>
 
     <!-- =================================================================
-         FEATURE HIGHLIGHTS — "WHAT'S COMING"
+         FEATURED GAMES
+         ================================================================= -->
+    <section class="section" aria-labelledby="featured-games-title">
+      <div class="container-wide">
+        <header class="text-center mb-xl">
+          <p class="section-eyebrow">// Featured Games //</p>
+          <h2 id="featured-games-title">Jump In and Play</h2>
+        </header>
+
+        <div class="game-grid">
+
+          <article class="game-card" data-category="action">
+            <div class="game-thumb">
+              <span class="game-tag">Action</span>
+              <span class="game-creator-tag">Son</span>
+              <span class="game-thumb-label">SPACE<br>DOGFIGHT</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">Space Dogfight</h3>
+              <p class="game-card-desc">
+                Strap into your neon fighter and duel the enemy AI in deep space.
+                Aim with the mouse, thrust with WASD, and blast every wave — the
+                AI gets faster each round, so how long can you survive?
+              </p>
+              <div class="game-card-footer">
+                <a href="games/space_dogfight.html" class="btn btn-secondary btn-block" aria-label="Play Space Dogfight">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="game-card" data-category="puzzle">
+            <div class="game-thumb">
+              <span class="game-tag">Puzzle</span>
+              <span class="game-creator-tag">Father</span>
+              <span class="game-thumb-label">4ORDLE</span>
+            </div>
+            <div class="game-card-body">
+              <h3 class="game-card-title">4ordle</h3>
+              <p class="game-card-desc">
+                Four Wordles at once! Every guess fills all four boards, so you
+                only have nine tries to crack every five-letter word. A brain-bending
+                twist on the daily classic.
+              </p>
+              <div class="game-card-footer">
+                <a href="games/4ordle.html" class="btn btn-secondary btn-block" aria-label="Play 4ordle">Play Now</a>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+        <div class="text-center mt-xl">
+          <a href="games.html" class="btn btn-outline-green">See All Games</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         FEATURE HIGHLIGHTS
          Four quick points about the project. Reuses the shared
          .feature-grid / .feature-card components from the About page.
          ================================================================= -->
