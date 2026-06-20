@@ -183,8 +183,8 @@
           <div class="stat-value" id="moves">0</div>
         </div>
         <div class="stat-box">
-          <div class="stat-label">Matches</div>
-          <div class="stat-value" id="matches">0/8</div>
+          <div class="stat-label">Points</div>
+          <div class="stat-value" id="points">0</div>
         </div>
       </div>
 
@@ -214,14 +214,23 @@
     var board       = document.getElementById('board');
     var timeEl      = document.getElementById('time');
     var movesEl     = document.getElementById('moves');
-    var matchesEl   = document.getElementById('matches');
+    var pointsEl    = document.getElementById('points');
     var winBanner   = document.getElementById('win-banner');
     var winSummary  = document.getElementById('win-summary');
     var restartBtn  = document.getElementById('restart');
 
     /* Game state */
     var firstCard, secondCard, lockBoard;
-    var moves, matchedPairs, seconds, timerId, started;
+    var moves, matchedPairs, points, seconds, timerId, started;
+
+    /* Time bonus based on total elapsed seconds when the match is made */
+    function getTimeBonus(s) {
+      if (s <= 5)  return 10;
+      if (s < 10)  return 8;
+      if (s < 15)  return 6;
+      if (s < 20)  return 4;
+      return 2;
+    }
 
     /* Fisher–Yates shuffle */
     function shuffle(arr) {
@@ -257,10 +266,10 @@
       board.innerHTML = '';
       firstCard = secondCard = null;
       lockBoard = false;
-      moves = matchedPairs = seconds = 0;
+      moves = matchedPairs = points = seconds = 0;
       started = false;
       movesEl.textContent = '0';
-      matchesEl.textContent = '0/8';
+      pointsEl.textContent = '0';
       timeEl.textContent = '0:00';
       winBanner.classList.add('hidden');
 
@@ -310,7 +319,9 @@
         secondCard.disabled = true;
         resetTurn();
         matchedPairs++;
-        matchesEl.textContent = matchedPairs + '/8';
+        var matchPoints = Math.max(0, (100 - moves) * getTimeBonus(seconds));
+        points += matchPoints;
+        pointsEl.textContent = points;
         if (matchedPairs === SYMBOLS.length) win();
       } else {
         lockBoard = true;
@@ -330,7 +341,7 @@
     function win() {
       stopTimer();
       winSummary.textContent =
-        'Solved in ' + moves + ' moves and ' + formatTime(seconds) + '. Can you do better?';
+        'You scored ' + points + ' points in ' + moves + ' moves and ' + formatTime(seconds) + '. Can you do better?';
       winBanner.classList.remove('hidden');
     }
 
