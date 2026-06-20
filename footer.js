@@ -8,14 +8,6 @@
     ml('account', '2458872');
   }
 
-  /* ── Google Fonts (load only once) ── */
-  if (!document.querySelector('link[href*="Press+Start+2P"]')) {
-    const link = document.createElement('link');
-    link.rel  = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap';
-    document.head.appendChild(link);
-  }
-
   /* ── Styles ── */
   const css = `
     #grait-footer {
@@ -24,7 +16,7 @@
       border-top: 2px solid #39ff14;
       box-shadow: 0 -4px 24px rgba(57,255,20,.18);
       padding: 2.8rem 1.5rem 2rem;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-body);
       color: #e8e8f0;
       overflow: hidden;
     }
@@ -56,7 +48,7 @@
       text-align: center;          /* centres the heading, copy and button */
     }
     .gf-news-eyebrow {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: .72rem;
       letter-spacing: .18em;
       text-transform: uppercase;
@@ -64,7 +56,7 @@
       margin: 0 0 .75rem;
     }
     .gf-news-title {
-      font-family: 'Press Start 2P', monospace;
+      font-family: var(--font-logo);
       font-size: clamp(.8rem, 2.2vw, 1.1rem);
       line-height: 1.55;
       color: #ffffff;
@@ -79,7 +71,7 @@
       text-shadow: 0 0 8px #39ff14, 0 0 24px rgba(57,255,20,.4);
     }
     .gf-news-copy {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-body);
       font-size: 1rem;
       line-height: 1.6;
       color: #b8b8d0;
@@ -101,7 +93,7 @@
       justify-self: start;
     }
     .gf-logo {
-      font-family: 'Press Start 2P', monospace;
+      font-family: var(--font-logo);
       font-size: clamp(.6rem, 2vw, .85rem);
       letter-spacing: .04em;
       line-height: 1.6;
@@ -117,7 +109,7 @@
       text-shadow: 0 0 8px #39ff14, 0 0 24px rgba(57,255,20,.4);
     }
     .gf-copy {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: .7rem;
       color: #7a7a9a;
       margin-top: .55rem;
@@ -132,7 +124,7 @@
       gap: .55rem;
     }
     .gf-nav a {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: .78rem;
       color: #00eaff;
       text-decoration: none;
