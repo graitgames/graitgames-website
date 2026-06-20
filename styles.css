@@ -2425,6 +2425,17 @@ select:disabled {
   }
 }
 
+/* Featured game grid (homepage) — 2 centred columns on desktop, 1 on mobile */
+.game-grid-featured {
+  grid-template-columns: repeat(2, minmax(0, 380px));
+  justify-content: center;
+}
+@media (max-width: 768px) {
+  .game-grid-featured {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* --- MOBILE: single column + off-canvas sidebar --- */
 @media (max-width: 768px) {
   .catalog-layout {
