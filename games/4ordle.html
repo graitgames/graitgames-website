@@ -61,7 +61,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px 8px 40px;
+      padding: 2px 8px 40px;
       /* Disable the browser's double-tap-to-zoom gesture (which fires when a
          player taps the same on-screen key twice quickly) while still allowing
          normal page scrolling. */
@@ -86,6 +86,8 @@
        directly to the game content.
        ============================================ */
     #main-nav { width: 100%; }
+
+    #game { padding-top: 32px; }
 
     .skip-link {
       position: absolute;
@@ -175,7 +177,7 @@
     #boards {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+      gap: 6px;
       width: 100%;
       max-width: 900px;
     }
@@ -184,8 +186,8 @@
     .board {
       background: var(--bg-secondary);
       border: 1px solid var(--border-accessible);
-      border-radius: 10px;
-      padding: 10px 8px;
+      border-radius: 8px;
+      padding: 6px 10%;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -212,18 +214,44 @@
     .grid {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
+      width: 100%;
     }
 
     .row {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 4px;
+      gap: 3px;
     }
 
+    /* Empty future rows — thin placeholder line */
+    .row.row-empty {
+      height: 20px;
+      overflow: hidden;
+    }
+    .row.row-empty .tile {
+      height: 20px;
+      border-width: 1px;
+      border-radius: 2px;
+      font-size: 0;
+    }
+
+    /* Active row — input row */
+    .row.row-active .tile {
+      height: 30px;
+      font-size: 16px;
+    }
+
+    /* Solved row — all-green winning guess */
+    .row.row-solved .tile {
+      height: 30px;
+      font-size: 0.85rem;
+    }
+
+    /* Base tile — played rows are 20px with small text */
     .tile {
-      width: 38px;
-      height: 38px;
+      width: 100%;
+      height: 20px;
       border: 2px solid var(--border-accessible);
       background: var(--bg-panel);
       display: flex;
@@ -231,11 +259,11 @@
       justify-content: center;
       font-family: 'Orbitron', sans-serif;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 12px;
+      line-height: 1;
       text-transform: uppercase;
       color: var(--text-primary);
       border-radius: 4px;
-      /* Flip animation when a guess is revealed */
       transition: transform 0.15s ease, background 0.25s ease, border-color 0.25s ease;
     }
 
@@ -321,7 +349,7 @@
       border-radius: 5px;
       font-family: 'Orbitron', sans-serif;
       font-weight: 700;
-      font-size: 0.845rem; /* +2px larger than the original 0.72rem */
+      font-size: 1.48rem;
       text-transform: uppercase;
       cursor: pointer;
       flex: 1;
@@ -335,9 +363,10 @@
     .key.wide {
       flex: 1.7;
       max-width: 68px;
-      font-size: 0.725rem; /* +2px larger than the original 0.6rem */
+      font-size: 1.27rem;
       letter-spacing: 0;
     }
+    .key[data-key="ENTER"] { font-size: 0.725rem; }
 
     /* ---- Quadrant coloring (one per board, like Quordle) ----
        Each letter key holds four .quad layers, arranged 2×2:
@@ -396,14 +425,21 @@
        Mobile-first: shrink tiles on small screens
        ============================================ */
     @media (max-width: 600px) {
-      .tile  { width: 28px; height: 28px; font-size: 0.8rem; }
+      .tile { height: 20px; font-size: 0.65rem; }
+      .row.row-active .tile { height: 30px; font-size: 0.85rem; }
+      .row.row-solved .tile { height: 30px; font-size: 0.85rem; }
+      .row.row-empty { height: 20px; }
+      .row.row-empty .tile { height: 20px; }
       .game-title { font-size: 0.9rem; }
-      .key   { padding: 10px 4px; font-size: 0.725rem; } /* +2px larger than the original 0.6rem */
-      #boards { gap: 6px; }
+      .key   { padding: 10px 4px; font-size: 1.27rem; }
+      .key[data-key="ENTER"] { font-size: 0.725rem; }
+      #boards { gap: 4px; }
     }
 
     @media (max-width: 380px) {
-      .tile { width: 24px; height: 24px; font-size: 0.7rem; }
+      .tile { height: 20px; font-size: 0.6rem; }
+      .row.row-active .tile { height: 30px; font-size: 0.8rem; }
+      .row.row-solved .tile { height: 30px; font-size: 0.8rem; }
       .key  { padding: 8px 2px; }
     }
 
@@ -429,27 +465,16 @@
   <!-- Navigation injected by site's nav.js -->
   <nav id="main-nav"></nav>
 
-  <main id="game" class="container-narrow section">
-
-    <!-- Back to catalog (site navigation) -->
-    <a href="/games.html" class="btn btn-outline-cyan btn-sm mb-xl">← Back to Catalog</a>
+  <main id="game" class="container-narrow">
 
     <!-- ============================================
          HEADER
          ============================================ -->
     <header role="banner">
-      <div>
-        <!-- Game title: "4" in cyan, "ordle" in orange.
-             The GRaiT GAMES wordmark is already shown in the site nav (nav.js),
-             so we don't repeat a brand logo here. -->
-        <h1 class="game-title">
-          <span class="title-4">4</span><span class="title-ordle">ordle</span>
-        </h1>
-      </div>
+      <!-- Back to catalog -->
+      <a href="/games.html" class="btn btn-outline-cyan btn-sm">← Back to Catalog</a>
 
       <!-- Live status: boards solved + current guess count -->
-      <!-- aria-live="polite" means screen readers announce updates
-           without interrupting what they're currently reading -->
       <span id="status" aria-live="polite" aria-atomic="true">Loading…</span>
 
       <!-- New Game button (disabled until dictionary is loaded) -->
@@ -845,6 +870,11 @@
           rowEl.className = 'row';
           rowEl.setAttribute('role', 'row');
 
+          var isActive = (r === guesses.length && !solved[b] && !gameOver);
+          var isPlayed = (r < guesses.length);
+          if (!isActive && !isPlayed) rowEl.classList.add('row-empty');
+          if (isActive) rowEl.classList.add('row-active');
+
           var rowText   = '';
           var rowStatus = null;
 
@@ -859,6 +889,9 @@
                 rowText = ''; /* Blank rows after the solve */
               } else {
                 rowStatus = scoreGuess(rowText, targets[b]);
+                if (rowStatus && rowStatus.every(function(s) { return s === 'correct'; })) {
+                  rowEl.classList.add('row-solved');
+                }
               }
             } else {
               rowStatus = scoreGuess(rowText, targets[b]);
@@ -928,6 +961,7 @@
 
           if (isAction) {
             btn.classList.add('wide');
+            btn.dataset.key = k;
             /* Action keys have no quadrants: BACK shows ⌫, ENTER shows label */
             btn.textContent = k === 'BACK' ? '⌫' : k;
           } else {
