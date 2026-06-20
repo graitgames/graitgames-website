@@ -23,7 +23,7 @@
       padding: var(--space-md);\
     }\
     @media (max-width: 1000px) {\
-      .lb-panel { position: static; width: 250px; margin: var(--space-lg) 0 0 auto; }\
+      .lb-panel { position: static; width: 250px; margin: var(--space-lg) auto 0; }\
     }\
     .lb-heading {\
       font-family: var(--font-mono);\
