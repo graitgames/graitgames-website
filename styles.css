@@ -3265,7 +3265,7 @@ main {
 .game-title-bar {
   margin: 0;
   font-family: var(--font-logo) !important;
-  font-size: 1.8rem !important;
+  font-size: 0.9rem !important;
   letter-spacing: 2px;
   line-height: 1 !important;
   color: var(--color-cyan);
