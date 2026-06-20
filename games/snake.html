@@ -375,9 +375,11 @@
           if (data && data.scores) {
             cachedScores = data.scores;
             renderLeaderboard(cachedScores, null);
+          } else {
+            renderLeaderboard([], null);
           }
         })
-        .catch(function () { /* silently ignore — leaderboard is non-critical */ });
+        .catch(function () { renderLeaderboard([], null); });
     }
 
     function renderLeaderboard(scores, newInitials) {
@@ -412,7 +414,7 @@
     function showInitialsEntry() {
       ovScoreLbl.textContent = 'You scored ' + score + '!';
       ovStandard.style.display = 'none';
-      ovInitials.style.display = '';
+      ovInitials.style.display = 'block';
       resetInitialBoxes();
       initBoxes[0].focus();
     }
