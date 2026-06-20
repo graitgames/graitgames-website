@@ -48,24 +48,6 @@
     }
 
     /* ============================================
-       GLOBAL RESET & BASE
-       ============================================ */
-    *, *::before, *::after { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: 'Rajdhani', sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      padding-bottom: 40px;
-      /* Disable the browser's double-tap-to-zoom gesture (which fires when a
-         player taps the same on-screen key twice quickly) while still allowing
-         normal page scrolling. */
-      touch-action: manipulation;
-    }
-
-    /* ============================================
        GAME FONT OVERRIDE
        Use Arial throughout the game and force all
        text uppercase. Scoped to #game so the injected
@@ -77,13 +59,14 @@
       text-transform: uppercase !important;
     }
 
-    /* ============================================
-       SKIP LINK (Accessibility)
-       Allows keyboard/screen-reader users to skip
-       directly to the game content.
-       ============================================ */
-    #grait-navbar { width: 100%; }
-    #game { padding-top: 32px; }
+    #game {
+      padding-top: 32px;
+      padding-bottom: 40px;
+      /* Disable the browser's double-tap-to-zoom gesture (which fires when a
+         player taps the same on-screen key twice quickly) while still allowing
+         normal page scrolling. */
+      touch-action: manipulation;
+    }
 
     .skip-link {
       position: absolute;
