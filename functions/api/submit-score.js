@@ -21,7 +21,6 @@ const GAME_CAPS = {
   'space-dogfight': 9999,
   '4ordle':       9999,
   'memory-match': 8000,
-  'tic-tac-toe':  9999,
 };
 
 const MAX_SUBMISSIONS_PER_MONTH = 5;
