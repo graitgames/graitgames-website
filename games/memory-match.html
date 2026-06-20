@@ -10,14 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
 
-  <!-- Master design system (one level up from /games/) -->
   <link rel="stylesheet" href="../styles.css" />
 
-  <!-- ===================================================================
-       GAME-SPECIFIC STYLES
-       Reuses the global brand variables (--color-orange, --font-logo …)
-       defined in styles.css. Only the board/card layout lives here.
-       =================================================================== -->
   <style>
     .game-stage {
       max-width: 640px;
@@ -25,7 +19,6 @@
       position: relative;
     }
 
-    /* Stat read-outs (time / moves / matches) */
     .game-stats {
       display: flex;
       flex-wrap: wrap;
@@ -57,7 +50,6 @@
       color: var(--color-green);
     }
 
-    /* 4 × 4 board */
     .memory-board {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -65,7 +57,6 @@
       perspective: 1000px;
     }
 
-    /* Each card is a button for full keyboard support */
     .mem-card {
       position: relative;
       aspect-ratio: 1 / 1;
@@ -82,7 +73,6 @@
     }
     .mem-card:disabled { cursor: default; }
 
-    /* Shared face styling */
     .mem-face {
       position: absolute;
       inset: 0;
@@ -96,7 +86,6 @@
       user-select: none;
     }
 
-    /* Card back (face-down) — orange grid tile */
     .mem-back {
       background:
         linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-secondary) 100%);
@@ -106,7 +95,6 @@
       font-size: clamp(0.7rem, 3vw, 1rem);
     }
 
-    /* Card front (the symbol) — green frame */
     .mem-front {
       background-color: var(--bg-secondary);
       border: 2px solid var(--color-green);
@@ -118,12 +106,11 @@
       animation: matchPop 0.4s ease;
     }
     @keyframes matchPop {
-      0% { transform: rotateY(180deg) scale(1); }
-      50% { transform: rotateY(180deg) scale(1.08); }
+      0%   { transform: rotateY(180deg) scale(1); }
+      50%  { transform: rotateY(180deg) scale(1.08); }
       100% { transform: rotateY(180deg) scale(1); }
     }
 
-    /* Win banner */
     .win-banner {
       text-align: center;
       background-color: var(--bg-secondary);
@@ -146,87 +133,16 @@
       .mem-card { transition: none; }
       .mem-card.matched .mem-front { animation: none; }
     }
-
-    /* ── Initials entry (inside win banner) ───────────────────────── */
-    #win-initials { display: none; margin-top: 12px; }
-    #win-initials p { margin-bottom: 8px; }
-    .initials-row {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      margin: 12px 0 16px;
-    }
-    .initial-box {
-      width: 52px;
-      height: 60px;
-      background: var(--bg-secondary);
-      border: 2px solid var(--color-green);
-      border-radius: var(--border-radius);
-      color: var(--color-green);
-      font-family: var(--font-logo);
-      font-size: 1.3rem;
-      text-align: center;
-      text-transform: uppercase;
-      caret-color: transparent;
-      outline: none;
-      box-shadow: var(--glow-green);
-      transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
-    }
-    .initial-box:focus { border-color: var(--color-cyan); color: var(--color-cyan); box-shadow: var(--glow-cyan); }
-    .initials-actions { display: flex; gap: 12px; justify-content: center; }
-
-    /* ── Leaderboard panel (right of game-stage on desktop) ───────── */
-    .leaderboard {
-      position: absolute;
-      left: calc(100% + 14px);
-      top: 0;
-      width: 250px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-accessible);
-      border-radius: var(--border-radius-lg);
-      padding: var(--space-md);
-    }
-    @media (max-width: 1000px) {
-      .leaderboard { position: static; width: 250px; margin: var(--space-lg) 0 0 auto; }
-    }
-    .lb-heading {
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--color-green);
-      text-align: center;
-      margin-bottom: var(--space-md);
-    }
-    .lb-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.85rem; }
-    .lb-table th {
-      color: var(--text-muted);
-      font-size: 0.68rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--border-accessible);
-      text-align: left;
-    }
-    .lb-table th:last-child, .lb-table td:last-child { text-align: right; }
-    .lb-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .lb-rank  { color: var(--text-muted); width: 2.2rem; }
-    .lb-name  { color: var(--color-cyan); font-weight: 600; letter-spacing: 0.18em; }
-    .lb-score { color: var(--color-green); }
-    .lb-empty { text-align: center; color: var(--text-muted); padding: 20px 8px; }
-    tr.lb-new .lb-name, tr.lb-new .lb-score { color: var(--color-orange); }
   </style>
 </head>
 <body>
 
   <a href="#game" class="skip-link">Skip to game</a>
 
-  <!-- Navigation injected by nav.js -->
   <nav id="main-nav"></nav>
 
   <main class="container-narrow section" id="game">
 
-    <!-- Header bar: back | title | restart -->
     <div class="game-header">
       <a href="/games.html" class="btn btn-outline-cyan btn-icon" aria-label="Back to Catalog"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></a>
       <p class="game-title-bar" role="heading" aria-level="1">MEMORY MATCH</p>
@@ -242,7 +158,6 @@
 
     <div class="game-stage">
 
-      <!-- Live stats -->
       <div class="game-stats" role="status" aria-live="polite">
         <div class="stat-box">
           <div class="stat-label">Time</div>
@@ -261,43 +176,8 @@
       <!-- Win banner (hidden until the player wins) -->
       <div class="win-banner hidden" id="win-banner" role="alert">
         <h2>🏆 You Win!</h2>
-
-        <!-- Initials entry: shown when score qualifies for top 10 -->
-        <div id="win-initials">
-          <p id="win-score-label"></p>
-          <p>Enter your initials:</p>
-          <div class="initials-row">
-            <input class="initial-box" id="i0" type="text" maxlength="1"
-                   inputmode="text" autocomplete="off" spellcheck="false" aria-label="First initial" />
-            <input class="initial-box" id="i1" type="text" maxlength="1"
-                   inputmode="text" autocomplete="off" spellcheck="false" aria-label="Second initial" />
-            <input class="initial-box" id="i2" type="text" maxlength="1"
-                   inputmode="text" autocomplete="off" spellcheck="false" aria-label="Third initial" />
-          </div>
-          <div class="initials-actions">
-            <button type="button" class="btn btn-primary"      id="submit-initials">Submit</button>
-            <button type="button" class="btn btn-outline-cyan" id="skip-initials">Skip</button>
-          </div>
-        </div>
-
-        <!-- Standard summary: shown after submission or when not qualifying -->
-        <div id="win-standard">
-          <p class="mb-0" id="win-summary">Nice memory!</p>
-        </div>
+        <p class="mb-0" id="win-summary">Nice memory!</p>
       </div>
-
-      <!-- Leaderboard panel -->
-      <section class="leaderboard" aria-labelledby="lb-heading">
-        <p class="lb-heading" id="lb-heading">// Monthly Leaderboard //</p>
-        <table class="lb-table" aria-label="Monthly leaderboard">
-          <thead>
-            <tr><th scope="col">#</th><th scope="col">Name</th><th scope="col">Score</th></tr>
-          </thead>
-          <tbody id="lb-body">
-            <tr><td colspan="3" class="lb-empty">Loading…</td></tr>
-          </tbody>
-        </table>
-      </section>
 
       <!-- The board (cards injected by JS) -->
       <div class="memory-board" id="board" aria-label="Memory match board"></div>
@@ -305,40 +185,24 @@
     </div>
   </main>
 
-  <!-- ===================================================================
-       GAME LOGIC
-       =================================================================== -->
+  <script src="../leaderboard.js"></script>
   <script>
   (function () {
     'use strict';
 
-    /* The 8 symbols — each appears twice to make 8 pairs (16 cards). */
     var SYMBOLS = ['👾', '🚀', '🕹️', '⭐', '💾', '🎮', '👻', '🔋'];
 
-    var GAME_KEY     = 'memory-match';
-    var cachedScores = [];
+    var board      = document.getElementById('board');
+    var timeEl     = document.getElementById('time');
+    var movesEl    = document.getElementById('moves');
+    var pointsEl   = document.getElementById('points');
+    var winBanner  = document.getElementById('win-banner');
+    var winSummary = document.getElementById('win-summary');
+    var restartBtn = document.getElementById('restart');
 
-    /* DOM refs */
-    var board          = document.getElementById('board');
-    var timeEl         = document.getElementById('time');
-    var movesEl        = document.getElementById('moves');
-    var pointsEl       = document.getElementById('points');
-    var winBanner      = document.getElementById('win-banner');
-    var winInitials    = document.getElementById('win-initials');
-    var winStandard    = document.getElementById('win-standard');
-    var winSummary     = document.getElementById('win-summary');
-    var winScoreLabel  = document.getElementById('win-score-label');
-    var submitInitBtn  = document.getElementById('submit-initials');
-    var skipInitBtn    = document.getElementById('skip-initials');
-    var initBoxes      = [document.getElementById('i0'), document.getElementById('i1'), document.getElementById('i2')];
-    var lbBody         = document.getElementById('lb-body');
-    var restartBtn     = document.getElementById('restart');
-
-    /* Game state */
     var firstCard, secondCard, lockBoard;
     var moves, matchedPairs, points, seconds, timerId, started;
 
-    /* Time bonus based on total elapsed seconds when the match is made */
     function getTimeBonus(s) {
       if (s <= 5)  return 10;
       if (s < 10)  return 8;
@@ -347,7 +211,6 @@
       return 2;
     }
 
-    /* Fisher–Yates shuffle */
     function shuffle(arr) {
       for (var i = arr.length - 1; i > 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
@@ -363,7 +226,7 @@
     }
 
     function startTimer() {
-      if (started) return;          // only start on first flip
+      if (started) return;
       started = true;
       timerId = setInterval(function () {
         seconds++;
@@ -371,11 +234,8 @@
       }, 1000);
     }
 
-    function stopTimer() {
-      clearInterval(timerId);
-    }
+    function stopTimer() { clearInterval(timerId); }
 
-    /* Build a fresh board */
     function init() {
       stopTimer();
       board.innerHTML = '';
@@ -388,9 +248,7 @@
       timeEl.textContent = '0:00';
       winBanner.classList.add('hidden');
 
-      /* Duplicate, shuffle, render */
       var deck = shuffle(SYMBOLS.concat(SYMBOLS).slice());
-
       deck.forEach(function (symbol, index) {
         var card = document.createElement('button');
         card.type = 'button';
@@ -407,18 +265,12 @@
 
     function flip(card) {
       if (lockBoard) return;
-      if (card === firstCard) return;        // ignore double-click same card
+      if (card === firstCard) return;
       if (card.classList.contains('matched')) return;
-
       startTimer();
       card.classList.add('flipped');
       card.setAttribute('aria-label', 'Card showing ' + card.dataset.symbol);
-
-      if (!firstCard) {
-        firstCard = card;
-        return;
-      }
-
+      if (!firstCard) { firstCard = card; return; }
       secondCard = card;
       moves++;
       movesEl.textContent = moves;
@@ -448,107 +300,23 @@
       }
     }
 
-    function resetTurn() {
-      firstCard = secondCard = null;
-      lockBoard = false;
-    }
-
-    /* ── Leaderboard ──────────────────────────────────────────────── */
-    function fetchLeaderboard() {
-      fetch('/api/scores?game=' + GAME_KEY)
-        .then(function (r) { return r.json().then(function (d) { return r.ok ? d : null; }); })
-        .then(function (data) { renderLeaderboard(data && data.scores ? data.scores : [], null); })
-        .catch(function () { renderLeaderboard([], null); });
-    }
-
-    function renderLeaderboard(scores, newInitials) {
-      if (!scores || scores.length === 0) {
-        lbBody.innerHTML = '<tr><td colspan="3" class="lb-empty">No scores yet this month. Be first!</td></tr>';
-        return;
-      }
-      lbBody.innerHTML = scores.map(function (row, i) {
-        var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
-        var isNew = newInitials && i === scores.findIndex(function (s) { return s.initials === newInitials; });
-        return '<tr' + (isNew ? ' class="lb-new"' : '') + '>' +
-          '<td class="lb-rank">'  + medal + '</td>' +
-          '<td class="lb-name">'  + row.initials + '</td>' +
-          '<td class="lb-score">' + row.score + '</td>' +
-          '</tr>';
-      }).join('');
-    }
-
-    function qualifiesForLeaderboard(s) {
-      if (s <= 0) return false;
-      if (cachedScores.length < 10) return true;
-      return s > cachedScores[cachedScores.length - 1].score;
-    }
-
-    /* Initials box keyboard handling */
-    initBoxes.forEach(function (box, idx) {
-      box.addEventListener('keydown', function (e) {
-        if (e.key === 'Backspace')   { e.preventDefault(); box.value = ''; if (idx > 0) initBoxes[idx - 1].focus(); return; }
-        if (e.key === 'Enter')       { e.preventDefault(); submitInitBtn.click(); return; }
-        if (e.key === 'ArrowLeft'  && idx > 0) { e.preventDefault(); initBoxes[idx - 1].focus(); return; }
-        if (e.key === 'ArrowRight' && idx < 2) { e.preventDefault(); initBoxes[idx + 1].focus(); return; }
-      });
-      box.addEventListener('input', function () {
-        var val = box.value.replace(/[^A-Za-z]/g, '').slice(-1).toUpperCase();
-        box.value = val;
-        if (val && idx < 2) initBoxes[idx + 1].focus();
-      });
-    });
-
-    submitInitBtn.addEventListener('click', function () {
-      var initials = initBoxes.map(function (b) { return b.value.toUpperCase(); }).join('');
-      if (!/^[A-Z]{3}$/.test(initials)) return;
-      submitInitBtn.disabled = true; skipInitBtn.disabled = true;
-      submitInitBtn.textContent = 'Saving…';
-      fetch('/api/submit-score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game: GAME_KEY, initials: initials, score: points })
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          if (data.accepted && data.scores) { cachedScores = data.scores; renderLeaderboard(cachedScores, initials); }
-          showWinStandard();
-        })
-        .catch(function () { showWinStandard(); })
-        .finally(function () { submitInitBtn.disabled = false; skipInitBtn.disabled = false; submitInitBtn.textContent = 'Submit'; });
-    });
-
-    skipInitBtn.addEventListener('click', showWinStandard);
-
-    function showWinStandard() {
-      winInitials.style.display = 'none';
-      winStandard.style.display = '';
-      winSummary.textContent = 'Solved in ' + moves + ' moves and ' + formatTime(seconds) + '. Can you do better?';
-    }
-    /* ── end leaderboard ── */
+    function resetTurn() { firstCard = secondCard = null; lockBoard = false; }
 
     function win() {
       stopTimer();
-      winBanner.classList.remove('hidden');
-      if (qualifiesForLeaderboard(points)) {
-        winScoreLabel.textContent = 'You scored ' + points + ' points!';
-        winInitials.style.display = 'block';
-        winStandard.style.display = 'none';
-        initBoxes.forEach(function (b) { b.value = ''; });
-        initBoxes[0].focus();
-      } else {
-        showWinStandard();
-      }
+      Leaderboard.trySubmit(points, function () {
+        winSummary.textContent = 'Solved in ' + moves + ' moves and ' + formatTime(seconds) + '. Can you do better?';
+        winBanner.classList.remove('hidden');
+      });
     }
 
     restartBtn.addEventListener('click', init);
 
-    /* Boot */
     init();
-    fetchLeaderboard();
+    Leaderboard.init({ gameKey: 'memory-match' });
   })();
   </script>
 
-  <!-- Footer injected by footer.js (uses absolute paths so it works here) -->
   <script src="../nav.js"></script>
   <script src="../footer.js"></script>
 </body>
