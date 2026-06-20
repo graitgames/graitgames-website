@@ -207,11 +207,11 @@
 
     /* Empty future rows — thin placeholder line */
     .row.row-empty {
-      height: 20px;
+      height: 18px;
       overflow: hidden;
     }
     .row.row-empty .tile {
-      height: 20px;
+      height: 18px;
       border-width: 1px;
       border-radius: 2px;
       font-size: 0;
@@ -229,10 +229,10 @@
       font-size: 0.8rem;
     }
 
-    /* Base tile — played rows are 20px with small text */
+    /* Base tile — played rows are 18px with small text */
     .tile {
       width: 100%;
-      height: 20px;
+      height: 18px;
       border: 2px solid var(--border-accessible);
       background: var(--bg-panel);
       display: flex;
@@ -406,11 +406,11 @@
        Mobile-first: shrink tiles on small screens
        ============================================ */
     @media (max-width: 600px) {
-      .tile { height: 20px; font-size: 0.65rem; }
+      .tile { height: 18px; font-size: 0.65rem; }
       .row.row-active .tile { height: 24px; font-size: 0.8rem; }
       .row.row-solved .tile { height: 24px; font-size: 0.8rem; }
-      .row.row-empty { height: 20px; }
-      .row.row-empty .tile { height: 20px; }
+      .row.row-empty { height: 18px; }
+      .row.row-empty .tile { height: 18px; }
       .game-title { font-size: 0.9rem; }
       .key   { padding: 6px 4px; font-size: 1.27rem; }
       .key[data-key="ENTER"] { font-size: 10.6px; }
@@ -418,7 +418,7 @@
     }
 
     @media (max-width: 380px) {
-      .tile { height: 20px; font-size: 0.6rem; }
+      .tile { height: 18px; font-size: 0.6rem; }
       .row.row-active .tile { height: 24px; font-size: 0.75rem; }
       .row.row-solved .tile { height: 24px; font-size: 0.75rem; }
       .key  { padding: 8px 2px; }
