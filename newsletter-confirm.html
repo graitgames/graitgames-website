@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You're In! — GRaiT GAMES Newsletter</title>
+  <meta name="description" content="Thanks for subscribing to the GRaiT GAMES newsletter. Game drops, devlogs, and stories straight from the workshop." />
+  <meta name="robots" content="noindex" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    .confirm-hero {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-xxl) var(--space-lg);
+    }
+
+    .confirm-card {
+      max-width: 560px;
+      width: 100%;
+    }
+
+    .confirm-icon {
+      font-size: 4rem;
+      margin-bottom: var(--space-lg);
+      display: block;
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.6); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .confirm-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-green);
+      margin-bottom: var(--space-sm);
+    }
+
+    .confirm-card h1 {
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      margin-bottom: var(--space-lg);
+      line-height: 1.15;
+    }
+
+    .confirm-card p {
+      color: var(--text-description);
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: var(--space-xl);
+    }
+
+    .confirm-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      justify-content: center;
+    }
+
+    .confirm-divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--color-orange), var(--color-green));
+      margin: var(--space-xl) auto;
+      border-radius: 2px;
+    }
+
+    .confirm-note {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: var(--space-xl);
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <nav id="main-nav"></nav>
+
+  <main id="main">
+    <section class="confirm-hero">
+      <div class="confirm-card">
+
+        <span class="confirm-icon" aria-hidden="true">🎮</span>
+
+        <p class="confirm-eyebrow">// Welcome to the Crew //</p>
+
+        <h1>
+          You're <span class="text-green">in</span>,
+          <span class="text-orange">player</span>!
+        </h1>
+
+        <p>
+          Thanks for subscribing to the
+          <span class="logo-text"><span class="text-orange">GR</span><span class="text-green">ai</span><span class="text-orange">T</span><span class="text-green"> GAMES</span></span>
+          newsletter. You'll be the first to hear about new game drops,
+          behind-the-scenes devlogs, and stories straight from the workshop.
+        </p>
+
+        <div class="confirm-actions">
+          <a href="/games.html" class="btn btn-primary">▶ Play Our Games</a>
+          <a href="/"           class="btn btn-outline-cyan">← Back to Home</a>
+        </div>
+
+        <div class="confirm-divider" aria-hidden="true"></div>
+
+        <p class="confirm-note">
+          Didn't sign up? You can safely ignore this page.<br />
+          No further action is needed.
+        </p>
+
+      </div>
+    </section>
+  </main>
+
+  <script src="nav.js"></script>
+  <script src="footer.js"></script>
+</body>
+</html>
