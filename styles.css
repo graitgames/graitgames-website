@@ -2374,6 +2374,16 @@ select:disabled {
   margin-top: auto;
 }
 
+.game-card-lb-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin-top: var(--space-sm);
+}
+.game-card-lb-label.has-lb { color: var(--color-green); }
+.game-card-lb-label.no-lb  { color: var(--text-muted); }
+
 /* --- EMPTY STATE (shown when a filter has no games) --- */
 .catalog-empty {
   grid-column: 1 / -1;
