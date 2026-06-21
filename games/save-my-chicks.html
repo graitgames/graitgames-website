@@ -257,9 +257,12 @@
     var fireCooldown = 0;
 
     // ---------- Input ----------
+    var SCROLL_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Spacebar'];
+
     window.addEventListener('keydown', function (e) {
       keys[e.key] = true;
-      if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); tryFire(); }
+      if (SCROLL_KEYS.indexOf(e.key) !== -1) e.preventDefault();
+      if (e.key === ' ' || e.key === 'Spacebar') tryFire();
     });
     window.addEventListener('keyup', function (e) { keys[e.key] = false; });
 
