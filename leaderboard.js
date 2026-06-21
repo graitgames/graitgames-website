@@ -137,8 +137,8 @@
         '<input class="lb-initial-box" id="lb-i2" type="text" maxlength="1" inputmode="text" autocomplete="off" spellcheck="false" aria-label="Third initial" />' +
       '</div>' +
       '<div class="lb-initials-actions">' +
-        '<button type="button" class="btn btn-primary" id="lb-submit">Submit</button>' +
         '<button type="button" class="btn btn-outline-cyan" id="lb-skip">Skip</button>' +
+        '<button type="button" class="btn btn-primary" id="lb-submit">Submit</button>' +
       '</div>';
     stage.appendChild(lbOverlay);
 
