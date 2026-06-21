@@ -64,11 +64,9 @@
     }
     .gf-news-title .gf-orange {
       color: #ff6b1a;
-      text-shadow: 0 0 8px #ff6b1a, 0 0 24px rgba(255,107,26,.4);
     }
     .gf-news-title .gf-green {
       color: #39ff14;
-      text-shadow: 0 0 8px #39ff14, 0 0 24px rgba(57,255,20,.4);
     }
     .gf-news-copy {
       font-family: var(--font-body);
