@@ -379,13 +379,35 @@
     }
 
     // ---------- Spawning ----------
+    // Cats fly toward the nest from a different side every two waves:
+    // 1-2 right-to-left (toward Mama Bird), 3-4 bottom-to-top, 5-6 top-to-bottom,
+    // then the 3-wave-pair pattern repeats starting at wave 7.
+    function getWaveDirection(w) {
+      var phase = ((w - 1) % 6) + 1;
+      if (phase <= 2) return 'horizontal';
+      if (phase <= 4) return 'bottom-up';
+      return 'top-down';
+    }
+
     function spawnCat() {
-      var lane = Math.random() * (H - 120) + 60;
+      var dir = getWaveDirection(wave);
       var speed = 55 + wave * 8 + Math.random() * 20;
       var type = BALLOON_TYPES[Math.floor(Math.random() * BALLOON_TYPES.length)];
+      var x, y;
+      if (dir === 'horizontal') {
+        x = W + 30;
+        y = Math.random() * (H - 120) + 60;
+      } else if (dir === 'bottom-up') {
+        x = Math.random() * (W - BIRD_X - 130) + BIRD_X + 90;
+        y = H + 30;
+      } else { // top-down
+        x = Math.random() * (W - BIRD_X - 130) + BIRD_X + 90;
+        y = -30;
+      }
       cats.push({
-        x: W + 30,
-        y: lane,
+        dir: dir,
+        x: x,
+        y: y,
         speed: speed,
         alive: true,
         bobPhase: Math.random() * Math.PI * 2,
@@ -631,10 +653,24 @@
       for (var i = cats.length - 1; i >= 0; i--) {
         var c = cats[i];
         if (!c.alive) continue;
-        c.x -= c.speed * dt;
         c.bobPhase += dt * 3;
-        c.y += Math.sin(c.bobPhase) * c.wobble;
-        c.y = clamp(c.y, 40, H - 40);
+        var escaped = false;
+        if (c.dir === 'horizontal') {
+          c.x -= c.speed * dt;
+          c.y += Math.sin(c.bobPhase) * c.wobble;
+          c.y = clamp(c.y, 40, H - 40);
+          escaped = c.x < BIRD_X + 10;
+        } else if (c.dir === 'bottom-up') {
+          c.y -= c.speed * dt;
+          c.x += Math.sin(c.bobPhase) * c.wobble;
+          c.x = clamp(c.x, BIRD_X + 40, W - 30);
+          escaped = c.y < 40;
+        } else { // top-down
+          c.y += c.speed * dt;
+          c.x += Math.sin(c.bobPhase) * c.wobble;
+          c.x = clamp(c.x, BIRD_X + 40, W - 30);
+          escaped = c.y > H - 40;
+        }
 
         // direct collision with the bird ends the game immediately
         var bdx = c.x - BIRD_X;
@@ -646,14 +682,14 @@
           return;
         }
 
-        if (c.x < BIRD_X + 10) {
+        if (escaped) {
           // cat reached the nest — escaped with a chick
           c.alive = false;
           cats.splice(i, 1);
           catsHandled++;
           lives -= 1;
           updateHUD();
-          spawnParticles(BIRD_X + 20, c.y, COLORS.orange, 14);
+          spawnParticles(c.x, c.y, COLORS.orange, 14);
           playChickTakenSound();
           if (lives <= 0) {
             endGame(false);
