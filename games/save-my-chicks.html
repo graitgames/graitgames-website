@@ -13,6 +13,11 @@
   <link rel="stylesheet" href="../styles.css" />
 
   <style>
+    #game {
+      padding-top: 32px;
+      padding-bottom: 40px;
+    }
+
     .game-stats {
       display: flex;
       justify-content: center;
@@ -84,9 +89,11 @@
       justify-content: center;
       gap: 14px;
       background: rgba(7, 7, 15, 0.88);
+      border-radius: var(--border-radius-lg);
       text-align: center;
       padding: 24px;
       z-index: 10;
+      overflow-y: auto;
     }
     .overlay.hidden { display: none; }
     .overlay h2 {
@@ -129,7 +136,7 @@
 
   <nav id="main-nav"></nav>
 
-  <main class="container-narrow section" id="game">
+  <main class="container-narrow" id="game">
 
     <div class="game-header">
       <a href="/games.html" class="btn btn-outline-cyan btn-icon" aria-label="Back to Catalog">
@@ -170,13 +177,14 @@
     <div class="game-stage" id="gameStage">
       <div class="game-canvas-frame">
         <canvas id="gameCanvas" aria-label="Save My Chicks game area"></canvas>
+      </div>
 
-        <div class="overlay" id="overlay">
-          <h2 id="overlay-title">Ready?</h2>
-          <p id="overlay-text">Use your seed-shooter to stop the cats and save your chicks! Chain combos to score extra points and climb to the top of our monthly leaderboard.</p>
-          <p class="hint" id="overlay-hint">Move bird: Up/Down or W·S &nbsp;•&nbsp; Aim shooter: Left/Right or A·D &nbsp;•&nbsp; Fire: Space / Click</p>
-          <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
-        </div>
+      <!-- Overlay sits outside .game-canvas-frame (which clips to round its
+           corners) so its content never gets cropped on short mobile boxes. -->
+      <div class="overlay" id="overlay">
+        <h2 id="overlay-title">Ready?</h2>
+        <p id="overlay-text"></p>
+        <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
       </div>
     </div>
 
@@ -199,7 +207,6 @@
     var overlay = document.getElementById('overlay');
     var overlayTitle = document.getElementById('overlay-title');
     var overlayText = document.getElementById('overlay-text');
-    var overlayHint = document.getElementById('overlay-hint');
     var startBtn = document.getElementById('start-btn');
     var restartBtn = document.getElementById('restartBtn');
 
@@ -251,7 +258,11 @@
     var popups = []; // {x, y, text, color, life}
     var clouds = [];
     var combo = 0;
-    var BASE_CAT_POINTS = 10;
+    var BALLOON_TYPES = [
+      { color: COLORS.orange, hits: 1, points: 10 },
+      { color: COLORS.cyan,   hits: 2, points: 20 },
+      { color: COLORS.green,  hits: 3, points: 30 }
+    ];
     var spawnTimer = 0;
     var spawnInterval = 1600;
     var catsToSpawnThisWave = 6;
@@ -348,13 +359,17 @@
     function spawnCat() {
       var lane = Math.random() * (H - 120) + 60;
       var speed = 55 + wave * 8 + Math.random() * 20;
+      var type = BALLOON_TYPES[Math.floor(Math.random() * BALLOON_TYPES.length)];
       cats.push({
         x: W + 30,
         y: lane,
         speed: speed,
         alive: true,
         bobPhase: Math.random() * Math.PI * 2,
-        balloonHue: Math.random() < 0.5 ? COLORS.orange : COLORS.cyan,
+        balloonHue: type.color,
+        hitsLeft: type.hits,
+        maxHits: type.hits,
+        points: type.points,
         wobble: (Math.random() - 0.5) * 0.6
       });
       catsSpawned++;
@@ -642,12 +657,19 @@
           var dx = sd.x - cat.x;
           var dyy = sd.y - cat.y;
           if (Math.sqrt(dx * dx + dyy * dyy) < 26) {
+            seeds.splice(s, 1);
+            cat.hitsLeft -= 1;
+            if (cat.hitsLeft > 0) {
+              // balloon takes the hit but isn't popped yet
+              spawnParticles(cat.x, cat.y, cat.balloonHue, 6);
+              playShootSound();
+              break;
+            }
             cat.alive = false;
             cats.splice(j, 1);
-            seeds.splice(s, 1);
             catsHandled++;
             combo += 1;
-            var pointsEarned = BASE_CAT_POINTS * combo;
+            var pointsEarned = cat.points * combo;
             currentScore += pointsEarned;
             updateHUD();
             spawnParticles(cat.x, cat.y, cat.balloonHue, 18);
@@ -931,15 +953,27 @@
       ctx.lineTo(0, -2);
       ctx.stroke();
 
-      // balloon
+      // balloon — shrinks slightly with each hit taken so multi-hit
+      // balloons visibly show damage before they finally pop
+      var hitScale = 0.7 + 0.3 * (c.hitsLeft / c.maxHits);
       ctx.save();
       ctx.shadowColor = c.balloonHue;
       ctx.shadowBlur = 10;
       ctx.fillStyle = c.balloonHue;
       ctx.beginPath();
-      ctx.ellipse(0, -22, 13, 16, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, -22, 13 * hitScale, 16 * hitScale, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
+
+      // remaining-hits pips above the balloon, for multi-hit balloons
+      if (c.maxHits > 1) {
+        ctx.fillStyle = COLORS.white;
+        for (var hp = 0; hp < c.hitsLeft; hp++) {
+          ctx.beginPath();
+          ctx.arc(-6 + hp * 6, -42, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
 
       // cat body
       ctx.fillStyle = '#2b2b3a';
@@ -988,11 +1022,9 @@
     }
 
     // ---------- Game flow ----------
-    function showStandardOverlay(title, text, btnText, hint) {
+    function showStandardOverlay(title, text, btnText) {
       overlayTitle.textContent = title;
-      overlayText.innerHTML = text;
-      overlayHint.textContent = hint || '';
-      overlayHint.style.display = hint ? 'block' : 'none';
+      overlayText.innerHTML = text || '';
       startBtn.textContent = btnText;
       overlay.classList.remove('hidden');
     }
@@ -1030,12 +1062,7 @@
     restartBtn.addEventListener('click', function () {
       if (rafId) cancelAnimationFrame(rafId);
       running = false;
-      showStandardOverlay(
-        'Ready?',
-        'Use your seed-shooter to stop the cats and save your chicks! Chain combos to score extra points and climb to the top of our monthly leaderboard.',
-        '▶ Start Game',
-        'Move bird: Up/Down or W·S  •  Aim shooter: Left/Right or A·D  •  Fire: Space / Click'
-      );
+      showStandardOverlay('Ready?', '', '▶ Start Game');
     });
 
     // initial canvas sizing
