@@ -46,13 +46,20 @@
     .stat-value.lives { color: var(--color-orange); }
     .stat-value.wave  { color: var(--color-cyan); }
 
-    /* Game stage */
+    /* Game stage — kept free of overflow:hidden so the shared leaderboard.js
+       module can anchor its Top 10 panel to the right of this element. */
     .game-stage {
       position: relative;
       width: 100%;
       max-width: 760px;
       margin: 0 auto;
       aspect-ratio: 4 / 3;
+    }
+
+    /* Visual frame for the canvas — clips corners + glow, sized to fill .game-stage */
+    .game-canvas-frame {
+      position: absolute;
+      inset: 0;
       background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-panel) 100%);
       border: 2px solid var(--border-accessible);
       border-radius: var(--border-radius-lg);
@@ -142,7 +149,7 @@
     </div>
 
     <p style="text-align:center; color:var(--text-description); margin-bottom:24px; font-family:var(--font-body);">
-      Cats are riding balloons up the cliff to snatch your chicks — shoot them down before they reach the nest!
+      Cats will stop at nothing to snatch Mama Bird's chicks. They are trying to sneak past her while riding balloons!
     </p>
 
     <div class="game-stats">
@@ -161,13 +168,15 @@
     </div>
 
     <div class="game-stage" id="gameStage">
-      <canvas id="gameCanvas" aria-label="Save My Chicks game area"></canvas>
+      <div class="game-canvas-frame">
+        <canvas id="gameCanvas" aria-label="Save My Chicks game area"></canvas>
 
-      <div class="overlay" id="overlay">
-        <h2 id="overlay-title">Ready?</h2>
-        <p id="overlay-text">Mama Bird must stop the balloon cats from reaching her nest! Aim and fire your seed-shooter — don't let any cat slip through.</p>
-        <p class="hint" id="overlay-hint">Move bird: Up/Down or W·S &nbsp;•&nbsp; Aim shooter: Left/Right or A·D &nbsp;•&nbsp; Fire: Space / Click</p>
-        <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+        <div class="overlay" id="overlay">
+          <h2 id="overlay-title">Ready?</h2>
+          <p id="overlay-text">Use your seed-shooter to stop the cats and save your chicks! Chain combos to score extra points and climb to the top of our monthly leaderboard.</p>
+          <p class="hint" id="overlay-hint">Move bird: Up/Down or W·S &nbsp;•&nbsp; Aim shooter: Left/Right or A·D &nbsp;•&nbsp; Fire: Space / Click</p>
+          <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+        </div>
       </div>
     </div>
 
@@ -1023,7 +1032,7 @@
       running = false;
       showStandardOverlay(
         'Ready?',
-        'Mama Bird must stop the balloon cats from reaching her nest! Aim and fire your seed-shooter — don\'t let any cat slip through, and don\'t let one touch you!',
+        'Use your seed-shooter to stop the cats and save your chicks! Chain combos to score extra points and climb to the top of our monthly leaderboard.',
         '▶ Start Game',
         'Move bird: Up/Down or W·S  •  Aim shooter: Left/Right or A·D  •  Fire: Space / Click'
       );
