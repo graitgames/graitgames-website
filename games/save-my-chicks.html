@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Save My Chicks — GRaiT GAMES</title>
+  <meta name="description" content="Save My Chicks — cats are riding balloons up the cliff to snatch your chicks. Shoot them down before they reach the nest! A GRaiT GAMES original." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../styles.css" />
+
+  <style>
+    .game-stats {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      flex: 1 1 0;
+      min-width: 90px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-accessible);
+      border-radius: var(--border-radius-lg);
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-family: var(--font-headline);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-green);
+    }
+    .stat-value.lives { color: var(--color-orange); }
+    .stat-value.wave  { color: var(--color-cyan); }
+
+    /* Game stage */
+    .game-stage {
+      position: relative;
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+      aspect-ratio: 4 / 3;
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-panel) 100%);
+      border: 2px solid var(--border-accessible);
+      border-radius: var(--border-radius-lg);
+      overflow: hidden;
+      box-shadow: var(--glow-cyan);
+      touch-action: none;
+    }
+
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: rgba(7, 7, 15, 0.88);
+      text-align: center;
+      padding: 24px;
+      z-index: 10;
+    }
+    .overlay.hidden { display: none; }
+    .overlay h2 {
+      font-family: var(--font-headline);
+      font-size: 1.6rem;
+      color: var(--color-orange);
+      text-shadow: var(--glow-orange);
+      letter-spacing: 1px;
+    }
+    .overlay p {
+      color: var(--text-description);
+      font-family: var(--font-body);
+      max-width: 420px;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+    .overlay .hint {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .controls-help {
+      text-align: center;
+      margin-top: 14px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 480px) {
+      .stat-value { font-size: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#game" class="skip-link">Skip to game</a>
+
+  <nav id="main-nav"></nav>
+
+  <main class="container-narrow section" id="game">
+
+    <div class="game-header">
+      <a href="/games.html" class="btn btn-outline-cyan btn-icon" aria-label="Back to Catalog">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <p class="game-title-bar" role="heading" aria-level="1">SAVE MY CHICKS</p>
+      <button type="button" class="btn-restart" id="restartBtn" aria-label="Restart game">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+      </button>
+    </div>
+
+    <p style="text-align:center; color:var(--text-description); margin-bottom:24px; font-family:var(--font-body);">
+      Cats are riding balloons up the cliff to snatch your chicks — shoot them down before they reach the nest!
+    </p>
+
+    <div class="game-stats">
+      <div class="stat-box">
+        <div class="stat-label">Score</div>
+        <div class="stat-value" id="score" role="status" aria-live="polite">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Chicks Left</div>
+        <div class="stat-value lives" id="lives" role="status" aria-live="polite">5</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Wave</div>
+        <div class="stat-value wave" id="wave" role="status" aria-live="polite">1</div>
+      </div>
+    </div>
+
+    <div class="game-stage" id="gameStage">
+      <canvas id="gameCanvas" aria-label="Save My Chicks game area"></canvas>
+
+      <div class="overlay" id="overlay">
+        <h2 id="overlay-title">Ready?</h2>
+        <p id="overlay-text">Mama Bird must stop the balloon cats from reaching her nest! Aim and fire your seed-shooter — don't let any cat slip through.</p>
+        <p class="hint" id="overlay-hint">Move bird: Up/Down or W·S &nbsp;•&nbsp; Aim shooter: Left/Right or A·D &nbsp;•&nbsp; Fire: Space / Click</p>
+        <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+      </div>
+    </div>
+
+    <p class="controls-help">Desktop: Up/Down moves the bird, Left/Right aims the shooter, Space or click fires. Mobile: drag to move, tap to fire.</p>
+
+  </main>
+
+  <script src="../leaderboard.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    // ---------- Setup ----------
+    var canvas = document.getElementById('gameCanvas');
+    var ctx = canvas.getContext('2d');
+    var stage = document.getElementById('gameStage');
+    var scoreEl = document.getElementById('score');
+    var livesEl = document.getElementById('lives');
+    var waveEl = document.getElementById('wave');
+    var overlay = document.getElementById('overlay');
+    var overlayTitle = document.getElementById('overlay-title');
+    var overlayText = document.getElementById('overlay-text');
+    var overlayHint = document.getElementById('overlay-hint');
+    var startBtn = document.getElementById('start-btn');
+    var restartBtn = document.getElementById('restartBtn');
+
+    var W = 760, H = 570; // logical resolution (4:3)
+    var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resizeCanvas() {
+      var rect = stage.getBoundingClientRect();
+      canvas.width = Math.round(rect.width * DPR);
+      canvas.height = Math.round(rect.height * DPR);
+      canvas.style.width = rect.width + 'px';
+      canvas.style.height = rect.height + 'px';
+      W = rect.width;
+      H = rect.height;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // ---------- Colors ----------
+    var COLORS = {
+      orange: '#FF6B2B',
+      green: '#39FF14',
+      cyan: '#00EAFF',
+      cyan2: '#00C8DC',
+      bgPrimary: '#07070F',
+      bgSecondary: '#0D0D1A',
+      white: '#FFFFFF',
+      muted: 'rgba(255,255,255,0.6)'
+    };
+
+    // ---------- Game state ----------
+    var currentScore = 0;
+    var lives = 5;
+    var wave = 1;
+    var running = false;
+    var paused = false;
+    var rafId = null;
+    var lastTime = 0;
+
+    var BIRD_X = 70; // bird sits on left ledge, fixed x
+    var bird = { y: H / 2, vy: 0, angle: 0, w: 46, h: 36 };
+
+    var lanesCount = 5;
+    var lanes = []; // y-positions for chick nest / lane reference
+
+    var cats = []; // {x, y, lane, speed, popped, alive, balloonColor, bobPhase}
+    var seeds = []; // {x, y, vx, vy}
+    var particles = []; // explosion bits
+    var popups = []; // {x, y, text, color, life}
+    var clouds = [];
+    var combo = 0;
+    var BASE_CAT_POINTS = 10;
+    var spawnTimer = 0;
+    var spawnInterval = 1600;
+    var catsToSpawnThisWave = 6;
+    var catsSpawned = 0;
+    var catsHandled = 0; // popped or escaped, to know when wave ends
+    var waveBanner = { text: '', timer: 0 }; // on-screen "WAVE N" notice
+
+    var keys = {};
+    var aimDir = 0; // -1 up, 1 down
+    var moveDir = 0; // -1 up, 1 down (bird movement)
+    var firePressed = false;
+    var fireCooldown = 0;
+
+    // ---------- Input ----------
+    window.addEventListener('keydown', function (e) {
+      keys[e.key] = true;
+      if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); tryFire(); }
+    });
+    window.addEventListener('keyup', function (e) { keys[e.key] = false; });
+
+    canvas.addEventListener('mousedown', function (e) {
+      handlePointer(e.clientX, e.clientY);
+      tryFire();
+    });
+    canvas.addEventListener('mousemove', function (e) {
+      if (e.buttons === 1) handlePointer(e.clientX, e.clientY);
+    });
+
+    canvas.addEventListener('touchstart', function (e) {
+      e.preventDefault();
+      var t = e.touches[0];
+      handlePointer(t.clientX, t.clientY);
+      tryFire();
+    }, { passive: false });
+    canvas.addEventListener('touchmove', function (e) {
+      e.preventDefault();
+      var t = e.touches[0];
+      handlePointer(t.clientX, t.clientY);
+    }, { passive: false });
+
+    function handlePointer(clientX, clientY) {
+      var rect = canvas.getBoundingClientRect();
+      var y = clientY - rect.top;
+      bird.y = clamp(y, 40, H - 40);
+    }
+
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    // ---------- Entities init ----------
+    function initClouds() {
+      clouds = [];
+      for (var i = 0; i < 6; i++) {
+        clouds.push({
+          x: Math.random() * W,
+          y: 20 + Math.random() * (H * 0.5),
+          s: 0.5 + Math.random() * 0.8,
+          speed: 6 + Math.random() * 10
+        });
+      }
+    }
+
+    function resetGameState() {
+      currentScore = 0;
+      lives = 5;
+      wave = 1;
+      cats = [];
+      seeds = [];
+      particles = [];
+      popups = [];
+      combo = 0;
+      spawnTimer = 0;
+      catsSpawned = 0;
+      catsHandled = 0;
+      catsToSpawnThisWave = 6;
+      spawnInterval = 1600;
+      bird.y = H / 2;
+      bird.vy = 0;
+      waveBanner.text = '';
+      waveBanner.timer = 0;
+      initClouds();
+      updateHUD();
+    }
+
+    function updateHUD() {
+      scoreEl.textContent = currentScore;
+      livesEl.textContent = Math.max(0, lives);
+      waveEl.textContent = wave;
+    }
+
+    // ---------- Spawning ----------
+    function spawnCat() {
+      var lane = Math.random() * (H - 120) + 60;
+      var speed = 55 + wave * 8 + Math.random() * 20;
+      cats.push({
+        x: W + 30,
+        y: lane,
+        speed: speed,
+        alive: true,
+        bobPhase: Math.random() * Math.PI * 2,
+        balloonHue: Math.random() < 0.5 ? COLORS.orange : COLORS.cyan,
+        wobble: (Math.random() - 0.5) * 0.6
+      });
+      catsSpawned++;
+    }
+
+    // ---------- Audio (synthesized — no external files, fully license-free) ----------
+    var audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      return audioCtx;
+    }
+
+    function playShootSound() {
+      var ac = getAudioCtx();
+      if (!ac) return;
+      if (ac.state === 'suspended') ac.resume();
+
+      var now = ac.currentTime;
+
+      // quick descending "pew" — oscillator pitch sweep
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(900, now);
+      osc.frequency.exponentialRampToValueAtTime(220, now + 0.09);
+
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now);
+      osc.stop(now + 0.13);
+
+      // tiny noise burst layered for a "seed pop" texture
+      var bufferSize = Math.floor(ac.sampleRate * 0.05);
+      var buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+      var data = buffer.getChannelData(0);
+      for (var i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+      }
+      var noise = ac.createBufferSource();
+      noise.buffer = buffer;
+      var noiseGain = ac.createGain();
+      noiseGain.gain.setValueAtTime(0.08, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      noise.connect(noiseGain);
+      noiseGain.connect(ac.destination);
+      noise.start(now);
+    }
+
+    function playPopSound() {
+      var ac = getAudioCtx();
+      if (!ac) return;
+      if (ac.state === 'suspended') ac.resume();
+
+      var now = ac.currentTime;
+
+      // balloon pop — sharp noise burst with a quick pitched "thock"
+      var bufferSize = Math.floor(ac.sampleRate * 0.12);
+      var buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+      var data = buffer.getChannelData(0);
+      for (var i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+      }
+      var noise = ac.createBufferSource();
+      noise.buffer = buffer;
+      var filter = ac.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1400, now);
+      filter.Q.value = 0.8;
+      var noiseGain = ac.createGain();
+      noiseGain.gain.setValueAtTime(0.35, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(ac.destination);
+      noise.start(now);
+
+      // low pitch-drop thump underneath for body
+      var osc = ac.createOscillator();
+      var oscGain = ac.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+      oscGain.gain.setValueAtTime(0.25, now);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.connect(oscGain);
+      oscGain.connect(ac.destination);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    }
+
+    function playChickTakenSound() {
+      var ac = getAudioCtx();
+      if (!ac) return;
+      if (ac.state === 'suspended') ac.resume();
+
+      var now = ac.currentTime;
+
+      // descending sad "wah-wah" — two quick downward oscillator sweeps
+      var freqs = [520, 390];
+      for (var k = 0; k < freqs.length; k++) {
+        var startT = now + k * 0.13;
+        var osc = ac.createOscillator();
+        var gain = ac.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freqs[k], startT);
+        osc.frequency.exponentialRampToValueAtTime(freqs[k] * 0.55, startT + 0.16);
+        gain.gain.setValueAtTime(0.001, startT);
+        gain.gain.linearRampToValueAtTime(0.16, startT + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startT + 0.18);
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.start(startT);
+        osc.stop(startT + 0.2);
+      }
+    }
+
+    function playWaveStartSound() {
+      var ac = getAudioCtx();
+      if (!ac) return;
+      if (ac.state === 'suspended') ac.resume();
+
+      var now = ac.currentTime;
+
+      // bright ascending three-note fanfare
+      var freqs = [392, 523, 659]; // G4, C5, E5
+      for (var k = 0; k < freqs.length; k++) {
+        var startT = now + k * 0.09;
+        var osc = ac.createOscillator();
+        var gain = ac.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freqs[k], startT);
+        gain.gain.setValueAtTime(0.001, startT);
+        gain.gain.linearRampToValueAtTime(0.14, startT + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, startT + 0.22);
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.start(startT);
+        osc.stop(startT + 0.24);
+      }
+    }
+
+    function playCollisionSound() {
+      var ac = getAudioCtx();
+      if (!ac) return;
+      if (ac.state === 'suspended') ac.resume();
+
+      var now = ac.currentTime;
+
+      // harsh descending crash — distorted-feeling sawtooth + noise
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.3, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now);
+      osc.stop(now + 0.55);
+
+      var bufferSize = Math.floor(ac.sampleRate * 0.3);
+      var buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+      var data = buffer.getChannelData(0);
+      for (var i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 1.5);
+      }
+      var noise = ac.createBufferSource();
+      noise.buffer = buffer;
+      var noiseGain = ac.createGain();
+      noiseGain.gain.setValueAtTime(0.25, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      noise.connect(noiseGain);
+      noiseGain.connect(ac.destination);
+      noise.start(now);
+    }
+
+    // ---------- Firing ----------
+    var MAX_SEEDS = 5;
+
+    function tryFire() {
+      if (!running || paused) return;
+      if (fireCooldown > 0) return;
+      if (seeds.length >= MAX_SEEDS) return;
+      fireCooldown = 220;
+      var speed = 480;
+      var ang = bird.angle;
+      seeds.push({
+        x: BIRD_X + 30,
+        y: bird.y,
+        vx: Math.cos(ang) * speed,
+        vy: Math.sin(ang) * speed
+      });
+      playShootSound();
+    }
+
+    // ---------- Update ----------
+    function update(dt) {
+      if (paused || !running) return;
+
+      // bird aim control
+      var aimUp = keys['ArrowLeft'] || keys['a'] || keys['A'];
+      var aimDown = keys['ArrowRight'] || keys['d'] || keys['D'];
+      var moveUp = keys['ArrowUp'] || keys['w'] || keys['W'];
+      var moveDown = keys['ArrowDown'] || keys['s'] || keys['S'];
+
+      var aimSpeed = 1.8;
+      if (aimUp) bird.angle -= aimSpeed * dt;
+      if (aimDown) bird.angle += aimSpeed * dt;
+      bird.angle = clamp(bird.angle, -0.9, 0.9);
+
+      var moveSpeed = 240;
+      var dy = 0;
+      if (moveUp) dy -= moveSpeed * dt;
+      if (moveDown) dy += moveSpeed * dt;
+      bird.y = clamp(bird.y + dy, 40, H - 40);
+
+      if (keys[' '] ) tryFire();
+      if (fireCooldown > 0) fireCooldown -= dt * 1000;
+
+      // spawn cats
+      spawnTimer += dt * 1000;
+      if (spawnTimer >= spawnInterval && catsSpawned < catsToSpawnThisWave) {
+        spawnTimer = 0;
+        spawnCat();
+      }
+
+      // update cats
+      for (var i = cats.length - 1; i >= 0; i--) {
+        var c = cats[i];
+        if (!c.alive) continue;
+        c.x -= c.speed * dt;
+        c.bobPhase += dt * 3;
+        c.y += Math.sin(c.bobPhase) * c.wobble;
+        c.y = clamp(c.y, 40, H - 40);
+
+        // direct collision with the bird ends the game immediately
+        var bdx = c.x - BIRD_X;
+        var bdy = c.y - bird.y;
+        if (Math.sqrt(bdx * bdx + bdy * bdy) < 30) {
+          spawnParticles(bird.x !== undefined ? bird.x : BIRD_X, bird.y, COLORS.orange, 24);
+          playCollisionSound();
+          endGame(true);
+          return;
+        }
+
+        if (c.x < BIRD_X + 10) {
+          // cat reached the nest — escaped with a chick
+          c.alive = false;
+          cats.splice(i, 1);
+          catsHandled++;
+          lives -= 1;
+          updateHUD();
+          spawnParticles(BIRD_X + 20, c.y, COLORS.orange, 14);
+          playChickTakenSound();
+          if (lives <= 0) {
+            endGame(false);
+            return;
+          }
+        }
+      }
+
+      // update seeds
+      for (var s = seeds.length - 1; s >= 0; s--) {
+        var sd = seeds[s];
+        sd.x += sd.vx * dt;
+        sd.y += sd.vy * dt;
+        if (sd.x > W + 20 || sd.x < -20 || sd.y < -20 || sd.y > H + 20) {
+          seeds.splice(s, 1);
+          combo = 0;
+          updateHUD();
+          continue;
+        }
+        // collision with cats
+        for (var j = cats.length - 1; j >= 0; j--) {
+          var cat = cats[j];
+          if (!cat.alive) continue;
+          var dx = sd.x - cat.x;
+          var dyy = sd.y - cat.y;
+          if (Math.sqrt(dx * dx + dyy * dyy) < 26) {
+            cat.alive = false;
+            cats.splice(j, 1);
+            seeds.splice(s, 1);
+            catsHandled++;
+            combo += 1;
+            var pointsEarned = BASE_CAT_POINTS * combo;
+            currentScore += pointsEarned;
+            updateHUD();
+            spawnParticles(cat.x, cat.y, cat.balloonHue, 18);
+            spawnPopup(cat.x, cat.y, '+' + pointsEarned, combo > 1 ? COLORS.orange : COLORS.green, combo);
+            playPopSound();
+            break;
+          }
+        }
+      }
+
+      // particles
+      for (var p = particles.length - 1; p >= 0; p--) {
+        var pt = particles[p];
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        pt.vy += 200 * dt;
+        pt.life -= dt;
+        if (pt.life <= 0) particles.splice(p, 1);
+      }
+
+      // popups
+      for (var u = popups.length - 1; u >= 0; u--) {
+        var up = popups[u];
+        up.y += up.vy * dt;
+        up.life -= dt;
+        if (up.life <= 0) popups.splice(u, 1);
+      }
+
+      // clouds
+      for (var cl = 0; cl < clouds.length; cl++) {
+        clouds[cl].x -= clouds[cl].speed * dt;
+        if (clouds[cl].x < -80) clouds[cl].x = W + 80;
+      }
+
+      // wave banner countdown
+      if (waveBanner.timer > 0) waveBanner.timer -= dt;
+
+      // wave complete check
+      if (catsSpawned >= catsToSpawnThisWave && cats.length === 0 && catsHandled >= catsToSpawnThisWave) {
+        nextWave();
+      }
+    }
+
+    function spawnPopup(x, y, text, color, comboCount) {
+      popups.push({
+        x: x,
+        y: y,
+        text: text,
+        comboText: comboCount > 1 ? comboCount + 'x COMBO!' : '',
+        color: color,
+        life: 0.8,
+        vy: -40
+      });
+    }
+
+    function spawnParticles(x, y, color, count) {
+      for (var i = 0; i < count; i++) {
+        var ang = Math.random() * Math.PI * 2;
+        var spd = 60 + Math.random() * 140;
+        particles.push({
+          x: x, y: y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          life: 0.4 + Math.random() * 0.4,
+          color: color,
+          size: 2 + Math.random() * 3
+        });
+      }
+    }
+
+    function nextWave() {
+      wave += 1;
+      catsSpawned = 0;
+      catsHandled = 0;
+      catsToSpawnThisWave = 6 + wave * 2;
+      spawnInterval = Math.max(500, 1600 - wave * 100);
+      currentScore += 250;
+      updateHUD();
+      showWaveBanner(wave);
+    }
+
+    function showWaveBanner(n) {
+      waveBanner.text = 'WAVE ' + n;
+      waveBanner.timer = 2.0;
+      playWaveStartSound();
+    }
+
+    // ---------- Draw ----------
+    function draw() {
+      // sky gradient
+      var grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#0D0D1A');
+      grad.addColorStop(1, '#131323');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // grid floor lines for synthwave feel
+      ctx.strokeStyle = 'rgba(0,234,255,0.08)';
+      ctx.lineWidth = 1;
+      for (var gy = 0; gy < H; gy += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, gy);
+        ctx.lineTo(W, gy);
+        ctx.stroke();
+      }
+
+      // clouds (neon outline puffs)
+      ctx.save();
+      for (var c = 0; c < clouds.length; c++) {
+        drawCloud(clouds[c]);
+      }
+      ctx.restore();
+
+      // nest ledge on left
+      ctx.fillStyle = COLORS.bgSecondary;
+      ctx.strokeStyle = COLORS.green;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(BIRD_X - 10, 0);
+      ctx.lineTo(BIRD_X - 10, H);
+      ctx.lineTo(0, H);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // cliff/right ledge hint
+      ctx.strokeStyle = 'rgba(255,107,43,0.5)';
+      ctx.beginPath();
+      ctx.moveTo(W - 4, 0);
+      ctx.lineTo(W - 4, H);
+      ctx.stroke();
+
+      // cats with balloons
+      for (var i = 0; i < cats.length; i++) {
+        drawCat(cats[i]);
+      }
+
+      // seeds
+      ctx.fillStyle = COLORS.green;
+      for (var s = 0; s < seeds.length; s++) {
+        ctx.save();
+        ctx.shadowColor = COLORS.green;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(seeds[s].x, seeds[s].y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // particles
+      for (var p = 0; p < particles.length; p++) {
+        var pt = particles[p];
+        ctx.globalAlpha = clamp(pt.life / 0.6, 0, 1);
+        ctx.fillStyle = pt.color;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      // popups (floating score text)
+      for (var u = 0; u < popups.length; u++) {
+        drawPopup(popups[u]);
+      }
+
+      // bird (mama bird)
+      drawBird(bird);
+
+      // wave banner overlay text
+      if (waveBanner.timer > 0) {
+        drawWaveBanner();
+      }
+    }
+
+    function drawPopup(p) {
+      var alpha = clamp(p.life / 0.8, 0, 1);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.font = "700 18px 'Orbitron', sans-serif";
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = p.color;
+      ctx.fillText(p.text, p.x, p.y - 18);
+
+      if (p.comboText) {
+        ctx.font = "700 12px 'Press Start 2P', monospace";
+        ctx.fillStyle = COLORS.cyan;
+        ctx.shadowColor = COLORS.cyan;
+        ctx.fillText(p.comboText, p.x, p.y - 36);
+      }
+      ctx.restore();
+    }
+
+    function drawWaveBanner() {
+      var t = waveBanner.timer;
+      // fade in fast, hold, fade out over last 0.5s
+      var alpha = t > 1.6 ? (2.0 - t) / 0.4 : (t < 0.5 ? t / 0.5 : 1);
+      alpha = clamp(alpha, 0, 1);
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = "700 32px 'Orbitron', sans-serif";
+      ctx.shadowColor = COLORS.cyan;
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = COLORS.cyan;
+      ctx.fillText(waveBanner.text, W / 2, H * 0.28);
+      ctx.restore();
+    }
+
+    function drawCloud(cl) {
+      ctx.strokeStyle = 'rgba(0,234,255,0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      var r = 14 * cl.s;
+      ctx.arc(cl.x, cl.y, r, 0, Math.PI * 2);
+      ctx.arc(cl.x + r * 1.2, cl.y + 4, r * 0.8, 0, Math.PI * 2);
+      ctx.arc(cl.x - r * 1.1, cl.y + 5, r * 0.7, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function drawBird(b) {
+      ctx.save();
+      ctx.translate(BIRD_X, b.y);
+
+      // body
+      ctx.save();
+      ctx.shadowColor = COLORS.cyan;
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = COLORS.cyan;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 20, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // wing
+      ctx.fillStyle = COLORS.cyan2;
+      ctx.beginPath();
+      ctx.ellipse(-4, 4, 12, 8, 0.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // eye
+      ctx.fillStyle = COLORS.white;
+      ctx.beginPath();
+      ctx.arc(8, -4, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = COLORS.bgPrimary;
+      ctx.beginPath();
+      ctx.arc(9.5, -4, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // beak/shooter aimed at angle
+      ctx.save();
+      ctx.rotate(b.angle);
+      ctx.fillStyle = COLORS.orange;
+      ctx.beginPath();
+      ctx.moveTo(16, -3);
+      ctx.lineTo(34, 0);
+      ctx.lineTo(16, 3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      ctx.restore();
+    }
+
+    function drawCat(c) {
+      ctx.save();
+      ctx.translate(c.x, c.y);
+
+      // balloon string
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, -14);
+      ctx.lineTo(0, -2);
+      ctx.stroke();
+
+      // balloon
+      ctx.save();
+      ctx.shadowColor = c.balloonHue;
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = c.balloonHue;
+      ctx.beginPath();
+      ctx.ellipse(0, -22, 13, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // cat body
+      ctx.fillStyle = '#2b2b3a';
+      ctx.strokeStyle = COLORS.orange;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(0, 4, 14, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // ears
+      ctx.beginPath();
+      ctx.moveTo(-9, -3);
+      ctx.lineTo(-13, -12);
+      ctx.lineTo(-4, -6);
+      ctx.closePath();
+      ctx.moveTo(9, -3);
+      ctx.lineTo(13, -12);
+      ctx.lineTo(4, -6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // eyes
+      ctx.fillStyle = COLORS.green;
+      ctx.beginPath();
+      ctx.arc(-5, 2, 1.8, 0, Math.PI * 2);
+      ctx.arc(5, 2, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // ---------- Loop ----------
+    function loop(ts) {
+      if (!lastTime) lastTime = ts;
+      var dt = Math.min((ts - lastTime) / 1000, 0.033);
+      lastTime = ts;
+
+      update(dt);
+      draw();
+
+      if (running) {
+        rafId = requestAnimationFrame(loop);
+      }
+    }
+
+    // ---------- Game flow ----------
+    function showStandardOverlay(title, text, btnText, hint) {
+      overlayTitle.textContent = title;
+      overlayText.innerHTML = text;
+      overlayHint.textContent = hint || '';
+      overlayHint.style.display = hint ? 'block' : 'none';
+      startBtn.textContent = btnText;
+      overlay.classList.remove('hidden');
+    }
+
+    function hideOverlay() {
+      overlay.classList.add('hidden');
+    }
+
+    function startGame() {
+      resetGameState();
+      running = true;
+      paused = false;
+      lastTime = 0;
+      hideOverlay();
+      showWaveBanner(wave);
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function endGame(catCollision) {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      var summary = catCollision
+        ? 'A cat reached Mama Bird! Final Score: ' + currentScore
+        : 'The cats got away with too many chicks! Final Score: ' + currentScore;
+      Leaderboard.trySubmit(currentScore, function (accepted) {
+        showStandardOverlay(
+          accepted ? '✓ Score Saved!' : '💀 Game Over',
+          accepted ? 'Check the leaderboard! ' + summary : summary,
+          '▶ Play Again'
+        );
+      });
+    }
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', function () {
+      if (rafId) cancelAnimationFrame(rafId);
+      running = false;
+      showStandardOverlay(
+        'Ready?',
+        'Mama Bird must stop the balloon cats from reaching her nest! Aim and fire your seed-shooter — don\'t let any cat slip through, and don\'t let one touch you!',
+        '▶ Start Game',
+        'Move bird: Up/Down or W·S  •  Aim shooter: Left/Right or A·D  •  Fire: Space / Click'
+      );
+    });
+
+    // initial canvas sizing
+    resizeCanvas();
+    resetGameState();
+    draw();
+    Leaderboard.init({ gameKey: 'save-my-chicks' });
+  })();
+  </script>
+
+  <script src="../nav.js"></script>
+  <script src="../footer.js"></script>
+</body>
+</html>

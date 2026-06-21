@@ -21,10 +21,11 @@
    ============================================================================ */
 
 const GAME_CAPS = {
-  'snake':        4000,
+  'snake':          4000,
   'space-dogfight': 9999,
-  '4ordle':       9999,
-  'memory-match': 8000,
+  '4ordle':         9999,
+  'memory-match':   8000,
+  'save-my-chicks': 99999,
 };
 
 const MAX_SUBMISSIONS_PER_MONTH = 25;

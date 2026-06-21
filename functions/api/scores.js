@@ -11,7 +11,7 @@
    D1 binding required: DB → graitgames-scores
    ============================================================================ */
 
-const ALLOWED_GAMES = new Set(['snake', 'space-dogfight', '4ordle', 'memory-match', 'tic-tac-toe']);
+const ALLOWED_GAMES = new Set(['snake', 'space-dogfight', '4ordle', 'memory-match', 'tic-tac-toe', 'save-my-chicks']);
 
 export async function onRequestGet(context) {
   const { env, request } = context;
