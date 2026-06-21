@@ -13,6 +13,10 @@
      { accepted: false, message: "…" }                       — didn't qualify
      { error: "…" }                                          — validation error
 
+   Each player (by ip_hash) keeps at most one row per game per month — the
+   leaderboard shows personal bests only. A new submission only replaces that
+   row if it beats the player's own previous score this month.
+
    D1 binding required: DB → graitgames-scores
    ============================================================================ */
 
@@ -23,7 +27,7 @@ const GAME_CAPS = {
   'memory-match': 8000,
 };
 
-const MAX_SUBMISSIONS_PER_MONTH = 5;
+const MAX_SUBMISSIONS_PER_MONTH = 25;
 
 export async function onRequestPost(context) {
   const { env, request } = context;
@@ -59,29 +63,46 @@ export async function onRequestPost(context) {
 
   const period = currentPeriod();
 
-  // Rate limit: max submissions per IP per game per month
+  // This player's existing row for this game/month, if any (personal best so far).
+  // submission_count tracks total attempts, since a returning player's row is
+  // updated in place rather than getting a new row per submission.
   const ipHash = hashIP(request.headers.get('CF-Connecting-IP') || '');
-  const { results: rateRows } = await env.DB.prepare(
-    'SELECT COUNT(*) AS cnt FROM scores WHERE game = ? AND period = ? AND ip_hash = ?'
+  const { results: ownRows } = await env.DB.prepare(
+    'SELECT id, score, submission_count FROM scores WHERE game = ? AND period = ? AND ip_hash = ?'
   ).bind(game, period, ipHash).all();
+  const ownRow = ownRows[0];
 
-  if (rateRows[0].cnt >= MAX_SUBMISSIONS_PER_MONTH) {
+  // Rate limit: max submission attempts per IP per game per month
+  const attemptCount = ownRow ? ownRow.submission_count : 0;
+  if (attemptCount >= MAX_SUBMISSIONS_PER_MONTH) {
     return respond({ error: 'Too many submissions this month' }, 429);
   }
 
-  // Check whether score beats the current 10th-place entry
-  const { results: top10 } = await env.DB.prepare(
-    'SELECT score FROM scores WHERE game = ? AND period = ? ORDER BY score DESC LIMIT 10'
-  ).bind(game, period).all();
+  if (ownRow) {
+    // Returning player: only update if this beats their own previous best
+    if (s <= ownRow.score) {
+      await env.DB.prepare(
+        'UPDATE scores SET submission_count = submission_count + 1 WHERE id = ?'
+      ).bind(ownRow.id).run();
+      return respond({ accepted: false, message: 'Not higher than your best score this month' });
+    }
+    await env.DB.prepare(
+      'UPDATE scores SET initials = ?, score = ?, submission_count = submission_count + 1, submitted_at = datetime(\'now\') WHERE id = ?'
+    ).bind(initials, s, ownRow.id).run();
+  } else {
+    // New player: must crack the current top 10 to get a first row
+    const { results: top10 } = await env.DB.prepare(
+      'SELECT score FROM scores WHERE game = ? AND period = ? ORDER BY score DESC LIMIT 10'
+    ).bind(game, period).all();
 
-  if (top10.length >= 10 && s <= top10[top10.length - 1].score) {
-    return respond({ accepted: false, message: 'Score did not make the top 10 this month' });
+    if (top10.length >= 10 && s <= top10[top10.length - 1].score) {
+      return respond({ accepted: false, message: 'Score did not make the top 10 this month' });
+    }
+
+    await env.DB.prepare(
+      'INSERT INTO scores (game, initials, score, period, ip_hash) VALUES (?, ?, ?, ?, ?)'
+    ).bind(game, initials, s, period, ipHash).run();
   }
-
-  // Insert the new score
-  await env.DB.prepare(
-    'INSERT INTO scores (game, initials, score, period, ip_hash) VALUES (?, ?, ?, ?, ?)'
-  ).bind(game, initials, s, period, ipHash).run();
 
   // Return the updated top 10
   const { results: updated } = await env.DB.prepare(
