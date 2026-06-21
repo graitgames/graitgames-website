@@ -51,20 +51,28 @@
     .stat-value.lives { color: var(--color-orange); }
     .stat-value.wave  { color: var(--color-cyan); }
 
-    /* Game stage — kept free of overflow:hidden so the shared leaderboard.js
-       module can anchor its Top 10 panel to the right of this element. */
+    /* Game stage — height comes from .game-canvas-frame below (the only
+       in-flow child), so the shared leaderboard.js module's Top 10 panel
+       (appended after it, static-positioned on narrow viewports) naturally
+       flows underneath the game instead of overlapping it. */
     .game-stage {
       position: relative;
       width: 100%;
       max-width: 760px;
       margin: 0 auto;
-      aspect-ratio: 4 / 3;
     }
 
-    /* Visual frame for the canvas — clips corners + glow, sized to fill .game-stage */
+    /* Sizes itself to .game-canvas-frame so the overlay (absolute, inset:0)
+       covers exactly the game box and not the leaderboard panel below it. */
+    .game-viewport {
+      position: relative;
+    }
+
+    /* Visual frame for the canvas — clips corners + glow, sets the 4:3 box */
     .game-canvas-frame {
-      position: absolute;
-      inset: 0;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
       background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-panel) 100%);
       border: 2px solid var(--border-accessible);
       border-radius: var(--border-radius-lg);
@@ -175,16 +183,23 @@
     </div>
 
     <div class="game-stage" id="gameStage">
-      <div class="game-canvas-frame">
-        <canvas id="gameCanvas" aria-label="Save My Chicks game area"></canvas>
-      </div>
+      <!-- .game-viewport sizes itself to .game-canvas-frame (the only in-flow
+           child) so the overlay covers exactly the game box, while the
+           leaderboard panel (appended after .game-viewport by leaderboard.js)
+           flows underneath instead of overlapping the game or getting hidden
+           behind the fixed-height .game-stage box. -->
+      <div class="game-viewport">
+        <div class="game-canvas-frame">
+          <canvas id="gameCanvas" aria-label="Save My Chicks game area"></canvas>
+        </div>
 
-      <!-- Overlay sits outside .game-canvas-frame (which clips to round its
-           corners) so its content never gets cropped on short mobile boxes. -->
-      <div class="overlay" id="overlay">
-        <h2 id="overlay-title">Ready?</h2>
-        <p id="overlay-text"></p>
-        <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+        <!-- Overlay sits outside .game-canvas-frame (which clips to round its
+             corners) so its content never gets cropped on short mobile boxes. -->
+        <div class="overlay" id="overlay">
+          <h2 id="overlay-title">Ready?</h2>
+          <p id="overlay-text"></p>
+          <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+        </div>
       </div>
     </div>
 
@@ -201,6 +216,7 @@
     var canvas = document.getElementById('gameCanvas');
     var ctx = canvas.getContext('2d');
     var stage = document.getElementById('gameStage');
+    var canvasFrame = document.querySelector('.game-canvas-frame');
     var scoreEl = document.getElementById('score');
     var livesEl = document.getElementById('lives');
     var waveEl = document.getElementById('wave');
@@ -220,7 +236,7 @@
     var ENTITY_SCALE = 1;
 
     function resizeCanvas() {
-      var rect = stage.getBoundingClientRect();
+      var rect = canvasFrame.getBoundingClientRect();
       canvas.width = Math.round(rect.width * DPR);
       canvas.height = Math.round(rect.height * DPR);
       canvas.style.width = rect.width + 'px';
