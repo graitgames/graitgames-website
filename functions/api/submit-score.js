@@ -17,6 +17,11 @@
    leaderboard shows personal bests only. A new submission only replaces that
    row if it beats the player's own previous score this month.
 
+   Rate limit is a fixed 24-hour window per player per game: each player gets
+   MAX_SUBMISSIONS_PER_WINDOW attempts starting from their first attempt in a
+   window; once 24 hours have passed since that first attempt, the window
+   resets and they get a fresh set of attempts.
+
    D1 binding required: DB → graitgames-scores
    ============================================================================ */
 
@@ -28,7 +33,8 @@ const GAME_CAPS = {
   'save-my-chicks': 99999,
 };
 
-const MAX_SUBMISSIONS_PER_MONTH = 25;
+const MAX_SUBMISSIONS_PER_WINDOW = 5;
+const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export async function onRequestPost(context) {
   const { env, request } = context;
@@ -65,31 +71,40 @@ export async function onRequestPost(context) {
   const period = currentPeriod();
 
   // This player's existing row for this game/month, if any (personal best so far).
-  // submission_count tracks total attempts, since a returning player's row is
-  // updated in place rather than getting a new row per submission.
+  // submission_count + window_started_at track a rolling 24-hour attempt
+  // budget, since a returning player's row is updated in place rather than
+  // getting a new row per submission.
   const ipHash = hashIP(request.headers.get('CF-Connecting-IP') || '');
   const { results: ownRows } = await env.DB.prepare(
-    'SELECT id, score, submission_count FROM scores WHERE game = ? AND period = ? AND ip_hash = ?'
+    'SELECT id, score, submission_count, window_started_at FROM scores WHERE game = ? AND period = ? AND ip_hash = ?'
   ).bind(game, period, ipHash).all();
   const ownRow = ownRows[0];
 
-  // Rate limit: max submission attempts per IP per game per month
-  const attemptCount = ownRow ? ownRow.submission_count : 0;
-  if (attemptCount >= MAX_SUBMISSIONS_PER_MONTH) {
-    return respond({ error: 'Too many submissions this month' }, 429);
+  // Rate limit: max submission attempts per IP per game in a rolling 24h window.
+  // A missing/expired window_started_at means the window has reset.
+  const now = new Date();
+  const windowStart = ownRow && ownRow.window_started_at ? new Date(ownRow.window_started_at + 'Z') : null;
+  const windowExpired = !windowStart || (now - windowStart) >= RATE_LIMIT_WINDOW_MS;
+  const attemptsInWindow = windowExpired ? 0 : ownRow.submission_count;
+
+  if (attemptsInWindow >= MAX_SUBMISSIONS_PER_WINDOW) {
+    return respond({ error: 'Too many submissions in the last 24 hours. Try again later.' }, 429);
   }
+
+  const nextCount = attemptsInWindow + 1;
+  const nextWindowStart = windowExpired ? sqliteNow(now) : ownRow.window_started_at;
 
   if (ownRow) {
     // Returning player: only update if this beats their own previous best
     if (s <= ownRow.score) {
       await env.DB.prepare(
-        'UPDATE scores SET submission_count = submission_count + 1 WHERE id = ?'
-      ).bind(ownRow.id).run();
+        'UPDATE scores SET submission_count = ?, window_started_at = ? WHERE id = ?'
+      ).bind(nextCount, nextWindowStart, ownRow.id).run();
       return respond({ accepted: false, message: 'Not higher than your best score this month' });
     }
     await env.DB.prepare(
-      'UPDATE scores SET initials = ?, score = ?, submission_count = submission_count + 1, submitted_at = datetime(\'now\') WHERE id = ?'
-    ).bind(initials, s, ownRow.id).run();
+      'UPDATE scores SET initials = ?, score = ?, submission_count = ?, window_started_at = ?, submitted_at = datetime(\'now\') WHERE id = ?'
+    ).bind(initials, s, nextCount, nextWindowStart, ownRow.id).run();
   } else {
     // New player: must crack the current top 10 to get a first row
     const { results: top10 } = await env.DB.prepare(
@@ -101,8 +116,8 @@ export async function onRequestPost(context) {
     }
 
     await env.DB.prepare(
-      'INSERT INTO scores (game, initials, score, period, ip_hash) VALUES (?, ?, ?, ?, ?)'
-    ).bind(game, initials, s, period, ipHash).run();
+      'INSERT INTO scores (game, initials, score, period, ip_hash, submission_count, window_started_at) VALUES (?, ?, ?, ?, ?, 1, ?)'
+    ).bind(game, initials, s, period, ipHash, sqliteNow(now)).run();
   }
 
   // Return the updated top 10
@@ -116,6 +131,11 @@ export async function onRequestPost(context) {
 // Handle CORS preflight (not strictly needed — same-origin — but keeps fetch clean)
 export async function onRequestOptions() {
   return new Response(null, { status: 204 });
+}
+
+// Formats a Date as SQLite's datetime('now') does: 'YYYY-MM-DD HH:MM:SS' in UTC
+function sqliteNow(date) {
+  return date.toISOString().slice(0, 19).replace('T', ' ');
 }
 
 function currentPeriod() {
