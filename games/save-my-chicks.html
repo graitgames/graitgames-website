@@ -213,6 +213,12 @@
     var W = 760, H = 570; // logical resolution (4:3)
     var DPR = Math.min(window.devicePixelRatio || 1, 2);
 
+    // Bird/cat sprites (and their collision radii) are drawn at half size on
+    // narrow mobile viewports, since the small canvas made them feel oversized
+    // and made long combos too easy. Desktop/tablet stay full size.
+    var MOBILE_BREAKPOINT = 480;
+    var ENTITY_SCALE = 1;
+
     function resizeCanvas() {
       var rect = stage.getBoundingClientRect();
       canvas.width = Math.round(rect.width * DPR);
@@ -221,6 +227,7 @@
       canvas.style.height = rect.height + 'px';
       W = rect.width;
       H = rect.height;
+      ENTITY_SCALE = window.innerWidth <= MOBILE_BREAKPOINT ? 0.5 : 1;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     }
     window.addEventListener('resize', resizeCanvas);
@@ -616,7 +623,7 @@
         // direct collision with the bird ends the game immediately
         var bdx = c.x - BIRD_X;
         var bdy = c.y - bird.y;
-        if (Math.sqrt(bdx * bdx + bdy * bdy) < 30) {
+        if (Math.sqrt(bdx * bdx + bdy * bdy) < 30 * ENTITY_SCALE) {
           spawnParticles(bird.x !== undefined ? bird.x : BIRD_X, bird.y, COLORS.orange, 24);
           playCollisionSound();
           endGame(true);
@@ -656,7 +663,7 @@
           if (!cat.alive) continue;
           var dx = sd.x - cat.x;
           var dyy = sd.y - cat.y;
-          if (Math.sqrt(dx * dx + dyy * dyy) < 26) {
+          if (Math.sqrt(dx * dx + dyy * dyy) < 26 * ENTITY_SCALE) {
             seeds.splice(s, 1);
             cat.hitsLeft -= 1;
             if (cat.hitsLeft > 0) {
@@ -899,6 +906,7 @@
     function drawBird(b) {
       ctx.save();
       ctx.translate(BIRD_X, b.y);
+      ctx.scale(ENTITY_SCALE, ENTITY_SCALE);
 
       // body
       ctx.save();
@@ -944,6 +952,7 @@
     function drawCat(c) {
       ctx.save();
       ctx.translate(c.x, c.y);
+      ctx.scale(ENTITY_SCALE, ENTITY_SCALE);
 
       // balloon string
       ctx.strokeStyle = 'rgba(255,255,255,0.4)';
