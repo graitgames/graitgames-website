@@ -1116,7 +1116,7 @@
     function endGame(catCollision) {
       running = false;
       if (rafId) cancelAnimationFrame(rafId);
-      var summary = 'Oh no! The cats got away with all your chicks! Final Score: ' + currentScore;
+      var summary = 'Oh no! The cats got away with all your chicks!';
       Leaderboard.trySubmit(currentScore, function (accepted) {
         showStandardOverlay(
           accepted ? '✓ Score Saved!' : '💀 Game Over',
