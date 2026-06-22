@@ -399,6 +399,8 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 
 **Catalog**
 - [ ] Add a game card to `games.html` (copy an existing card; update title, description, category, href)
+- [ ] Insert the new card FIRST in `#game-grid` (the "All Games" view always shows newest → oldest, top to
+      bottom) and renumber the `<!-- N. ... -->` comments above each card to match the new order
 - [ ] If the game introduces a new category, add the sidebar button + `.category-count` badge in `games.html`
 
 **QA**
