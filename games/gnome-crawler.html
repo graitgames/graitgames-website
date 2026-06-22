@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gnome Crawler — GRaiT GAMES</title>
+<meta name="description" content="Gnome Crawler — wander an endless torch-lit crypt, collect glowing mushroom relics for XP, and level up your abilities before the spirits catch you. A GRaiT GAMES original." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../styles.css" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.stat-box {
+  flex: 1 1 0;
+  min-width: 100px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-accessible);
+  border-radius: var(--border-radius-lg);
+  padding: 12px;
+  text-align: center;
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-family: var(--font-headline);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-green);
+}
+
+.xp-bar-wrap {
+  width: 100%;
+  max-width: 640px;
+  margin-bottom: 14px;
+}
+.xp-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.xp-bar-track {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-accessible);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+.xp-bar-fill {
+  height: 100%;
+  background: var(--color-green);
+  box-shadow: var(--glow-green);
+  width: 0%;
+  transition: width 0.2s;
+}
+
+.game-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.ability-bar {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: 640px;
+  min-height: 26px;
+  flex-wrap: wrap;
+}
+.ability-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--color-orange);
+  border-radius: var(--border-radius);
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-orange);
+}
+
+.canvas-frame {
+  position: relative;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  border: 2px solid var(--border-accessible);
+  box-shadow: var(--glow-cyan);
+  width: 100%;
+  max-width: 640px;
+}
+#gameCanvas {
+  display: block;
+  background: #07060a;
+  width: 100%;
+  height: auto;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: rgba(7, 7, 15, 0.92);
+  text-align: center;
+  padding: 1.5rem;
+  gap: 10px;
+}
+.overlay.hidden { display: none; }
+.overlay h2 {
+  font-family: var(--font-headline);
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+  color: var(--color-cyan);
+}
+.overlay p {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-description);
+  max-width: 420px;
+}
+
+.choice-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: rgba(7, 7, 15, 0.94);
+  text-align: center;
+  padding: 1rem;
+  gap: 14px;
+}
+.choice-overlay.visible { display: flex; }
+.choice-overlay h3 {
+  font-family: var(--font-headline);
+  font-size: 1rem;
+  letter-spacing: 1px;
+  color: var(--color-green);
+  text-shadow: var(--glow-green);
+}
+.choice-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.choice-card {
+  background: var(--bg-panel);
+  border: 2px solid var(--color-cyan);
+  border-radius: var(--border-radius-lg);
+  padding: 14px 12px;
+  width: 140px;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  transition: box-shadow 0.15s, background 0.15s;
+}
+.choice-card:hover { background: rgba(0,234,255,0.08); box-shadow: var(--glow-cyan); }
+.choice-card:focus-visible { outline: 2px solid var(--color-orange); outline-offset: 3px; }
+.choice-card .icon { font-size: 22px; color: var(--color-cyan); }
+.choice-card .name { font-size: 0.8rem; font-weight: 600; }
+.choice-card .desc { font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono); }
+
+.hint-text {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  max-width: 640px;
+}
+
+.minimap-wrap {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: 1px solid rgba(0, 234, 255, 0.4);
+  border-radius: var(--border-radius);
+  background: rgba(7, 7, 15, 0.7);
+  padding: 3px;
+}
+
+.touch-controls {
+  display: none;
+  width: 100%;
+  max-width: 640px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+  user-select: none;
+}
+@media (pointer: coarse), (max-width: 820px) {
+  .touch-controls { display: flex; }
+}
+.dpad {
+  display: grid;
+  grid-template-columns: 52px 52px 52px;
+  grid-template-rows: 52px 52px 52px;
+  gap: 4px;
+}
+.dpad-btn {
+  grid-row: 2; grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: var(--bg-panel);
+  border: 2px solid var(--color-cyan);
+  border-radius: var(--border-radius);
+  color: var(--color-cyan);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.dpad-btn:active, .dpad-btn.active-touch { background: rgba(0,234,255,0.25); box-shadow: var(--glow-cyan); }
+.dpad-up    { grid-row: 1; grid-column: 2; }
+.dpad-left  { grid-row: 2; grid-column: 1; }
+.dpad-right { grid-row: 2; grid-column: 3; }
+.dpad-down  { grid-row: 3; grid-column: 2; }
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg-panel);
+  border: 2px solid var(--color-orange);
+  color: var(--color-orange);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.action-btn:active, .action-btn.active-touch { background: rgba(255,107,43,0.25); box-shadow: var(--glow-orange); }
+
+.action-btn-wrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+.dash-cooldown-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(rgba(7,7,15,0.88) 0deg, rgba(7,7,15,0.88) 0deg, transparent 0deg);
+  transition: background 0.1s linear;
+}
+.dash-cooldown-chip {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--color-orange);
+  border-radius: var(--border-radius);
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-orange);
+  white-space: nowrap;
+}
+.dash-cooldown-chip.visible { display: flex; }
+</style>
+</head>
+<body>
+
+  <a href="#game" class="skip-link">Skip to game</a>
+
+  <nav id="main-nav"></nav>
+
+  <main class="container-narrow section" id="game">
+
+    <div class="game-header">
+      <a href="/games.html" class="btn btn-outline-cyan btn-icon" aria-label="Back to Catalog">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+        </svg>
+      </a>
+
+      <p class="game-title-bar" role="heading" aria-level="1">GNOME CRAWLER</p>
+
+      <button type="button" class="btn-restart" id="restartBtn" aria-label="Restart game">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+      </button>
+    </div>
+
+    <p style="text-align:center; color:var(--text-description); margin-bottom:24px; font-family:var(--font-body);">
+      Wander an endless torch-lit crypt, collect glowing mushrooms for XP, and level up your abilities before the spirits catch you.
+    </p>
+
+    <div class="game-stats">
+      <div class="stat-box">
+        <div class="stat-label">Relics</div>
+        <div class="stat-value" id="score" role="status" aria-live="polite">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Crawler lv</div>
+        <div class="stat-value" id="levelStat" role="status" aria-live="polite">1</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Lives</div>
+        <div class="stat-value" id="livesStat" role="status" aria-live="polite">3</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Time</div>
+        <div class="stat-value" id="timeStat" role="status" aria-live="polite">0</div>
+      </div>
+    </div>
+
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-label">
+        <span>XP</span>
+        <span id="xpLabel">0 / 5</span>
+      </div>
+      <div class="xp-bar-track">
+        <div class="xp-bar-fill" id="xpFill"></div>
+      </div>
+    </div>
+
+    <div class="game-stage">
+
+      <div class="ability-bar" id="abilityBar"></div>
+      <div class="dash-cooldown-chip" id="dashCooldownChip">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <span id="dashCooldownText" role="status" aria-live="polite">Spirit step: 0.0s</span>
+      </div>
+
+      <div class="canvas-frame">
+        <canvas id="gameCanvas" width="640" height="420"></canvas>
+        <div class="minimap-wrap">
+          <canvas id="minimapCanvas" width="100" height="100"></canvas>
+        </div>
+
+        <div class="overlay" id="overlay">
+          <h2 id="overlay-title">Ready?</h2>
+          <p id="overlay-text">Use arrow keys or WASD to move. The crypt is endless and generates as you explore — collect relics for XP, level up, and pick new abilities. Avoid the spirits, you only have 3 lives.</p>
+          <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+        </div>
+
+        <div class="choice-overlay" id="choiceOverlay">
+          <h3>Level up — choose an ability</h3>
+          <div class="choice-cards" id="choiceCards"></div>
+        </div>
+      </div>
+
+      <p class="hint-text">Arrow keys / WASD to move · Space for spirit step once unlocked · minimap top right shows local area</p>
+
+      <div class="touch-controls" id="touchControls">
+        <div class="dpad">
+          <button type="button" class="dpad-btn dpad-up" data-key="arrowup" aria-label="Move up">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+          </button>
+          <button type="button" class="dpad-btn dpad-left" data-key="arrowleft" aria-label="Move left">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          </button>
+          <button type="button" class="dpad-btn dpad-right" data-key="arrowright" aria-label="Move right">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+          </button>
+          <button type="button" class="dpad-btn dpad-down" data-key="arrowdown" aria-label="Move down">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
+          </button>
+        </div>
+        <button type="button" class="action-btn" id="dashBtn" data-key=" " aria-label="Spirit step dash">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h7l-1 8 11-12h-7l1-8z"/></svg>
+          DASH
+        </button>
+      </div>
+
+  </main>
+
+<script src="../leaderboard.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var canvas = document.getElementById('gameCanvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var BASE_TORCH = 110;
+
+  var mmCanvas = document.getElementById('minimapCanvas');
+  var mmCtx = mmCanvas.getContext('2d');
+  var MM_SIZE = 100;
+  var MM_RANGE = 420; // world px radius shown on minimap, centered on player
+
+  /* ───────────────────────── Chunk system ─────────────────────────
+     The world is an unbounded grid of CHUNK_CELLS x CHUNK_CELLS cell
+     chunks. Each chunk is generated independently from a deterministic
+     seed derived from (chunkX, chunkY, runSeed), so a chunk always
+     generates identically no matter when it's loaded — which means we
+     can freely unload chunks that fall outside the active window and
+     regenerate them later without tracking extra state, except for
+     relics the player has actually collected (tracked separately in
+     a small "depleted" set keyed by world position).
+
+     Only chunks within ACTIVE_RADIUS of the player's current chunk are
+     kept loaded; everything else is torn down (walls/relics/enemies
+     freed) every time the player crosses into a new chunk. */
+
+  var CELL = 40;
+  var CHUNK_CELLS = 8;                  // chunk is 8x8 cells
+  var CHUNK_PX = CHUNK_CELLS * CELL;    // 320px per chunk
+  var ACTIVE_RADIUS = 2;                // 5x5 window of chunks kept loaded
+  var runSeed = 0;
+
+  function hashSeed(a, b, c) {
+    var h = (a * 374761393 + b * 668265263 + c * 2147483647) >>> 0;
+    h = (h ^ (h >>> 13)) >>> 0;
+    h = (h * 1274126177) >>> 0;
+    return (h ^ (h >>> 16)) >>> 0;
+  }
+
+  function seededRng(seed) {
+    var s = seed >>> 0;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+
+  function chunkKey(cx, cy) { return cx + ',' + cy; }
+
+  var chunks = {}; // key -> { cx, cy, walls:[], relics:[], enemies:[], cells: bool[][], openCells: [{gx,gy}] }
+  var depletedRelics = {}; // 'wx,wy' -> true, for relics the player has actually collected
+
+  // Each chunk's border connector offsets are derived from its own seed so
+  // neighboring chunks always agree on where an opening sits along a
+  // shared edge (both sides compute the same offset independently).
+  function borderConnectorOffset(seed, axisLen) {
+    var rng = seededRng(seed);
+    return 1 + Math.floor(rng() * (axisLen - 2));
+  }
+
+  function generateChunk(cx, cy) {
+    var seed = hashSeed(cx, cy, runSeed);
+    var rng = seededRng(seed);
+    var cols = CHUNK_CELLS, rows = CHUNK_CELLS;
+    var grid = [];
+    var gx, gy;
+    for (gy = 0; gy < rows; gy++) { grid[gy] = []; for (gx = 0; gx < cols; gx++) grid[gy][gx] = true; }
+    var visited = [];
+    for (gy = 0; gy < rows; gy++) { visited[gy] = []; for (gx = 0; gx < cols; gx++) visited[gy][gx] = false; }
+
+    // ── Room placement (1-3 rooms per chunk) ──
+    var rooms = [];
+    var targetRooms = 1 + Math.floor(rng() * 3);
+    for (var attempt = 0; attempt < 14 && rooms.length < targetRooms; attempt++) {
+      var rw = 2 + Math.floor(rng() * 3); // 2-4 cells
+      var rh = 2 + Math.floor(rng() * 3);
+      var rx = 1 + Math.floor(rng() * (cols - rw - 2));
+      var ry = 1 + Math.floor(rng() * (rows - rh - 2));
+      var overlaps = false;
+      for (var ox = rx - 1; ox <= rx + rw && !overlaps; ox++) {
+        for (var oy = ry - 1; oy <= ry + rh; oy++) {
+          if (ox < 0 || oy < 0 || ox > cols - 1 || oy > rows - 1) continue;
+          if (!grid[oy][ox]) { overlaps = true; break; }
+        }
+      }
+      if (overlaps) continue;
+      for (var fx = rx; fx < rx + rw; fx++) {
+        for (var fy = ry; fy < ry + rh; fy++) { grid[fy][fx] = false; visited[fy][fx] = true; }
+      }
+      rooms.push({ x: rx, y: ry, w: rw, h: rh });
+    }
+
+    function carveFrom(startX, startY) {
+      visited[startY][startX] = true;
+      grid[startY][startX] = false;
+      var stack = [[startX, startY]];
+      while (stack.length > 0) {
+        var cur = stack[stack.length - 1];
+        var ccx = cur[0], ccy = cur[1];
+        var dirs = [[2,0],[-2,0],[0,2],[0,-2]];
+        dirs.sort(function () { return rng() - 0.5; });
+        var moved = false;
+        for (var d = 0; d < dirs.length; d++) {
+          var nx = ccx + dirs[d][0], ny = ccy + dirs[d][1];
+          if (nx >= 0 && ny >= 0 && nx < cols && ny < rows && !visited[ny][nx]) {
+            grid[ny][nx] = false;
+            var midX = ccx + dirs[d][0] / 2, midY = ccy + dirs[d][1] / 2;
+            grid[midY][midX] = false;
+            visited[ny][nx] = true;
+            stack.push([nx, ny]);
+            moved = true;
+            break;
+          }
+        }
+        if (!moved) stack.pop();
+      }
+    }
+
+    var seedCellX = 1, seedCellY = 1;
+    carveFrom(seedCellX, seedCellY);
+    for (var ri = 0; ri < rooms.length; ri++) {
+      var room = rooms[ri];
+      var ax = Math.min(room.x, cols - 1), ay = Math.min(room.y, rows - 1);
+      if (!visited[ay][ax]) carveFrom(ax, ay);
+    }
+    for (gy = 0; gy < rows; gy++) {
+      for (gx = 0; gx < cols; gx++) {
+        if (grid[gy][gx] && !visited[gy][gx] && rng() < 0.4) { grid[gy][gx] = false; visited[gy][gx] = true; }
+      }
+    }
+    for (gy = 1; gy < rows - 1; gy++) {
+      for (gx = 1; gx < cols - 1; gx++) {
+        if (grid[gy][gx] && rng() < 0.05) grid[gy][gx] = false;
+      }
+    }
+
+    // ── Border connectors ──
+    // Each edge gets exactly one guaranteed opening, at an offset derived
+    // from this chunk's own seed value (not a fresh rng draw, so neighbor
+    // chunks computing the *same* shared edge agree on the same offset
+    // without needing to know about each other).
+    var topOff    = borderConnectorOffset(hashSeed(cx, cy - 1, runSeed) ^ hashSeed(cx, cy, runSeed), cols);
+    var bottomOff = borderConnectorOffset(hashSeed(cx, cy + 1, runSeed) ^ hashSeed(cx, cy, runSeed), cols);
+    var leftOff   = borderConnectorOffset(hashSeed(cx - 1, cy, runSeed) ^ hashSeed(cx, cy, runSeed), rows);
+    var rightOff  = borderConnectorOffset(hashSeed(cx + 1, cy, runSeed) ^ hashSeed(cx, cy, runSeed), rows);
+
+    grid[0][topOff] = false;        grid[1][topOff] = false;
+    grid[rows - 1][bottomOff] = false; grid[rows - 2][bottomOff] = false;
+    grid[leftOff][0] = false;       grid[leftOff][1] = false;
+    grid[rightOff][cols - 1] = false; grid[rightOff][cols - 2] = false;
+
+    var walls = [];
+    var openCells = [];
+    var baseX = cx * CHUNK_CELLS, baseY = cy * CHUNK_CELLS;
+    for (gy = 0; gy < rows; gy++) {
+      for (gx = 0; gx < cols; gx++) {
+        if (grid[gy][gx]) {
+          walls.push({ x: (baseX + gx) * CELL, y: (baseY + gy) * CELL, w: CELL, h: CELL });
+        } else {
+          openCells.push({ gx: baseX + gx, gy: baseY + gy });
+        }
+      }
+    }
+
+    var relics = [];
+    var relicCount = Math.max(Math.floor(openCells.length * 0.16), 2);
+    var pool = openCells.slice();
+    for (var i = 0; i < relicCount && pool.length > 0; i++) {
+      var idx = Math.floor(rng() * pool.length);
+      var c = pool[idx];
+      var wx = c.gx * CELL + CELL / 2, wy = c.gy * CELL + CELL / 2;
+      var dKey = wx + ',' + wy;
+      if (!depletedRelics[dKey]) relics.push({ x: wx, y: wy, taken: false, key: dKey });
+      pool.splice(idx, 1);
+    }
+
+    var enemies = [];
+    var enemyCount = Math.max(Math.floor(openCells.length * 0.05), 1);
+    for (var j = 0; j < enemyCount && pool.length > 0; j++) {
+      var eidx = Math.floor(rng() * pool.length);
+      var ec = pool[eidx];
+      var ewx = ec.gx * CELL + CELL / 2, ewy = ec.gy * CELL + CELL / 2;
+      var angle = rng() * Math.PI * 2;
+      enemies.push({
+        x: ewx - 9, y: ewy - 9, w: 18, h: 18,
+        speed: 0.85 + rng() * 0.5,
+        dir: { x: Math.cos(angle), y: Math.sin(angle) },
+        changeTimer: 0, hp: 1, animPhase: rng() * Math.PI * 2, facing: 1
+      });
+      pool.splice(eidx, 1);
+    }
+
+    return { cx: cx, cy: cy, walls: walls, relics: relics, enemies: enemies, openCells: openCells };
+  }
+
+  function getChunk(cx, cy) {
+    var key = chunkKey(cx, cy);
+    if (!chunks[key]) chunks[key] = generateChunk(cx, cy);
+    return chunks[key];
+  }
+
+  function worldToChunk(wx, wy) {
+    return { cx: Math.floor(wx / CHUNK_PX), cy: Math.floor(wy / CHUNK_PX) };
+  }
+
+  // Stream chunks in/out based on the player's current chunk coordinate.
+  function streamChunks(playerCx, playerCy) {
+    var keep = {};
+    for (var dx = -ACTIVE_RADIUS; dx <= ACTIVE_RADIUS; dx++) {
+      for (var dy = -ACTIVE_RADIUS; dy <= ACTIVE_RADIUS; dy++) {
+        var cx = playerCx + dx, cy = playerCy + dy;
+        var key = chunkKey(cx, cy);
+        keep[key] = true;
+        if (!chunks[key]) chunks[key] = generateChunk(cx, cy);
+      }
+    }
+    for (var k in chunks) {
+      if (!keep[k]) delete chunks[k];
+    }
+  }
+
+  function activeWalls() {
+    var all = [];
+    for (var k in chunks) all = all.concat(chunks[k].walls);
+    return all;
+  }
+  function activeRelics() {
+    var all = [];
+    for (var k in chunks) all = all.concat(chunks[k].relics);
+    return all;
+  }
+  function activeEnemies() {
+    var all = [];
+    for (var k in chunks) all = all.concat(chunks[k].enemies);
+    return all;
+  }
+
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  // Two-cap mushroom relic icon, drawn procedurally to match the player's
+  // concept sketch: a taller cap front-right, a shorter cap back-left,
+  // pale stems crossing low, soft ground shadow — but reworked with a
+  // green glow (instead of the sketch's warm highlight) so it reads as
+  // "magic relic" against the torch-lit dungeon palette.
+  function drawRelic(cx, cy, glowRange) {
+    var pulse = 1 + Math.sin(Date.now() / 300) * 0.12;
+    var scale = (0.62 + Math.min(glowRange, 140) * 0.0022) * pulse;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(scale, scale);
+
+    // ambient green glow behind the whole relic
+    ctx.shadowColor = '#39FF14';
+    ctx.shadowBlur = 9 + glowRange * 0.22;
+
+    // ground shadow
+    ctx.beginPath();
+    ctx.ellipse(1, 10, 13, 5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 0;
+    ctx.fill();
+
+    // back-left mushroom (shorter, rotated slightly left)
+    drawMushroom(-6, -2, 9, 0.92, -0.18, '#7A5230', '#5C3D24');
+
+    // front-right mushroom (taller, drawn on top)
+    ctx.shadowColor = '#39FF14';
+    ctx.shadowBlur = 6 + glowRange * 0.15;
+    drawMushroom(5, -6, 10.5, 1.05, 0.12, '#8A6038', '#6B4A2A');
+
+    ctx.restore();
+  }
+
+  // Full-body skeleton enemy with a sword, drawn to match the player's
+  // concept sketch: tilted skull with a gap-toothed grin, ribbed
+  // ribcage with a sternum line, a bent arm resting near the hip, a
+  // straight sword-arm hanging down, visible pelvis, and straight legs.
+  // Recolored entirely in glowing blue (instead of the sketch's neutral
+  // grey lines) to read as "spirit" against the dungeon palette, with a
+  // light idle bob + walk sway driven by en.animPhase.
+  function drawSkeleton(cx, cy, en) {
+    var bob = Math.sin(en.animPhase) * 1.6;
+    var swordSwing = Math.sin(en.animPhase * 0.8) * 0.12;
+    var facing = en.facing || 1;
+
+    ctx.save();
+    ctx.translate(cx, cy + bob);
+    ctx.scale(facing * 0.78, 0.78);
+
+    ctx.strokeStyle = '#7FE9FF';
+    ctx.fillStyle = 'rgba(0, 234, 255, 0.12)';
+    ctx.lineWidth = 1.6;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.shadowColor = '#00EAFF';
+    ctx.shadowBlur = 10;
+
+    // legs
+    ctx.beginPath();
+    ctx.moveTo(-4, 14); ctx.lineTo(-5, 30);
+    ctx.moveTo(3, 14); ctx.lineTo(4, 30);
+    ctx.stroke();
+
+    // pelvis
+    ctx.beginPath();
+    ctx.ellipse(0, 13, 7, 5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fill();
+
+    // spine
+    ctx.beginPath();
+    ctx.moveTo(0, -16); ctx.lineTo(0, 10);
+    ctx.stroke();
+
+    // ribcage
+    ctx.beginPath();
+    ctx.ellipse(0, -4, 8, 11, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    for (var rb = -8; rb <= 6; rb += 3.5) {
+      ctx.beginPath();
+      ctx.moveTo(-6.5, rb);
+      ctx.quadraticCurveTo(0, rb + 1.5, 6, rb);
+      ctx.stroke();
+    }
+
+    // off-arm, bent toward hip (drawn first so sword-arm overlaps it)
+    ctx.beginPath();
+    ctx.moveTo(-7, -13);
+    ctx.lineTo(-9, -1);
+    ctx.lineTo(-5, 9);
+    ctx.stroke();
+
+    // sword-arm, hangs straight down with a slight swing
+    ctx.save();
+    ctx.translate(7, -13);
+    ctx.rotate(swordSwing);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(1, 14);
+    ctx.lineTo(0, 27);
+    ctx.stroke();
+
+    // sword, gripped at hand
+    ctx.translate(0, 27);
+    ctx.rotate(-0.12);
+    ctx.beginPath();
+    ctx.moveTo(-3, -3); ctx.lineTo(3, -3); ctx.lineTo(3, 3); ctx.lineTo(-3, 3); ctx.closePath();
+    ctx.stroke(); // crossguard/grip
+    ctx.beginPath();
+    ctx.moveTo(0, -3);
+    ctx.lineTo(-2, -34);
+    ctx.lineTo(0, -38);
+    ctx.lineTo(2, -34);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(150, 235, 255, 0.25)';
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // skull
+    ctx.beginPath();
+    ctx.ellipse(0, -22, 6.5, 7, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fill();
+    // jaw
+    ctx.beginPath();
+    ctx.ellipse(0.5, -17.5, 4.5, 2.6, 0, 0, Math.PI);
+    ctx.stroke();
+    // eye sockets
+    ctx.beginPath();
+    ctx.arc(-2.2, -23, 1.4, 0, Math.PI * 2);
+    ctx.arc(2.2, -23, 1.4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(7,7,15,0.9)';
+    ctx.fill();
+    // teeth
+    ctx.fillStyle = '#7FE9FF';
+    for (var t = -3; t <= 3; t += 2) {
+      ctx.fillRect(t - 0.5, -18.5, 1, 1.8);
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  // Player gnome, drawn to match the concept sketch: tall pointed hat,
+  // round bearded face, stout orange-tunic body, dark belt and boots,
+  // one arm holding a staff. Recolored with the hat/glow shifted to
+  // orange (matching the player's torch-light color) instead of the
+  // sketch's red, with a simple two-frame walk cycle (alternating
+  // leg/arm swing) that only animates while actually moving — when
+  // dashing (spirit step active) the whole figure tints green instead.
+  function drawGnome(cx, cy) {
+    var moving = isMoving;
+    var swing = moving ? Math.sin(walkPhase) * 0.5 : 0;
+    var bob = moving ? Math.abs(Math.sin(walkPhase)) * 1.2 : 0;
+    var facing = playerFacing;
+    var dashing = dashActive > 0;
+    var glowColor = dashing ? '#39FF14' : '#FF6B2B';
+    var hatColor = dashing ? '#2fcf10' : '#FF6B2B';
+    var hatShade = dashing ? '#1f9e0a' : '#C8501E';
+
+    ctx.save();
+    ctx.translate(cx, cy - bob);
+    ctx.scale(facing * 0.82, 0.82);
+
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 9;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    // back leg
+    ctx.strokeStyle = '#2a1f14';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(-2, 9); ctx.lineTo(-2 - swing * 4, 18);
+    ctx.stroke();
+    // back boot
+    ctx.beginPath();
+    ctx.ellipse(-2 - swing * 4, 19.5, 4, 2.4, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#2a1f14';
+    ctx.shadowBlur = 0;
+    ctx.fill();
+    ctx.shadowBlur = 9;
+
+    // off-arm (staff arm), swings opposite the front leg
+    ctx.strokeStyle = '#E8862B';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-6, -2);
+    ctx.lineTo(-9 + swing * 3, 7);
+    ctx.stroke();
+    // staff
+    ctx.strokeStyle = '#caa06a';
+    ctx.lineWidth = 1.6;
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.moveTo(-9 + swing * 3, 7);
+    ctx.lineTo(-10 + swing * 3, -16);
+    ctx.stroke();
+    ctx.shadowBlur = 9;
+
+    // front leg
+    ctx.strokeStyle = '#2a1f14';
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(2, 9); ctx.lineTo(2 + swing * 4, 18);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(2 + swing * 4, 19.5, 4, 2.4, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#2a1f14';
+    ctx.shadowBlur = 0;
+    ctx.fill();
+    ctx.shadowBlur = 9;
+
+    // body (tunic)
+    ctx.beginPath();
+    ctx.moveTo(-7, -3);
+    ctx.quadraticCurveTo(-8, 9, 0, 11);
+    ctx.quadraticCurveTo(8, 9, 7, -3);
+    ctx.quadraticCurveTo(7, -9, 0, -10);
+    ctx.quadraticCurveTo(-7, -9, -7, -3);
+    ctx.closePath();
+    var bodyGrad = ctx.createLinearGradient(-7, -10, 7, 11);
+    bodyGrad.addColorStop(0, dashing ? '#39FF14' : '#FF8C4B');
+    bodyGrad.addColorStop(1, dashing ? '#1f9e0a' : '#D9601F');
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = '#7a3c12';
+    ctx.lineWidth = 1.2;
+    ctx.fill();
+    ctx.stroke();
+
+    // belt
+    ctx.beginPath();
+    ctx.moveTo(-7.2, 2.5); ctx.lineTo(7.2, 2.5);
+    ctx.strokeStyle = '#2a1f14';
+    ctx.lineWidth = 2.6;
+    ctx.stroke();
+    ctx.fillStyle = '#E8B23A';
+    ctx.fillRect(-1.3, 1.2, 2.6, 2.6);
+
+    // front-arm (just a stub holding nothing, tucked at side)
+    ctx.beginPath();
+    ctx.moveTo(6, -2);
+    ctx.quadraticCurveTo(9, 2, 7, 6);
+    ctx.strokeStyle = '#E8862B';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // beard
+    ctx.beginPath();
+    ctx.moveTo(-5, -10);
+    ctx.quadraticCurveTo(-6, -1, 0, 1);
+    ctx.quadraticCurveTo(6, -1, 5, -10);
+    ctx.quadraticCurveTo(2, -6, 0, -6);
+    ctx.quadraticCurveTo(-2, -6, -5, -10);
+    ctx.closePath();
+    ctx.fillStyle = '#F2EDE4';
+    ctx.strokeStyle = '#cfc8ba';
+    ctx.lineWidth = 0.8;
+    ctx.fill();
+    ctx.stroke();
+
+    // face
+    ctx.beginPath();
+    ctx.ellipse(0, -13, 5.5, 5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#F5DDB8';
+    ctx.fill();
+    ctx.strokeStyle = '#cfa874';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // rosy cheeks
+    ctx.fillStyle = 'rgba(255,140,110,0.45)';
+    ctx.beginPath(); ctx.arc(-3, -11.5, 1.1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(3, -11.5, 1.1, 0, Math.PI * 2); ctx.fill();
+    // eyes
+    ctx.fillStyle = '#2a1f14';
+    ctx.beginPath(); ctx.arc(-2, -14, 0.7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2, -14, 0.7, 0, Math.PI * 2); ctx.fill();
+
+    // hat
+    ctx.beginPath();
+    ctx.moveTo(-6, -16.5);
+    ctx.lineTo(0.5, -34);
+    ctx.lineTo(6.5, -16.5);
+    ctx.closePath();
+    var hatGrad = ctx.createLinearGradient(-6, -34, 6, -16);
+    hatGrad.addColorStop(0, hatColor);
+    hatGrad.addColorStop(1, hatShade);
+    ctx.fillStyle = hatGrad;
+    ctx.strokeStyle = dashing ? '#0e5e06' : '#8a3a14';
+    ctx.lineWidth = 1.2;
+    ctx.fill();
+    ctx.stroke();
+    // hat brim
+    ctx.beginPath();
+    ctx.ellipse(0, -16.5, 7, 1.8, 0, 0, Math.PI * 2);
+    ctx.fillStyle = hatShade;
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  function drawMushroom(ox, oy, capR, stemLen, tilt, capColor, capShade) {
+    ctx.save();
+    ctx.translate(ox, oy);
+    ctx.rotate(tilt);
+
+    // stem
+    var stemW = capR * 0.62;
+    var stemH = capR * stemLen * 1.55;
+    ctx.beginPath();
+    ctx.moveTo(-stemW / 2, capR * 0.15);
+    ctx.lineTo(-stemW / 2 + 1.5, stemH);
+    ctx.quadraticCurveTo(0, stemH + 3, stemW / 2 - 1.5, stemH);
+    ctx.lineTo(stemW / 2, capR * 0.15);
+    ctx.closePath();
+    var stemGrad = ctx.createLinearGradient(-stemW / 2, 0, stemW / 2, 0);
+    stemGrad.addColorStop(0, '#3a4a2e');
+    stemGrad.addColorStop(0.5, '#dce8c8');
+    stemGrad.addColorStop(1, '#9aab7e');
+    ctx.fillStyle = stemGrad;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(10,20,10,0.6)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // gill line under cap
+    ctx.beginPath();
+    ctx.ellipse(0, capR * 0.2, capR * 0.78, capR * 0.22, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#2c3a22';
+    ctx.fill();
+
+    // cap
+    ctx.beginPath();
+    ctx.ellipse(0, -capR * 0.25, capR, capR * 0.82, 0, Math.PI, 0);
+    ctx.closePath();
+    var capGrad = ctx.createRadialGradient(-capR * 0.3, -capR * 0.65, capR * 0.2, 0, -capR * 0.25, capR * 1.1);
+    capGrad.addColorStop(0, '#39FF14');
+    capGrad.addColorStop(0.18, capColor);
+    capGrad.addColorStop(1, capShade);
+    ctx.fillStyle = capGrad;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(10,15,8,0.7)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // cap highlight glint
+    ctx.beginPath();
+    ctx.ellipse(-capR * 0.35, -capR * 0.55, capR * 0.22, capR * 0.12, -0.4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(150,255,120,0.55)';
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function collidesAt(rect) {
+    var pc = worldToChunk(rect.x, rect.y);
+    for (var dx = -1; dx <= 1; dx++) {
+      for (var dy = -1; dy <= 1; dy++) {
+        var key = chunkKey(pc.cx + dx, pc.cy + dy);
+        var chunk = chunks[key];
+        if (!chunk) continue;
+        for (var i = 0; i < chunk.walls.length; i++) {
+          if (rectsOverlap(rect, chunk.walls[i])) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /* ───────────────────────── Abilities ───────────────────────── */
+
+  var ABILITY_DEFS = {
+    swift:       { name: 'Swift boots',    icon: '\u26A1', desc: function (lvl) { return '+' + (lvl * 12) + '% speed'; }, max: 4 },
+    torch:       { name: 'Wide torch',     icon: '\u25C9', desc: function (lvl) { return '+' + (lvl * 22) + ' light'; }, max: 4 },
+    thorns:      { name: 'Ward of thorns', icon: '\u2726', desc: function (lvl) { return 'knockback Lv ' + lvl; }, max: 3 },
+    secondwind:  { name: 'Second wind',    icon: '\u2665', desc: function (lvl) { return 'restore ' + lvl + ' life'; }, max: 5, instant: true },
+    spiritstep:  { name: 'Spirit step',    icon: '\u21AF', desc: function (lvl) { return 'cooldown ' + Math.max(8 - lvl, 3) + 's'; }, max: 4 },
+    relicsense:  { name: 'Relic sense',    icon: '\u2736', desc: function (lvl) { return '+' + (lvl * 30) + ' glow'; }, max: 4 },
+    spectralbolt:{ name: 'Spectral bolt',  icon: '\u2604', desc: function (lvl) { return lvl + ' dmg, fires every ' + Math.max(3.5 - lvl * 0.5, 1.5).toFixed(1) + 's'; }, max: 4 }
+  };
+  var ABILITY_KEYS = Object.keys(ABILITY_DEFS);
+
+  /* ───────────────────────── Game state ───────────────────────── */
+
+  var currentScore = 0;
+  var player, lives, xp, xpToNext, crawlerLevel;
+  var startTime, elapsed, gameOver_, choosing = false, started = false;
+  var keys = {};
+  var abilities = {};
+  var dashCooldown = 0, dashActive = 0;
+  var bolts = [];
+  var boltCooldown = 0;
+  var invuln = 0, hitFlash = 0, flicker = 0, thornsCooldown = 0;
+  var lastTime, animId;
+  var camX = 0, camY = 0;
+  var playerChunk = { cx: 0, cy: 0 };
+  var walkPhase = 0, playerFacing = 1, isMoving = false;
+
+  function xpForLevel(lvl) { return 4 + lvl * 2; }
+  function playerSpeed() { return 2.4 * (1 + (abilities.swift || 0) * 0.12); }
+  function torchRadius() { return BASE_TORCH + (abilities.torch || 0) * 22; }
+  function relicGlowRange() { return 6 + (abilities.relicsense || 0) * 30; }
+
+  function renderAbilityBar() {
+    var bar = document.getElementById('abilityBar');
+    bar.innerHTML = '';
+    for (var k = 0; k < ABILITY_KEYS.length; k++) {
+      var key = ABILITY_KEYS[k];
+      var lvl = abilities[key];
+      if (!lvl) continue;
+      var def = ABILITY_DEFS[key];
+      var chip = document.createElement('div');
+      chip.className = 'ability-chip';
+      chip.textContent = def.icon + ' ' + def.name + ' ' + lvl;
+      bar.appendChild(chip);
+    }
+  }
+
+  function updateStats() {
+    document.getElementById('score').textContent = currentScore;
+    document.getElementById('levelStat').textContent = crawlerLevel;
+    document.getElementById('livesStat').textContent = Math.max(lives, 0);
+    document.getElementById('timeStat').textContent = elapsed;
+    document.getElementById('xpLabel').textContent = xp + ' / ' + xpToNext;
+    document.getElementById('xpFill').style.width = Math.min((xp / xpToNext) * 100, 100) + '%';
+  }
+
+  function updateDashCooldownUI() {
+    var chip = document.getElementById('dashCooldownChip');
+    var text = document.getElementById('dashCooldownText');
+    var ring = document.getElementById('dashCooldownRing');
+    if (!chip || !text || !ring) return;
+    if (!abilities.spiritstep) {
+      chip.classList.remove('visible');
+      ring.style.background = 'conic-gradient(rgba(7,7,15,0.88) 0deg, rgba(7,7,15,0.88) 0deg, transparent 0deg)';
+      return;
+    }
+    var totalFrames = Math.max(8 - abilities.spiritstep, 3) * 60;
+    if (dashCooldown > 0) {
+      chip.classList.add('visible');
+      var secs = (dashCooldown / 60).toFixed(1);
+      text.textContent = 'Spirit step: ' + secs + 's';
+      var fraction = dashCooldown / totalFrames; // 1 = just used, 0 = ready
+      var deg = fraction * 360;
+      ring.style.background = 'conic-gradient(rgba(7,7,15,0.88) ' + deg + 'deg, transparent ' + deg + 'deg)';
+    } else {
+      chip.classList.remove('visible');
+      ring.style.background = 'conic-gradient(rgba(7,7,15,0.88) 0deg, rgba(7,7,15,0.88) 0deg, transparent 0deg)';
+    }
+  }
+
+  function showStandardOverlay(title, text, btnText) {
+    document.getElementById('overlay-title').textContent = title;
+    document.getElementById('overlay-text').innerHTML = text;
+    document.getElementById('start-btn').textContent = btnText;
+    document.getElementById('overlay').classList.remove('hidden');
+  }
+  function hideStandardOverlay() { document.getElementById('overlay').classList.add('hidden'); }
+
+  function init() {
+    keys = {};
+    currentScore = 0;
+    abilities = {};
+    dashCooldown = 0; dashActive = 0;
+    bolts = []; boltCooldown = 30;
+    invuln = 60; hitFlash = 0; flicker = 0;
+    lives = 3;
+    xp = 0; crawlerLevel = 1; xpToNext = xpForLevel(1);
+    gameOver_ = false; choosing = false; started = false;
+    startTime = Date.now(); elapsed = 0;
+
+    chunks = {};
+    depletedRelics = {};
+    runSeed = Math.floor(Math.random() * 1000000);
+
+    // spawn at the center of chunk (0,0)
+    var spawnChunk = generateChunk(0, 0);
+    chunks[chunkKey(0, 0)] = spawnChunk;
+    var spawnCellRef = spawnChunk.openCells[Math.floor(spawnChunk.openCells.length / 2)];
+    player = { x: spawnCellRef.gx * CELL + CELL / 2 - 8, y: spawnCellRef.gy * CELL + CELL / 2 - 8, w: 16, h: 16 };
+
+    playerChunk = worldToChunk(player.x, player.y);
+    streamChunks(playerChunk.cx, playerChunk.cy);
+
+    // guarantee no relic/enemy spawns on top of the player
+    var px = player.x + player.w / 2, py = player.y + player.h / 2;
+    for (var k in chunks) {
+      chunks[k].relics = chunks[k].relics.filter(function (r) { var dx = r.x - px, dy = r.y - py; return Math.sqrt(dx*dx+dy*dy) > 24; });
+      chunks[k].enemies = chunks[k].enemies.filter(function (e) { var dx = (e.x+9) - px, dy = (e.y+9) - py; return Math.sqrt(dx*dx+dy*dy) > 90; });
+    }
+
+    document.getElementById('choiceOverlay').classList.remove('visible');
+    renderAbilityBar();
+    updateStats();
+    showStandardOverlay('Ready?', 'Use arrow keys or WASD to move. The crypt is endless and generates as you explore \u2014 collect relics for XP, level up, and pick new abilities. Avoid the spirits, you only have 3 lives.', '\u25B6 Start Game');
+    draw();
+  }
+
+  function startRun() {
+    started = true;
+    startTime = Date.now();
+    hideStandardOverlay();
+  }
+
+  function handleGameOver() {
+    gameOver_ = true;
+    var summary = 'You collected ' + currentScore + ' relics and reached crawler level ' + crawlerLevel + ' in ' + elapsed + 's.';
+    Leaderboard.trySubmit(currentScore, function (accepted) {
+      showStandardOverlay(
+        accepted ? '\u2713 Score Saved!' : 'Crypt Claimed You',
+        accepted ? 'Check the leaderboard! ' + summary : summary,
+        '\u25B6 Play Again'
+      );
+    });
+  }
+
+  window.addEventListener('keydown', function (e) {
+    var k = e.key.toLowerCase();
+    keys[k] = true;
+    if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].indexOf(k) !== -1) e.preventDefault();
+    if (k === ' ' && abilities.spiritstep && dashCooldown <= 0 && !choosing && !gameOver_ && started) {
+      dashActive = 12;
+      invuln = Math.max(invuln, 24);
+      dashCooldown = Math.max(8 - abilities.spiritstep, 3) * 60;
+    }
+  });
+  window.addEventListener('keyup', function (e) { keys[e.key.toLowerCase()] = false; });
+
+  // ── Touch controls ──────────────────────────────────────────────────
+  // Each on-screen button just sets/clears the same keys{} flags the
+  // keyboard handlers use, so updatePlayer()/dash logic need no changes.
+  // pointerdown/up/cancel/leave are all handled so a finger sliding off
+  // a button doesn't leave it stuck "pressed".
+  (function setupTouchControls() {
+    var dpadButtons = document.querySelectorAll('.dpad-btn');
+    for (var i = 0; i < dpadButtons.length; i++) {
+      (function (btn) {
+        var key = btn.getAttribute('data-key');
+        function press(e) { e.preventDefault(); keys[key] = true; btn.classList.add('active-touch'); }
+        function release(e) { if (e) e.preventDefault(); keys[key] = false; btn.classList.remove('active-touch'); }
+        btn.addEventListener('pointerdown', press);
+        btn.addEventListener('pointerup', release);
+        btn.addEventListener('pointercancel', release);
+        btn.addEventListener('pointerleave', release);
+      })(dpadButtons[i]);
+    }
+
+    var dashBtn = document.getElementById('dashBtn');
+    function triggerDash(e) {
+      e.preventDefault();
+      dashBtn.classList.add('active-touch');
+      if (abilities.spiritstep && dashCooldown <= 0 && !choosing && !gameOver_ && started) {
+        dashActive = 12;
+        invuln = Math.max(invuln, 24);
+        dashCooldown = Math.max(8 - abilities.spiritstep, 3) * 60;
+      }
+    }
+    function releaseDash(e) { if (e) e.preventDefault(); dashBtn.classList.remove('active-touch'); }
+    dashBtn.addEventListener('pointerdown', triggerDash);
+    dashBtn.addEventListener('pointerup', releaseDash);
+    dashBtn.addEventListener('pointercancel', releaseDash);
+    dashBtn.addEventListener('pointerleave', releaseDash);
+  })();
+
+  function tryMove(entity, dx, dy) {
+    var next = { x: entity.x + dx, y: entity.y + dy, w: entity.w, h: entity.h };
+    if (collidesAt(next)) return false;
+    entity.x = next.x; entity.y = next.y;
+    return true;
+  }
+
+  function updatePlayer() {
+    var dx = 0, dy = 0;
+    if (keys['arrowup'] || keys['w']) dy -= 1;
+    if (keys['arrowdown'] || keys['s']) dy += 1;
+    if (keys['arrowleft'] || keys['a']) dx -= 1;
+    if (keys['arrowright'] || keys['d']) dx += 1;
+    if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
+    var speed = playerSpeed();
+    if (dashActive > 0) { speed *= 2.2; dashActive--; }
+    if (dx !== 0) tryMove(player, dx * speed, 0);
+    if (dy !== 0) tryMove(player, 0, dy * speed);
+
+    isMoving = (dx !== 0 || dy !== 0);
+    if (dx !== 0) playerFacing = dx > 0 ? 1 : -1;
+    if (isMoving) walkPhase += 0.22 * (dashActive > 0 ? 2.2 : 1);
+
+    var newChunk = worldToChunk(player.x + player.w / 2, player.y + player.h / 2);
+    if (newChunk.cx !== playerChunk.cx || newChunk.cy !== playerChunk.cy) {
+      playerChunk = newChunk;
+      streamChunks(playerChunk.cx, playerChunk.cy);
+    }
+  }
+
+  function updateEnemies(dt) {
+    var tr = torchRadius();
+    for (var k in chunks) {
+      var enemies = chunks[k].enemies;
+      for (var i = enemies.length - 1; i >= 0; i--) {
+        var en = enemies[i];
+        en.changeTimer -= dt;
+        var pdx = (player.x - en.x), pdy = (player.y - en.y);
+        var dist = Math.sqrt(pdx * pdx + pdy * pdy);
+        if (dist < tr * 0.9) {
+          var len = Math.max(dist, 0.001);
+          en.dir = { x: pdx / len, y: pdy / len };
+        } else if (en.changeTimer <= 0) {
+          var angle = Math.random() * Math.PI * 2;
+          en.dir = { x: Math.cos(angle), y: Math.sin(angle) };
+          en.changeTimer = 60 + Math.random() * 60;
+        }
+        var mx = en.dir.x * en.speed, my = en.dir.y * en.speed;
+        if (!tryMove(en, mx, 0)) en.dir.x *= -1;
+        if (!tryMove(en, 0, my)) en.dir.y *= -1;
+        en.animPhase += dt * 0.18 * en.speed;
+        if (Math.abs(en.dir.x) > 0.05) en.facing = en.dir.x > 0 ? 1 : -1;
+        if (rectsOverlap(player, en)) hitPlayer(en);
+      }
+    }
+  }
+
+  function updateBolts(dt) {
+    if (abilities.spectralbolt) {
+      boltCooldown -= dt;
+      if (boltCooldown <= 0) {
+        var nearest = null, nearestDist = Infinity;
+        var tr = torchRadius();
+        var enemies = activeEnemies();
+        for (var i = 0; i < enemies.length; i++) {
+          var en = enemies[i];
+          var ddx = en.x - player.x, ddy = en.y - player.y;
+          var d = Math.sqrt(ddx * ddx + ddy * ddy);
+          if (d < tr * 1.1 && d < nearestDist) { nearest = en; nearestDist = d; }
+        }
+        if (nearest) {
+          var dx = nearest.x - player.x, dy = nearest.y - player.y;
+          var len = Math.max(Math.sqrt(dx * dx + dy * dy), 0.001);
+          bolts.push({
+            x: player.x + player.w / 2, y: player.y + player.h / 2,
+            vx: (dx / len) * 4.5, vy: (dy / len) * 4.5,
+            dmg: abilities.spectralbolt, life: 90
+          });
+          boltCooldown = Math.max(3.5 - abilities.spectralbolt * 0.5, 1.5) * 60;
+        } else {
+          boltCooldown = 20;
+        }
+      }
+    }
+    for (var bi = bolts.length - 1; bi >= 0; bi--) {
+      var b = bolts[bi];
+      b.x += b.vx; b.y += b.vy; b.life -= 1;
+      var hitWall = collidesAt({ x: b.x - 1, y: b.y - 1, w: 2, h: 2 });
+      var hitSomething = hitWall;
+      if (!hitWall) {
+        outer:
+        for (var k in chunks) {
+          var enemies = chunks[k].enemies;
+          for (var ei = enemies.length - 1; ei >= 0; ei--) {
+            var en = enemies[ei];
+            var ex = en.x + en.w / 2, ey = en.y + en.h / 2;
+            var ddx = b.x - ex, ddy = b.y - ey;
+            if (Math.sqrt(ddx * ddx + ddy * ddy) < 12) {
+              en.hp -= b.dmg;
+              hitSomething = true;
+              if (en.hp <= 0) enemies.splice(ei, 1);
+              break outer;
+            }
+          }
+        }
+      }
+      if (hitSomething || b.life <= 0) bolts.splice(bi, 1);
+    }
+  }
+
+  function hitPlayer(en) {
+    if (invuln > 0) return;
+    if (abilities.thorns && thornsCooldown <= 0) {
+      var pdx = en.x - player.x, pdy = en.y - player.y;
+      var len = Math.max(Math.sqrt(pdx * pdx + pdy * pdy), 0.001);
+      tryMove(en, (pdx / len) * 40, (pdy / len) * 40);
+      en.changeTimer = 30;
+      invuln = 30;
+      thornsCooldown = 45;
+      return;
+    }
+    lives -= 1;
+    invuln = 90;
+    hitFlash = 14;
+    updateStats();
+    if (lives <= 0) handleGameOver();
+  }
+
+  function grantXp(amount) {
+    xp += amount;
+    while (xp >= xpToNext) {
+      xp -= xpToNext;
+      crawlerLevel += 1;
+      xpToNext = xpForLevel(crawlerLevel);
+      offerAbilityChoice();
+    }
+    updateStats();
+  }
+
+  function updateRelics() {
+    for (var k in chunks) {
+      var relics = chunks[k].relics;
+      for (var i = 0; i < relics.length; i++) {
+        var r = relics[i];
+        if (r.taken) continue;
+        var dx = (player.x + player.w / 2) - r.x, dy = (player.y + player.h / 2) - r.y;
+        if (Math.sqrt(dx * dx + dy * dy) < 16) {
+          r.taken = true;
+          depletedRelics[r.key] = true;
+          currentScore += 1;
+          grantXp(1);
+        }
+      }
+    }
+  }
+
+  function pickThreeAbilities() {
+    var shuffled = ABILITY_KEYS.slice().sort(function () { return Math.random() - 0.5; });
+    var picks = [];
+    for (var i = 0; i < shuffled.length; i++) {
+      var key = shuffled[i];
+      var curLvl = abilities[key] || 0;
+      if (curLvl >= ABILITY_DEFS[key].max) continue;
+      picks.push(key);
+      if (picks.length === 3) break;
+    }
+    return picks;
+  }
+
+  function offerAbilityChoice() {
+    var picks = pickThreeAbilities();
+    if (picks.length === 0) return;
+    choosing = true;
+    var overlay = document.getElementById('choiceOverlay');
+    var cardsDiv = document.getElementById('choiceCards');
+    cardsDiv.innerHTML = '';
+    for (var i = 0; i < picks.length; i++) {
+      (function (key) {
+        var def = ABILITY_DEFS[key];
+        var curLvl = abilities[key] || 0;
+        var nextLvl = curLvl + 1;
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'choice-card';
+        card.setAttribute('aria-label', def.name + ' level ' + nextLvl + ', ' + def.desc(nextLvl));
+        var iconSpan = document.createElement('span');
+        iconSpan.className = 'icon';
+        iconSpan.setAttribute('aria-hidden', 'true');
+        iconSpan.textContent = def.icon;
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'name';
+        nameSpan.textContent = def.name + (curLvl > 0 ? ' ' + nextLvl : '');
+        var descSpan = document.createElement('span');
+        descSpan.className = 'desc';
+        descSpan.textContent = def.desc(nextLvl);
+        card.appendChild(iconSpan);
+        card.appendChild(nameSpan);
+        card.appendChild(descSpan);
+        card.addEventListener('click', function () {
+          abilities[key] = nextLvl;
+          if (def.instant) lives = Math.min(lives + nextLvl, 9);
+          renderAbilityBar();
+          overlay.classList.remove('visible');
+          choosing = false;
+          updateStats();
+        });
+        cardsDiv.appendChild(card);
+      })(picks[i]);
+    }
+    overlay.classList.add('visible');
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#1c1a22'; ctx.fillRect(0, 0, W, H);
+
+    camX = player.x + player.w / 2 - W / 2;
+    camY = player.y + player.h / 2 - H / 2;
+
+    var walls = activeWalls();
+    ctx.fillStyle = '#3a2f3f';
+    for (var wi = 0; wi < walls.length; wi++) {
+      var wl = walls[wi];
+      var sx = wl.x - camX, sy = wl.y - camY;
+      if (sx + wl.w < 0 || sy + wl.h < 0 || sx > W || sy > H) continue;
+      ctx.fillRect(sx, sy, wl.w, wl.h);
+    }
+
+    var glowRange = relicGlowRange();
+    var relics = activeRelics();
+    for (var ri = 0; ri < relics.length; ri++) {
+      var r = relics[ri];
+      if (r.taken) continue;
+      var rsx = r.x - camX, rsy = r.y - camY;
+      if (rsx < -24 || rsy < -24 || rsx > W + 24 || rsy > H + 24) continue;
+      drawRelic(rsx, rsy, glowRange);
+    }
+
+    var enemies = activeEnemies();
+    for (var ei = 0; ei < enemies.length; ei++) {
+      var en = enemies[ei];
+      var esx = en.x + en.w / 2 - camX, esy = en.y + en.h / 2 - camY;
+      if (esx < -28 || esy < -36 || esx > W + 28 || esy > H + 36) continue;
+      drawSkeleton(esx, esy, en);
+    }
+
+    for (var bi = 0; bi < bolts.length; bi++) {
+      var b = bolts[bi];
+      var bsx = b.x - camX, bsy = b.y - camY;
+      ctx.beginPath();
+      ctx.arc(bsx, bsy, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#FF6B2B';
+      ctx.shadowColor = '#FF6B2B';
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    var pcx = player.x + player.w / 2 - camX, pcy = player.y + player.h / 2 - camY;
+    if (invuln <= 0 || Math.floor(invuln / 6) % 2 === 0) {
+      drawGnome(pcx, pcy);
+    }
+
+    flicker += 0.15;
+    var tr = torchRadius();
+    var radius = tr + Math.sin(flicker) * 6 + (Math.random() - 0.5) * 4;
+    var grad = ctx.createRadialGradient(pcx, pcy, radius * 0.15, pcx, pcy, radius);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(0.6, 'rgba(0,0,0,0.55)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.96)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(0, 0, W, H);
+
+    if (hitFlash > 0) {
+      ctx.fillStyle = 'rgba(255, 60, 60,' + (hitFlash / 14 * 0.35) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    drawMinimap();
+  }
+
+  function drawMinimap() {
+    mmCtx.clearRect(0, 0, MM_SIZE, MM_SIZE);
+    var scale = MM_SIZE / (MM_RANGE * 2);
+    var px = player.x + player.w / 2, py = player.y + player.h / 2;
+
+    var walls = activeWalls();
+    mmCtx.fillStyle = 'rgba(0,234,255,0.18)';
+    for (var i = 0; i < walls.length; i++) {
+      var wl = walls[i];
+      var wcx = wl.x + wl.w / 2, wcy = wl.y + wl.h / 2;
+      var ddx = wcx - px, ddy = wcy - py;
+      if (Math.abs(ddx) > MM_RANGE || Math.abs(ddy) > MM_RANGE) continue;
+      var mx = MM_SIZE / 2 + ddx * scale, my = MM_SIZE / 2 + ddy * scale;
+      mmCtx.fillRect(mx - 1, my - 1, 2, 2);
+    }
+
+    var relics = activeRelics();
+    mmCtx.fillStyle = '#39FF14';
+    for (var ri = 0; ri < relics.length; ri++) {
+      var r = relics[ri];
+      if (r.taken) continue;
+      var rdx = r.x - px, rdy = r.y - py;
+      if (Math.abs(rdx) > MM_RANGE || Math.abs(rdy) > MM_RANGE) continue;
+      var rmx = MM_SIZE / 2 + rdx * scale, rmy = MM_SIZE / 2 + rdy * scale;
+      mmCtx.beginPath(); mmCtx.arc(rmx, rmy, 1.6, 0, Math.PI * 2); mmCtx.fill();
+    }
+
+    var enemies = activeEnemies();
+    mmCtx.fillStyle = 'rgba(0,234,255,0.9)';
+    for (var ei = 0; ei < enemies.length; ei++) {
+      var en = enemies[ei];
+      var edx = (en.x + en.w / 2) - px, edy = (en.y + en.h / 2) - py;
+      if (Math.abs(edx) > MM_RANGE || Math.abs(edy) > MM_RANGE) continue;
+      var emx = MM_SIZE / 2 + edx * scale, emy = MM_SIZE / 2 + edy * scale;
+      mmCtx.beginPath(); mmCtx.arc(emx, emy, 1.8, 0, Math.PI * 2); mmCtx.fill();
+    }
+
+    mmCtx.fillStyle = '#FF6B2B';
+    mmCtx.beginPath();
+    mmCtx.arc(MM_SIZE / 2, MM_SIZE / 2, 2.5, 0, Math.PI * 2);
+    mmCtx.fill();
+  }
+
+  function loop(ts) {
+    if (!lastTime) lastTime = ts;
+    var dt = ts - lastTime;
+    lastTime = ts;
+    if (started && !gameOver_ && !choosing) {
+      updatePlayer();
+      updateEnemies(dt / 16.67);
+      updateBolts(dt / 16.67);
+      updateRelics();
+      if (invuln > 0) invuln -= 1;
+      if (hitFlash > 0) hitFlash -= 1;
+      if (thornsCooldown > 0) thornsCooldown -= 1;
+      if (dashCooldown > 0) dashCooldown -= 1;
+      elapsed = Math.floor((Date.now() - startTime) / 1000);
+      updateStats();
+      updateDashCooldownUI();
+    }
+    draw();
+    animId = requestAnimationFrame(loop);
+  }
+
+  document.getElementById('restartBtn').addEventListener('click', init);
+  document.getElementById('start-btn').addEventListener('click', function () {
+    if (gameOver_) { init(); startRun(); }
+    else { startRun(); }
+  });
+
+  init();
+  animId = requestAnimationFrame(loop);
+  Leaderboard.init({ gameKey: 'gnome-crawler' });
+})();
+</script>
+
+<script src="../nav.js"></script>
+<script src="../footer.js"></script>
+</body>
+</html>
