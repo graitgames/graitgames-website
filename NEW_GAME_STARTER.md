@@ -28,6 +28,9 @@ LEADERBOARD DECISION (delete one before sending):
 - Wrap all JS in an IIFE: (function () { 'use strict'; /* … */ })();
 - No TypeScript, no JSX, no ES modules.
 - Keep code readable — this is a father-and-son educational project.
+- If the game uses keyboard input (arrow keys, WASD, space) for movement or firing, call
+  e.preventDefault() in the keydown handler for every key the game uses. Without this,
+  arrow keys and space scroll the whole page during gameplay instead of just controlling the game.
 
 ---
 
@@ -266,7 +269,23 @@ body {
     <!-- Game area — class="game-stage" is required. On the live site this is the
          element the shared leaderboard module anchors its panel/overlay to
          [LEADERBOARD], so keep the class even though nothing leaderboard-related
-         needs to be built here in Artifacts. -->
+         needs to be built here in Artifacts.
+
+         IMPORTANT if your game surface is a <canvas> (or anything else sized with
+         position:absolute; inset:0): put that sizing on an INNER wrapper, not
+         directly on .game-stage. Example:
+           <div class="game-stage">
+             <div class="game-frame" style="position:relative; width:100%; aspect-ratio:4/3;">
+               <canvas style="position:absolute; inset:0; width:100%; height:100%;"></canvas>
+               <div class="overlay" id="overlay">...</div>
+             </div>
+           </div>
+         Reason: .game-stage must have real, normal-flow height of its own.
+         [LEADERBOARD] leaderboard.js appends its Top 10 panel as a plain in-flow
+         child of .game-stage. If everything inside .game-stage is absolutely
+         positioned (true of most canvas games), the panel has nothing to flow
+         below and ends up overlapping the game instead of appearing underneath
+         it on mobile. -->
     <div class="game-stage">
 
       <!-- [YOUR GAME MARKUP HERE] -->
@@ -387,6 +406,10 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 - [ ] Test restart button — confirm it resets all game state cleanly
 - [ ] Check focus rings are visible on all interactive elements (keyboard nav)
 - [ ] Verify ARIA labels on both icon buttons and live regions on dynamic score/status displays
+- [ ] If the game uses arrow keys/WASD/space, confirm the page does NOT scroll while playing
+- [ ] [LEADERBOARD] Resize to mobile width and confirm the Top 10 panel renders *below* the game,
+      not overlapping it — if it overlaps, your game surface is likely absolutely positioned
+      directly inside `.game-stage` (see the canvas note above)
 - [ ] [LEADERBOARD] Play a round with a qualifying score — confirm the initials prompt (from `leaderboard.js`) appears and the score saves
 - [ ] [LEADERBOARD] Refresh the page — confirm the saved score appears in the Top 10 panel
 
