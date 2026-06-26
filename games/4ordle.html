@@ -393,6 +393,51 @@
         transition: none !important;
       }
     }
+
+    /* ============================================
+       END-OF-GAME OVERLAY
+       Pop-up shown when all 4 boards are solved or
+       the player runs out of guesses. Reveals any
+       words the player missed.
+       ============================================ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7, 7, 15, 0.88);
+      padding: 24px;
+    }
+    .overlay.hidden { display: none; }
+    .overlay-card {
+      background: var(--bg-panel);
+      border: 2px solid var(--color-orange);
+      border-radius: 10px;
+      box-shadow: var(--glow-orange);
+      padding: 28px 24px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+    .overlay-card h2 {
+      color: var(--color-orange);
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+      margin: 0 0 12px;
+    }
+    .overlay-card p {
+      color: var(--text-description);
+      line-height: 1.5;
+      font-size: 0.85rem;
+      margin: 0 0 8px;
+    }
+    .overlay-card .missed-words {
+      color: var(--color-cyan);
+      letter-spacing: 0.05em;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
@@ -448,6 +493,19 @@
          Rendered dynamically by renderKeyboard()
          ============================================ -->
     <div id="keyboard" role="group" aria-label="Letter keyboard"></div>
+
+    <!-- ============================================
+         END-OF-GAME OVERLAY
+         Shown once all 4 boards are solved or the
+         player runs out of guesses.
+         ============================================ -->
+    <div class="overlay hidden" id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endOverlayTitle">
+      <div class="overlay-card">
+        <h2 id="endOverlayTitle">Game Over</h2>
+        <p id="endOverlayText"></p>
+        <button type="button" class="btn btn-secondary" id="playAgainBtn">Play Again</button>
+      </div>
+    </div>
 
   </main>
 
@@ -716,6 +774,7 @@
       keyState     = {};
       gameOver     = false;
       document.getElementById('message').textContent = '';
+      hideEndOverlay();
       renderBoards();
       renderKeyboard();
       updateStatus();
@@ -1005,6 +1064,22 @@
     }
 
     /* ============================================
+       END-OF-GAME OVERLAY
+       Shows the final results (and any missed words)
+       in a pop-up once the game ends, instead of the
+       transient flash message used for in-round hints.
+       ============================================ */
+    function showEndOverlay(title, text) {
+      document.getElementById('endOverlayTitle').textContent = title;
+      document.getElementById('endOverlayText').innerHTML = text;
+      document.getElementById('endOverlay').classList.remove('hidden');
+    }
+    function hideEndOverlay() {
+      document.getElementById('endOverlay').classList.add('hidden');
+    }
+    document.getElementById('playAgainBtn').addEventListener('click', newGame);
+
+    /* ============================================
        INPUT HANDLING
        Single entry point for all input — keyboard
        events and on-screen key clicks both call here.
@@ -1077,18 +1152,25 @@
       if (allSolved) {
         gameOver = true;
         setTimeout(function () {
-          flashMessage('🎉 All 4 solved in ' + guesses.length + ' guesses!');
+          showEndOverlay(
+            '🎉 You Solved It!',
+            'All 4 words solved in ' + guesses.length + ' guesses!<br>' +
+            '<span class="missed-words">' + targets.join(', ').toUpperCase() + '</span>'
+          );
         }, 120);
 
       } else if (guesses.length >= MAX_GUESSES) {
         gameOver = true;
-        /* Show which words the player missed */
-        var missedWords = targets
-          .filter(function (_, i) { return !solved[i]; })
-          .join(', ')
-          .toUpperCase();
+        /* Show which words the player solved vs. missed */
+        var solvedWords = targets.filter(function (_, i) { return solved[i]; });
+        var missedWords = targets.filter(function (_, i) { return !solved[i]; });
         setTimeout(function () {
-          flashMessage('Out of guesses! Missed: ' + missedWords);
+          var text = 'You ran out of guesses.';
+          if (solvedWords.length) {
+            text += '<br>Solved: ' + solvedWords.join(', ').toUpperCase();
+          }
+          text += '<br>Missed: <span class="missed-words">' + missedWords.join(', ').toUpperCase() + '</span>';
+          showEndOverlay('Out of Guesses', text);
         }, 120);
       }
 
