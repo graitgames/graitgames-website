@@ -222,31 +222,30 @@
 @media (pointer: coarse), (max-width: 820px) {
   .touch-controls { display: flex; }
 }
-.dpad {
-  display: grid;
-  grid-template-columns: 52px 52px 52px;
-  grid-template-rows: 52px 52px 52px;
-  gap: 4px;
-}
-.dpad-btn {
-  grid-row: 2; grid-column: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
+.joystick-base {
+  position: relative;
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
   background: var(--bg-panel);
   border: 2px solid var(--color-cyan);
-  border-radius: var(--border-radius);
-  color: var(--color-cyan);
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
-.dpad-btn:active, .dpad-btn.active-touch { background: rgba(0,234,255,0.25); box-shadow: var(--glow-cyan); }
-.dpad-up    { grid-row: 1; grid-column: 2; }
-.dpad-left  { grid-row: 2; grid-column: 1; }
-.dpad-right { grid-row: 2; grid-column: 3; }
-.dpad-down  { grid-row: 3; grid-column: 2; }
+.joystick-thumb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  background: rgba(0, 234, 255, 0.25);
+  border: 2px solid var(--color-cyan);
+  box-shadow: var(--glow-cyan);
+  pointer-events: none;
+}
+.joystick-base.active-touch { box-shadow: var(--glow-cyan); }
 .action-btn {
   display: flex;
   flex-direction: column;
@@ -339,10 +338,6 @@
         <div class="stat-label">Lives</div>
         <div class="stat-value" id="livesStat" role="status" aria-live="polite">3</div>
       </div>
-      <div class="stat-box">
-        <div class="stat-label">Time</div>
-        <div class="stat-value" id="timeStat" role="status" aria-live="polite">0</div>
-      </div>
     </div>
 
     <div class="xp-bar-wrap">
@@ -384,19 +379,8 @@
       <p class="hint-text">Arrow keys / WASD to move · Space for spirit step once unlocked · minimap top right shows local area</p>
 
       <div class="touch-controls" id="touchControls">
-        <div class="dpad">
-          <button type="button" class="dpad-btn dpad-up" data-key="arrowup" aria-label="Move up">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
-          </button>
-          <button type="button" class="dpad-btn dpad-left" data-key="arrowleft" aria-label="Move left">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-          </button>
-          <button type="button" class="dpad-btn dpad-right" data-key="arrowright" aria-label="Move right">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-          </button>
-          <button type="button" class="dpad-btn dpad-down" data-key="arrowdown" aria-label="Move down">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>
-          </button>
+        <div class="joystick-base" id="joystickBase" aria-label="Move gnome" role="slider" aria-valuetext="Drag to move">
+          <div class="joystick-thumb" id="joystickThumb"></div>
         </div>
         <button type="button" class="action-btn" id="dashBtn" data-key=" " aria-label="Spirit step dash">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h7l-1 8 11-12h-7l1-8z"/></svg>
@@ -1073,7 +1057,6 @@
     document.getElementById('score').textContent = currentScore;
     document.getElementById('levelStat').textContent = crawlerLevel;
     document.getElementById('livesStat').textContent = Math.max(lives, 0);
-    document.getElementById('timeStat').textContent = elapsed;
     document.getElementById('xpLabel').textContent = xp + ' / ' + xpToNext;
     document.getElementById('xpFill').style.width = Math.min((xp / xpToNext) * 100, 100) + '%';
   }
@@ -1180,23 +1163,64 @@
   window.addEventListener('keyup', function (e) { keys[e.key.toLowerCase()] = false; });
 
   // ── Touch controls ──────────────────────────────────────────────────
-  // Each on-screen button just sets/clears the same keys{} flags the
-  // keyboard handlers use, so updatePlayer()/dash logic need no changes.
-  // pointerdown/up/cancel/leave are all handled so a finger sliding off
-  // a button doesn't leave it stuck "pressed".
+  // The joystick drags within a circular base and sets/clears the same
+  // keys{} flags the keyboard handlers use (arrowup/down/left/right), so
+  // updatePlayer() needs no changes — dragging diagonally just sets two
+  // flags at once, exactly like pressing two arrow keys together.
   (function setupTouchControls() {
-    var dpadButtons = document.querySelectorAll('.dpad-btn');
-    for (var i = 0; i < dpadButtons.length; i++) {
-      (function (btn) {
-        var key = btn.getAttribute('data-key');
-        function press(e) { e.preventDefault(); keys[key] = true; btn.classList.add('active-touch'); }
-        function release(e) { if (e) e.preventDefault(); keys[key] = false; btn.classList.remove('active-touch'); }
-        btn.addEventListener('pointerdown', press);
-        btn.addEventListener('pointerup', release);
-        btn.addEventListener('pointercancel', release);
-        btn.addEventListener('pointerleave', release);
-      })(dpadButtons[i]);
+    var joyBase = document.getElementById('joystickBase');
+    var joyThumb = document.getElementById('joystickThumb');
+    var joyPointerId = null;
+    var DIR_KEYS = ['arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
+
+    function clearDirKeys() {
+      for (var i = 0; i < DIR_KEYS.length; i++) keys[DIR_KEYS[i]] = false;
     }
+
+    function updateJoystick(clientX, clientY) {
+      var rect = joyBase.getBoundingClientRect();
+      var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+      var maxDist = rect.width / 2;
+      var dx = clientX - cx, dy = clientY - cy;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; dist = maxDist; }
+      joyThumb.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+
+      var DEAD_ZONE = 0.25, THRESHOLD = 0.35;
+      var nx = dist / maxDist > DEAD_ZONE ? dx / maxDist : 0;
+      var ny = dist / maxDist > DEAD_ZONE ? dy / maxDist : 0;
+      keys['arrowleft']  = nx < -THRESHOLD;
+      keys['arrowright'] = nx > THRESHOLD;
+      keys['arrowup']    = ny < -THRESHOLD;
+      keys['arrowdown']  = ny > THRESHOLD;
+    }
+
+    function resetJoystick() {
+      joyThumb.style.transform = 'translate(0px, 0px)';
+      clearDirKeys();
+    }
+
+    joyBase.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      joyPointerId = e.pointerId;
+      joyBase.classList.add('active-touch');
+      joyBase.setPointerCapture(joyPointerId);
+      updateJoystick(e.clientX, e.clientY);
+    });
+    joyBase.addEventListener('pointermove', function (e) {
+      if (e.pointerId !== joyPointerId) return;
+      e.preventDefault();
+      updateJoystick(e.clientX, e.clientY);
+    });
+    function endJoystick(e) {
+      if (joyPointerId === null || (e && e.pointerId !== joyPointerId)) return;
+      joyPointerId = null;
+      joyBase.classList.remove('active-touch');
+      resetJoystick();
+    }
+    joyBase.addEventListener('pointerup', endJoystick);
+    joyBase.addEventListener('pointercancel', endJoystick);
+    joyBase.addEventListener('pointerleave', endJoystick);
 
     var dashBtn = document.getElementById('dashBtn');
     function triggerDash(e) {
@@ -1431,15 +1455,23 @@
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = '#1c1a22'; ctx.fillRect(0, 0, W, H);
 
-    camX = player.x + player.w / 2 - W / 2;
-    camY = player.y + player.h / 2 - H / 2;
+    // On touch/narrow viewports the play area is zoomed in 50% so the gnome,
+    // enemies, and relics are easier to see and tap/aim around.
+    var ZOOM = isMobileViewport() ? 1.5 : 1;
+    var LW = W / ZOOM, LH = H / ZOOM; // visible world extent, in world units
+
+    camX = player.x + player.w / 2 - LW / 2;
+    camY = player.y + player.h / 2 - LH / 2;
+
+    ctx.save();
+    ctx.scale(ZOOM, ZOOM);
 
     var walls = activeWalls();
     ctx.fillStyle = '#3a2f3f';
     for (var wi = 0; wi < walls.length; wi++) {
       var wl = walls[wi];
       var sx = wl.x - camX, sy = wl.y - camY;
-      if (sx + wl.w < 0 || sy + wl.h < 0 || sx > W || sy > H) continue;
+      if (sx + wl.w < 0 || sy + wl.h < 0 || sx > LW || sy > LH) continue;
       ctx.fillRect(sx, sy, wl.w, wl.h);
     }
 
@@ -1449,7 +1481,7 @@
       var r = relics[ri];
       if (r.taken) continue;
       var rsx = r.x - camX, rsy = r.y - camY;
-      if (rsx < -24 || rsy < -24 || rsx > W + 24 || rsy > H + 24) continue;
+      if (rsx < -24 || rsy < -24 || rsx > LW + 24 || rsy > LH + 24) continue;
       drawRelic(rsx, rsy, glowRange);
     }
 
@@ -1457,7 +1489,7 @@
     for (var ei = 0; ei < enemies.length; ei++) {
       var en = enemies[ei];
       var esx = en.x + en.w / 2 - camX, esy = en.y + en.h / 2 - camY;
-      if (esx < -28 || esy < -36 || esx > W + 28 || esy > H + 36) continue;
+      if (esx < -28 || esy < -36 || esx > LW + 28 || esy > LH + 36) continue;
       drawSkeleton(esx, esy, en);
     }
 
@@ -1478,10 +1510,16 @@
       drawGnome(pcx, pcy);
     }
 
+    ctx.restore();
+
+    // Torch vignette + border are drawn in screen space (unzoomed) since the
+    // player is always centered — only the radius scales with ZOOM so the lit
+    // area still matches the (now larger-looking) world around the gnome.
     flicker += 0.15;
     var tr = torchRadius();
-    var radius = tr + Math.sin(flicker) * 6 + (Math.random() - 0.5) * 4;
-    var grad = ctx.createRadialGradient(pcx, pcy, radius * 0.15, pcx, pcy, radius);
+    var radius = (tr + Math.sin(flicker) * 6 + (Math.random() - 0.5) * 4) * ZOOM;
+    var spx = W / 2, spy = H / 2;
+    var grad = ctx.createRadialGradient(spx, spy, radius * 0.15, spx, spy, radius);
     grad.addColorStop(0, 'rgba(0,0,0,0)');
     grad.addColorStop(0.6, 'rgba(0,0,0,0.55)');
     grad.addColorStop(1, 'rgba(0,0,0,0.96)');
@@ -1497,6 +1535,10 @@
     }
 
     drawMinimap();
+  }
+
+  function isMobileViewport() {
+    return window.matchMedia('(pointer: coarse), (max-width: 820px)').matches;
   }
 
   function drawMinimap() {
