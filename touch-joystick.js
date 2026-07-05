@@ -201,6 +201,14 @@ var TouchJoystick = (function () {
     actionBtn.addEventListener('pointercancel', releaseAction);
     actionBtn.addEventListener('pointerleave', releaseAction);
 
+    // Belt-and-suspenders against iOS Safari's long-press text-selection
+    // callout (Copy/Look Up/etc.) occasionally slipping through: the
+    // contextmenu event is the most direct, reliable way to block it,
+    // independent of the CSS/pointer-event prevention above.
+    function suppressCallout(e) { e.preventDefault(); }
+    joyBase.addEventListener('contextmenu', suppressCallout);
+    actionBtn.addEventListener('contextmenu', suppressCallout);
+
     return { element: wrap };
   }
 

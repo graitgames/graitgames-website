@@ -3413,6 +3413,17 @@ main {
   user-select: none;
   -webkit-touch-callout: none;
 }
+/* The leaderboard's initials <input> boxes (injected into .game-stage by
+   leaderboard.js) are descendants of #game and would otherwise inherit the
+   user-select:none above — which, on an actual text input, is a known
+   cause of iOS Safari's on-screen keyboard flickering open and immediately
+   closing, since the field gets treated as non-selectable/non-editable. */
+#game.is-mobile-fullscreen input,
+#game.is-mobile-fullscreen textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
 #game.is-mobile-fullscreen > .game-description,
 #game.is-mobile-fullscreen .game-title-bar {
   display: none;
