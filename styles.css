@@ -3406,6 +3406,12 @@ main {
   gap: var(--space-sm);
   background: var(--bg-primary);
   overflow: hidden;
+  /* Long-press anywhere in the game (not just the joystick/controls) was
+     triggering iOS Safari's text-selection callout, which the touch-target
+     specific fixes on the joystick/dash button alone didn't fully cover. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 #game.is-mobile-fullscreen > .game-description,
 #game.is-mobile-fullscreen .game-title-bar {
@@ -3441,17 +3447,12 @@ main {
 /* leaderboard.js injects .lb-panel as a static-position element inside the
    "stage" role below 1000px width, which would otherwise eat space meant
    for the play area. It's not one of the fullscreen shell's 5 sections, so
-   hide it during gameplay — but if the player just submitted a top-10
-   score (see each game's handleGameOver, which toggles this class), show
-   it again underneath the game-over overlay's Play Again button so they
-   can see where they landed. .lb-initials-overlay is unaffected (it's an
-   absolute-position modal, not a flex child, so it never takes up layout
-   space either way). */
+   hide it always in mobile fullscreen — the game-over popup shows its own
+   compact Top 3 board instead (via Leaderboard.renderCompact()).
+   .lb-initials-overlay is unaffected (it's a fixed-position modal, not a
+   flex child, so it never takes up layout space either way). */
 #game.is-mobile-fullscreen .lb-panel {
   display: none;
-}
-#game.is-mobile-fullscreen.lb-just-submitted .lb-panel {
-  display: block;
 }
 
 /* ============================================================================

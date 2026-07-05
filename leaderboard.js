@@ -52,20 +52,28 @@
     .lb-empty { text-align: center; color: var(--text-muted); padding: 20px 8px; }\
     tr.lb-new .lb-name, tr.lb-new .lb-score { color: var(--color-orange); }\
     .lb-initials-overlay {\
-      position: absolute;\
+      position: fixed;\
       inset: 0;\
-      z-index: 20;\
+      z-index: 2000;\
       display: none;\
-      flex-direction: column;\
       align-items: center;\
       justify-content: center;\
-      text-align: center;\
-      padding: var(--space-lg);\
-      background: rgba(7, 7, 15, 0.92);\
-      backdrop-filter: blur(2px);\
-      border-radius: var(--border-radius-lg);\
+      padding: 24px;\
+      background: rgba(7, 7, 15, 0.88);\
+      overflow-y: auto;\
     }\
     .lb-initials-overlay.active { display: flex; }\
+    .lb-initials-card {\
+      background: var(--bg-secondary);\
+      border: 2px solid var(--color-green);\
+      border-radius: var(--border-radius-lg);\
+      box-shadow: var(--glow-green);\
+      padding: var(--space-lg);\
+      max-width: 340px;\
+      width: 100%;\
+      text-align: center;\
+      margin: auto;\
+    }\
     .lb-initials-overlay h2 { color: var(--color-green); margin-bottom: var(--space-sm); }\
     .lb-initials-overlay p  { color: var(--text-description); margin-bottom: var(--space-sm); }\
     .lb-initials-row {\
@@ -128,17 +136,19 @@
     lbOverlay.setAttribute('aria-modal', 'true');
     lbOverlay.setAttribute('aria-labelledby', 'lb-overlay-title');
     lbOverlay.innerHTML =
-      '<h2 id="lb-overlay-title">🏆 Top Score!</h2>' +
-      '<p id="lb-score-label"></p>' +
-      '<p style="margin-bottom:0">Enter your initials:</p>' +
-      '<div class="lb-initials-row">' +
-        '<input class="lb-initial-box" id="lb-i0" type="text" maxlength="1" inputmode="text" autocomplete="off" spellcheck="false" aria-label="First initial" />' +
-        '<input class="lb-initial-box" id="lb-i1" type="text" maxlength="1" inputmode="text" autocomplete="off" spellcheck="false" aria-label="Second initial" />' +
-        '<input class="lb-initial-box" id="lb-i2" type="text" maxlength="1" inputmode="text" autocomplete="off" spellcheck="false" aria-label="Third initial" />' +
-      '</div>' +
-      '<div class="lb-initials-actions">' +
-        '<button type="button" class="btn btn-outline-cyan" id="lb-skip">Skip</button>' +
-        '<button type="button" class="btn btn-primary" id="lb-submit">Submit</button>' +
+      '<div class="lb-initials-card">' +
+        '<h2 id="lb-overlay-title">🏆 Top Score!</h2>' +
+        '<p id="lb-score-label"></p>' +
+        '<p style="margin-bottom:0">Enter your initials:</p>' +
+        '<div class="lb-initials-row">' +
+          '<input class="lb-initial-box" id="lb-i0" type="text" maxlength="1" inputmode="text" autocomplete="off" spellcheck="false" aria-label="First initial" />' +
+          '<input class="lb-initial-box" id="lb-i1" type="text" maxlength="1" inputmode="text" autocomplete="off" spellcheck="false" aria-label="Second initial" />' +
+          '<input class="lb-initial-box" id="lb-i2" type="text" maxlength="1" inputmode="text" autocomplete="off" spellcheck="false" aria-label="Third initial" />' +
+        '</div>' +
+        '<div class="lb-initials-actions">' +
+          '<button type="button" class="btn btn-outline-cyan" id="lb-skip">Skip</button>' +
+          '<button type="button" class="btn btn-primary" id="lb-submit">Submit</button>' +
+        '</div>' +
       '</div>';
     stage.appendChild(lbOverlay);
 
@@ -152,6 +162,11 @@
     ];
 
     initBoxes.forEach(function (box, idx) {
+      // Explicit focus on first touch — a bare tap-to-focus on iOS Safari
+      // was sometimes needing a second tap to actually engage the box.
+      // pointerdown fires immediately (before the browser's own focus
+      // handling), from a real user gesture, so this reliably wins.
+      box.addEventListener('pointerdown', function () { box.focus(); });
       box.addEventListener('keydown', function (e) {
         if (e.key === 'Backspace')   { e.preventDefault(); box.value = ''; if (idx > 0) initBoxes[idx - 1].focus(); return; }
         if (e.key === 'Enter')       { e.preventDefault(); submitBtn.click(); return; }
@@ -228,6 +243,34 @@
     }).join('');
   }
 
+  /* ── Compact top-N board, for embedding in a game's own end-of-game
+     popup (see gnome-crawler.html's #gameOverModal). Reuses .lb-heading/
+     .lb-table so it looks consistent with the full .lb-panel. ─────── */
+  function renderCompact(container, count) {
+    var n = count || 3;
+    var scores = cachedScores.slice(0, n);
+    var rowsHtml = scores.length
+      ? scores.map(function (row, i) {
+          var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+          return '<tr>' +
+            '<td class="lb-rank">'  + medal + '</td>' +
+            '<td class="lb-name">'  + row.initials + '</td>' +
+            '<td class="lb-score">' + row.score    + '</td>' +
+            '</tr>';
+        }).join('')
+      : '<tr><td colspan="3" class="lb-empty">No scores yet this month. Be first!</td></tr>';
+    container.innerHTML =
+      '<p class="lb-heading">// Top ' + n + ' //</p>' +
+      '<table class="lb-table" aria-label="Top scores">' +
+        '<thead><tr>' +
+          '<th scope="col">#</th>' +
+          '<th scope="col">Name</th>' +
+          '<th scope="col">Score</th>' +
+        '</tr></thead>' +
+        '<tbody>' + rowsHtml + '</tbody>' +
+      '</table>';
+  }
+
   /* ── Public API ─────────────────────────────────────────────────── */
   window.Leaderboard = {
 
@@ -241,6 +284,11 @@
       injectHTML(stage);
       fetchScores();
     },
+
+    /* Renders a compact top-N table into the given container element.
+       Call after trySubmit's onDone fires, so cachedScores reflects any
+       score that was just accepted. */
+    renderCompact: renderCompact,
 
     /* Call on game-over / win.
        Shows the initials overlay if score qualifies for top 10.

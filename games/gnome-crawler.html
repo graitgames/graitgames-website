@@ -160,6 +160,49 @@
   max-width: 420px;
 }
 
+/* Game-over popup — see the HTML comment above #gameOverModal for why this
+   is a separate, full-viewport modal instead of reusing .overlay. */
+.game-over-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(7, 7, 15, 0.88);
+  padding: 24px;
+  overflow-y: auto;
+}
+.game-over-modal.hidden { display: none; }
+.game-over-card {
+  background: var(--bg-panel);
+  border: 2px solid var(--color-cyan);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--glow-cyan);
+  padding: 28px 24px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  margin: auto;
+}
+.game-over-card h2 {
+  font-family: var(--font-headline);
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  color: var(--color-cyan);
+  margin: 0 0 12px;
+}
+.game-over-card p {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-description);
+  margin: 0 0 16px;
+}
+.game-over-leaderboard {
+  margin-top: 20px;
+  text-align: left;
+}
+
 .choice-overlay {
   position: absolute;
   inset: 0;
@@ -180,6 +223,11 @@
   letter-spacing: 1px;
   color: var(--color-green);
   text-shadow: var(--glow-green);
+}
+/* Frees up enough height for all 3 power-up cards to fit without scrolling
+   in the shorter mobile fullscreen play area; desktop keeps the heading. */
+#game.is-mobile-fullscreen .choice-overlay h3 {
+  display: none;
 }
 .choice-cards {
   display: flex;
@@ -431,6 +479,19 @@
     </div>
 
   </main>
+
+  <!-- Game-over popup: covers the full viewport (not just the canvas box)
+       so it always has room, regardless of how tall the play area itself
+       is. Shown by handleGameOver() instead of the in-canvas #overlay,
+       which stays reserved for the pre-game "Ready?" screen. -->
+  <div class="game-over-modal hidden" id="gameOverModal" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+    <div class="game-over-card">
+      <h2 id="gameOverTitle">Crypt Claimed You</h2>
+      <p id="gameOverText"></p>
+      <button type="button" class="btn btn-secondary" id="playAgainBtn">▶ Play Again</button>
+      <div class="game-over-leaderboard" id="gameOverLeaderboard"></div>
+    </div>
+  </div>
 
 <script src="../leaderboard.js"></script>
 <script src="../game-fullscreen.js"></script>
@@ -1194,7 +1255,7 @@
     }
 
     document.getElementById('choiceOverlay').classList.remove('visible');
-    document.getElementById('game').classList.remove('lb-just-submitted');
+    document.getElementById('gameOverModal').classList.add('hidden');
     renderAbilityBar();
     updateStats();
     showStandardOverlay(
@@ -1215,12 +1276,10 @@
     gameOver_ = true;
     var summary = 'You collected ' + currentScore + ' relics.';
     Leaderboard.trySubmit(currentScore, function (accepted) {
-      document.getElementById('game').classList.toggle('lb-just-submitted', accepted);
-      showStandardOverlay(
-        accepted ? '\u2713 Score Saved!' : 'Crypt Claimed You',
-        summary,
-        '\u25B6 Play Again'
-      );
+      document.getElementById('gameOverTitle').textContent = accepted ? '\u2713 Score Saved!' : 'Crypt Claimed You';
+      document.getElementById('gameOverText').textContent = summary;
+      Leaderboard.renderCompact(document.getElementById('gameOverLeaderboard'), 3);
+      document.getElementById('gameOverModal').classList.remove('hidden');
     });
   }
 
@@ -1516,14 +1575,25 @@
         card.appendChild(iconSpan);
         card.appendChild(nameSpan);
         card.appendChild(descSpan);
-        card.addEventListener('click', function () {
+        // Bound to both pointerup (fires immediately and reliably on touch,
+        // avoiding the extra tap iOS Safari sometimes needs before a
+        // synthetic click lands on an element that just became visible
+        // mid-touch) and click (keyboard/mouse activation never fires
+        // pointerup). The "picked" guard stops a mouse click — which fires
+        // both pointerup and click — from applying the ability twice.
+        var picked = false;
+        function pickCard() {
+          if (picked) return;
+          picked = true;
           abilities[key] = nextLvl;
           if (def.instant) lives = Math.min(lives + nextLvl, 9);
           renderAbilityBar();
           overlay.classList.remove('visible');
           choosing = false;
           updateStats();
-        });
+        }
+        card.addEventListener('pointerup', pickCard);
+        card.addEventListener('click', pickCard);
         cardsDiv.appendChild(card);
       })(picks[i]);
     }
@@ -1691,8 +1761,12 @@
   document.getElementById('restartBtn').addEventListener('click', init);
   document.getElementById('start-btn').addEventListener('click', function () {
     if (fullscreen) fullscreen.enter();
-    if (gameOver_) { init(); startRun(); }
-    else { startRun(); }
+    startRun();
+  });
+  document.getElementById('playAgainBtn').addEventListener('click', function () {
+    document.getElementById('gameOverModal').classList.add('hidden');
+    init();
+    startRun();
   });
 
   init();
