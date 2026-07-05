@@ -162,12 +162,17 @@
     ];
 
     initBoxes.forEach(function (box, idx) {
-      // No manual .focus() on pointerdown here (there used to be one) — it
-      // fires at the very start of the tap, before the browser's own native
-      // focus grant lands at the end of it, and the two racing on iOS
-      // Safari is what was causing the keyboard to flash open and
-      // immediately close. A plain tap already focuses a text input
-      // natively; no JS needed.
+      // Same "needs a second tap" issue the power-up cards and Skip/Submit
+      // buttons had — a plain native click/tap-to-focus can be delayed or
+      // dropped by iOS Safari's touch handling in this context, so the
+      // first tap does nothing and a second one is needed. pointerup fires
+      // immediately and reliably (same fix as those), at the same point in
+      // the gesture a native focus grant would normally land — unlike an
+      // earlier attempt at this that used pointerdown (fires too early,
+      // before the tap completes, and raced the native focus grant into a
+      // keyboard flash-open-then-close instead). Calling focus() when
+      // already focused is a harmless no-op, so no guard is needed here.
+      box.addEventListener('pointerup', function () { box.focus(); });
       box.addEventListener('keydown', function (e) {
         if (e.key === 'Backspace')   { e.preventDefault(); box.value = ''; if (idx > 0) initBoxes[idx - 1].focus(); return; }
         if (e.key === 'Enter')       { e.preventDefault(); submitBtn.click(); return; }
