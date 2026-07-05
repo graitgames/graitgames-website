@@ -1195,13 +1195,18 @@
       if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; dist = maxDist; }
       joyThumb.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
 
-      var DEAD_ZONE = 0.25, THRESHOLD = 0.35;
-      var nx = dist / maxDist > DEAD_ZONE ? dx / maxDist : 0;
-      var ny = dist / maxDist > DEAD_ZONE ? dy / maxDist : 0;
-      keys['arrowleft']  = nx < -THRESHOLD;
-      keys['arrowright'] = nx > THRESHOLD;
-      keys['arrowup']    = ny < -THRESHOLD;
-      keys['arrowdown']  = ny > THRESHOLD;
+      clearDirKeys();
+      var DEAD_ZONE = 0.25;
+      if (dist / maxDist <= DEAD_ZONE) return;
+
+      // Snap to one of 4 cardinal directions based on the 90° quadrant the
+      // joystick angle falls in (0° = up), so diagonal drags still only
+      // move the gnome in a single straight direction, never diagonally.
+      var angle = Math.atan2(dx, -dy) * 180 / Math.PI; // 0=up, 90=right, ±180=down, -90=left
+      if (angle > -45 && angle <= 45) keys['arrowup'] = true;
+      else if (angle > 45 && angle <= 135) keys['arrowright'] = true;
+      else if (angle > -135 && angle <= -45) keys['arrowleft'] = true;
+      else keys['arrowdown'] = true;
     }
 
     function resetJoystick() {
