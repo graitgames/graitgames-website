@@ -412,6 +412,7 @@
     }
     .overlay.hidden { display: none; }
     .overlay-card {
+      position: relative;
       background: var(--bg-panel);
       border: 2px solid var(--color-orange);
       border-radius: 10px;
@@ -420,6 +421,28 @@
       max-width: 380px;
       width: 100%;
       text-align: center;
+    }
+    /* Dismisses the end-of-game popup without restarting, so the player
+       can screenshot their result and/or reach the header's Back/Restart
+       buttons, which stay visible underneath in mobile fullscreen. */
+    .game-over-close {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: transparent;
+      border: 2px solid var(--color-orange);
+      color: var(--color-orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: pointer;
+    }
+    @media (hover: hover) {
+      .game-over-close:hover { background: var(--color-orange); color: var(--bg-primary); }
     }
     .overlay-card h2 {
       color: var(--color-orange);
@@ -454,7 +477,7 @@
     <!-- ============================================
          HEADER
          ============================================ -->
-    <header role="banner" class="game-header">
+    <header role="banner" class="game-header" data-fs-role="header">
       <!-- Back to catalog -->
       <a href="/games.html" class="btn btn-outline-cyan btn-icon" aria-label="Back to Catalog"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></a>
 
@@ -469,7 +492,7 @@
     </header>
 
     <!-- Live status: boards solved + current guess count -->
-    <div class="game-status-bar">
+    <div class="game-status-bar" data-fs-role="stats">
       <span id="status" aria-live="polite" aria-atomic="true">Loading…</span>
     </div>
 
@@ -478,7 +501,7 @@
          Rendered dynamically by renderBoards()
          aria-label on the container describes purpose
          ============================================ -->
-    <div id="boards" role="group" aria-label="Four Wordle boards"></div>
+    <div id="boards" role="group" aria-label="Four Wordle boards" data-fs-role="stage"></div>
 
     <!-- Message area: flashes feedback like "Not in word list"
          aria-live="assertive" interrupts screen readers immediately
@@ -492,7 +515,22 @@
          ON-SCREEN KEYBOARD
          Rendered dynamically by renderKeyboard()
          ============================================ -->
-    <div id="keyboard" role="group" aria-label="Letter keyboard"></div>
+    <div id="keyboard" role="group" aria-label="Letter keyboard" data-fs-role="controls"></div>
+
+    <!-- ============================================
+         TAP TO PLAY GATE
+         Shown on page load, on both desktop and mobile.
+         The button stays disabled ("Loading…") until the
+         dictionary finishes loading. Tapping it is the
+         real user gesture mobile fullscreen is entered on.
+         ============================================ -->
+    <div class="overlay" id="startOverlay" role="dialog" aria-modal="true" aria-labelledby="startOverlayTitle">
+      <div class="overlay-card">
+        <h2 id="startOverlayTitle">Ready?</h2>
+        <p>Solve four word puzzles in 9 guesses.</p>
+        <button type="button" class="btn btn-secondary" id="startBtn" disabled>Loading…</button>
+      </div>
+    </div>
 
     <!-- ============================================
          END-OF-GAME OVERLAY
@@ -501,6 +539,9 @@
          ============================================ -->
     <div class="overlay hidden" id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endOverlayTitle">
       <div class="overlay-card">
+        <button type="button" class="game-over-close" id="endOverlayClose" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
         <h2 id="endOverlayTitle">Game Over</h2>
         <p id="endOverlayText"></p>
         <button type="button" class="btn btn-secondary" id="playAgainBtn">Play Again</button>
@@ -509,6 +550,7 @@
 
   </main>
 
+  <script src="../game-fullscreen.js"></script>
   <script>
   /* ============================================
      4ordle — GRaiT GAMES
@@ -729,6 +771,11 @@
     var NUM_BOARDS  = 4;  /* Number of simultaneous boards */
     var MAX_GUESSES = 9;  /* Maximum guesses allowed */
     var WORD_LEN    = 5;  /* Letters per word */
+
+    /* Mobile fullscreen — entered on the Tap to Play gate's button, the
+       real user gesture the browser requires (see BOOT SEQUENCE below). */
+    var MOBILE_FULLSCREEN = true;
+    var fullscreen = GameFullscreen.init({ el: 'game', enabled: MOBILE_FULLSCREEN });
 
     /* ============================================
        GAME STATE
@@ -1072,12 +1119,37 @@
     function showEndOverlay(title, text) {
       document.getElementById('endOverlayTitle').textContent = title;
       document.getElementById('endOverlayText').innerHTML = text;
+      playAgainHandled = false;
+      endOverlayCloseHandled = false;
       document.getElementById('endOverlay').classList.remove('hidden');
     }
     function hideEndOverlay() {
       document.getElementById('endOverlay').classList.add('hidden');
     }
-    document.getElementById('playAgainBtn').addEventListener('click', newGame);
+
+    // Both buttons below live in the end-of-game popup, which appears
+    // mid-gameplay (right as the last guess is submitted) — the same
+    // situation that needed pointerup+click (not click alone) elsewhere,
+    // since a plain click can be delayed or dropped by iOS Safari's touch
+    // handling for an element that just became interactive. Each is
+    // guarded against double-firing (a mouse click fires both events).
+    var playAgainHandled = false;
+    function guardedPlayAgain() {
+      if (playAgainHandled) return;
+      playAgainHandled = true;
+      newGame();
+    }
+    document.getElementById('playAgainBtn').addEventListener('pointerup', guardedPlayAgain);
+    document.getElementById('playAgainBtn').addEventListener('click', guardedPlayAgain);
+
+    var endOverlayCloseHandled = false;
+    function closeEndOverlay() {
+      if (endOverlayCloseHandled) return;
+      endOverlayCloseHandled = true;
+      hideEndOverlay();
+    }
+    document.getElementById('endOverlayClose').addEventListener('pointerup', closeEndOverlay);
+    document.getElementById('endOverlayClose').addEventListener('click', closeEndOverlay);
 
     /* ============================================
        INPUT HANDLING
@@ -1199,20 +1271,41 @@
 
     /* ============================================
        BOOT SEQUENCE
-       1. Load the dictionary (async — may take a moment)
-       2. Enable the New Game button
-       3. Start the first game
+       1. Load the dictionary (async — may take a moment) — the Tap to
+          Play gate's button stays disabled ("Loading…") until this
+          finishes, matching the existing Restart-button pattern.
+       2. Enable the Restart button and the gate's Start button.
+       3. Wait for the player to tap the gate — that's the real user
+          gesture mobile fullscreen enters on, and the point where the
+          first game actually starts (not on page load), matching
+          Gnome Crawler and Save My Chicks.
        ============================================ */
+    var newBtn = document.getElementById('newBtn');
+    var startOverlay = document.getElementById('startOverlay');
+    var startBtn = document.getElementById('startBtn');
+
     (async function init() {
       await loadDictionary();
-      var newBtn = document.getElementById('newBtn');
       newBtn.disabled = false;
-      /* Attach the click handler here (inside the IIFE) so it can reach the
-         private newGame() function. The old inline onclick="newGame()" failed
-         because newGame is not on the global scope. */
-      newBtn.addEventListener('click', newGame);
-      newGame();
+      startBtn.disabled = false;
+      startBtn.textContent = '▶ Start Game';
     }());
+
+    /* Attach click handlers here (inside the IIFE) so they can reach the
+       private newGame() function. The old inline onclick="newGame()" failed
+       because newGame is not on the global scope. */
+    startBtn.addEventListener('click', function () {
+      if (fullscreen) fullscreen.enter();
+      startOverlay.classList.add('hidden');
+      newGame();
+    });
+    /* Restart re-shows the Tap to Play gate rather than jumping straight
+       into a new round, matching Gnome Crawler/Save My Chicks — Play
+       Again (in the end-of-game popup) is the one that skips the gate
+       and starts a new round immediately. */
+    newBtn.addEventListener('click', function () {
+      startOverlay.classList.remove('hidden');
+    });
 
   }()); /* End IIFE — no globals polluted */
   </script>
