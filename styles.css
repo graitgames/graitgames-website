@@ -3305,6 +3305,18 @@ main {
    square icon-only button (e.g. the Back to Catalog link).
    ============================================================================ */
 
+/* Same stacking-context issue as the .catalog-page fix above (see that
+   comment for the full explanation): the global `main { position:relative;
+   z-index:1 }` rule traps any position:fixed popup living inside
+   <main id="game"> — a full-viewport "Ready?"/Tap-to-Play gate, an
+   end-of-game overlay, or the shared game-over-card.js popup — at z-index
+   level 1, so the footer (a later sibling at the body level) paints over
+   it instead of underneath. Game pages have no fixed background FX to
+   stack above, so they don't need #game to form its own context. */
+#game {
+  z-index: auto;
+}
+
 .game-header {
   display: flex;
   flex-wrap: nowrap;
