@@ -175,6 +175,7 @@
 }
 .game-over-modal.hidden { display: none; }
 .game-over-card {
+  position: relative;
   background: var(--bg-panel);
   border: 2px solid var(--color-cyan);
   border-radius: var(--border-radius-lg);
@@ -184,6 +185,29 @@
   width: 100%;
   text-align: center;
   margin: auto;
+}
+/* Dismisses the popup without restarting, so the player can screenshot
+   their final result and/or reach the header's Back/Restart buttons,
+   which stay visible underneath (mobile fullscreen keeps the header
+   shown at all times). */
+.game-over-close {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid var(--color-cyan);
+  color: var(--color-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .game-over-close:hover { background: var(--color-cyan); color: var(--bg-primary); }
 }
 .game-over-card h2 {
   font-family: var(--font-headline);
@@ -409,6 +433,9 @@
        which stays reserved for the pre-game "Ready?" screen. -->
   <div class="game-over-modal hidden" id="gameOverModal" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
     <div class="game-over-card">
+      <button type="button" class="game-over-close" id="gameOverClose" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
       <h2 id="gameOverTitle">Crypt Claimed You</h2>
       <p id="gameOverText"></p>
       <button type="button" class="btn btn-secondary" id="playAgainBtn">▶ Play Again</button>
@@ -1203,6 +1230,7 @@
       document.getElementById('gameOverTitle').textContent = accepted ? '\u2713 Score Saved!' : 'Crypt Claimed You';
       document.getElementById('gameOverText').textContent = summary;
       Leaderboard.renderCompact(document.getElementById('gameOverLeaderboard'), 3);
+      gameOverCloseHandled = false;
       document.getElementById('gameOverModal').classList.remove('hidden');
     });
   }
@@ -1631,6 +1659,18 @@
     init();
     startRun();
   });
+
+  // Just dismisses the popup (no restart) — bound to both pointerup and
+  // click (guarded against double-firing) since it lives in the same
+  // freshly-shown-mid-gameplay modal as Play Again.
+  var gameOverCloseHandled = false;
+  function closeGameOverModal() {
+    if (gameOverCloseHandled) return;
+    gameOverCloseHandled = true;
+    document.getElementById('gameOverModal').classList.add('hidden');
+  }
+  document.getElementById('gameOverClose').addEventListener('pointerup', closeGameOverModal);
+  document.getElementById('gameOverClose').addEventListener('click', closeGameOverModal);
 
   init();
   animId = requestAnimationFrame(loop);
