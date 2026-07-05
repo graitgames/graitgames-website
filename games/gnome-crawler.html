@@ -1174,7 +1174,11 @@
   function hideStandardOverlay() { document.getElementById('overlay').classList.add('hidden'); }
 
   function init() {
-    keys = {};
+    // Clear key states in place rather than reassigning keys = {} — the
+    // joystick (touch-joystick.js) was handed a reference to this exact
+    // object once at setup, and would otherwise keep mutating an orphaned
+    // object that nothing reads after the first restart.
+    for (var k in keys) keys[k] = false;
     currentScore = 0;
     abilities = {};
     dashCooldown = 0; dashActive = 0;
