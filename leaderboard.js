@@ -256,7 +256,13 @@
         scoreLabel.textContent = 'You scored ' + score + '!';
         initBoxes.forEach(function (b) { b.value = ''; });
         lbOverlay.classList.add('active');
-        initBoxes[0].focus();
+        // No auto-focus here: trySubmit is called from deep inside the game
+        // loop (a collision/game-over check), not from a user gesture, and
+        // iOS Safari only reliably focuses/shows the keyboard for a .focus()
+        // call made synchronously within one. Calling it anyway left the
+        // first box in a half-focused state that took an extra real tap to
+        // actually engage — better to just let the player's own tap focus
+        // it normally.
       } else {
         if (typeof onDone === 'function') onDone(false);
       }

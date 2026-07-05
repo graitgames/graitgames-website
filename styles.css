@@ -592,10 +592,15 @@ pre code {
   border-color: var(--color-cyan-2);
 }
 
-.btn-outline-cyan:hover {
-  background-color: var(--color-cyan);
-  color: #000000;
-  box-shadow: var(--glow-cyan);
+/* Gated behind (hover: hover) — on touch devices (iOS Safari especially),
+   a :hover rule makes the first tap only trigger hover, requiring a second
+   tap to actually click. Hover-capable (mouse) devices are unaffected. */
+@media (hover: hover) {
+  .btn-outline-cyan:hover {
+    background-color: var(--color-cyan);
+    color: #000000;
+    box-shadow: var(--glow-cyan);
+  }
 }
 
 /* --- GHOST BUTTON (Text only, no border) --- */
@@ -3359,10 +3364,12 @@ main {
   flex-shrink: 0;
   transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
-.btn-restart:hover {
-  background: var(--color-green);
-  color: var(--bg-primary);
-  box-shadow: var(--glow-green);
+@media (hover: hover) {
+  .btn-restart:hover {
+    background: var(--color-green);
+    color: var(--bg-primary);
+    box-shadow: var(--glow-green);
+  }
 }
 .btn-restart:disabled {
   border-color: var(--border-accessible);
@@ -3391,9 +3398,9 @@ main {
   margin: 0;
   /* Top/bottom use vh (not %, which CSS resolves against width, not height)
      so phones with an unusable status-bar/notch area get real breathing
-     room: 10% of screen height at top, 5% at bottom, 2.5% of width on
+     room: 5% of screen height on top and bottom, 2.5% of width on
      each side. */
-  padding: 10vh 2.5% 5vh 2.5%;
+  padding: 5vh 2.5%;
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -3420,12 +3427,14 @@ main {
 /* The controls row breaks out of #game's own 2.5vw side padding and re-pads
    itself at 15vw, so the joystick/button sit 15% in from the true screen
    edges (not 15% + the shell's 2.5%) — vw stays screen-relative regardless
-   of the parent's padding, unlike percentages, which would compound. */
+   of the parent's padding, unlike percentages, which would compound. The
+   extra 5px top margin gives a bit more breathing room above the controls,
+   on top of the shell's own row gap. */
 #game.is-mobile-fullscreen [data-fs-role="controls"] {
   flex: 0 0 auto;
   width: 100vw;
   max-width: none;
-  margin: 0 0 0 -2.5vw;
+  margin: 5px 0 0 -2.5vw;
   padding: 0 15vw;
   box-sizing: border-box;
 }
