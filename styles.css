@@ -3406,6 +3406,10 @@ main {
   gap: var(--space-sm);
   background: var(--bg-primary);
   overflow: hidden;
+  /* Blocks rubber-band/bounce scrolling from reaching the real page
+     underneath (see game-fullscreen.js's body-scroll lock for the same
+     class of iOS viewport-drift issue). */
+  overscroll-behavior: none;
   /* Long-press anywhere in the game (not just the joystick/controls) was
      triggering iOS Safari's text-selection callout, which the touch-target
      specific fixes on the joystick/dash button alone didn't fully cover. */

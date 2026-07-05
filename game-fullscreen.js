@@ -47,9 +47,42 @@ var GameFullscreen = (function () {
       return fsElement() === el || el.classList.contains('pseudo-fullscreen');
     }
 
+    // The pseudo-fullscreen fallback only makes #game position:fixed — the
+    // real <body> underneath stays fully scrollable. On iOS Safari that's a
+    // known source of long-session drift: each time the on-screen keyboard
+    // shows/hides (e.g. entering leaderboard initials), the browser's
+    // scroll-into-view behavior can nudge the underlying page, and after
+    // enough cycles the accumulated drift throws off touch/selection
+    // targeting and keyboard focus (matches "works fine in a fresh private
+    // window" — zero accumulated drift there). Locking body scroll while
+    // fullscreen is active prevents it from ever drifting in the first
+    // place, native Fullscreen API included (harmless there either way).
+    var scrollY = 0;
+    var bodyLocked = false;
+    function lockBodyScroll() {
+      if (bodyLocked) return; // sync() can re-fire while already active (e.g. orientationchange) — don't recapture scrollY as 0 once body is already fixed
+      bodyLocked = true;
+      scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = '-' + scrollY + 'px';
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+    }
+    function unlockBodyScroll() {
+      if (!bodyLocked) return;
+      bodyLocked = false;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, scrollY);
+    }
+
     function sync() {
-      el.classList.toggle('is-mobile-fullscreen', isActive());
-      if (opts.onChange) opts.onChange(isActive());
+      var active = isActive();
+      el.classList.toggle('is-mobile-fullscreen', active);
+      if (active) lockBodyScroll(); else unlockBodyScroll();
+      if (opts.onChange) opts.onChange(active);
     }
 
     document.addEventListener('fullscreenchange', sync);
