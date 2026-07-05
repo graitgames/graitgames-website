@@ -162,11 +162,12 @@
     ];
 
     initBoxes.forEach(function (box, idx) {
-      // Explicit focus on first touch — a bare tap-to-focus on iOS Safari
-      // was sometimes needing a second tap to actually engage the box.
-      // pointerdown fires immediately (before the browser's own focus
-      // handling), from a real user gesture, so this reliably wins.
-      box.addEventListener('pointerdown', function () { box.focus(); });
+      // No manual .focus() on pointerdown here (there used to be one) — it
+      // fires at the very start of the tap, before the browser's own native
+      // focus grant lands at the end of it, and the two racing on iOS
+      // Safari is what was causing the keyboard to flash open and
+      // immediately close. A plain tap already focuses a text input
+      // natively; no JS needed.
       box.addEventListener('keydown', function (e) {
         if (e.key === 'Backspace')   { e.preventDefault(); box.value = ''; if (idx > 0) initBoxes[idx - 1].focus(); return; }
         if (e.key === 'Enter')       { e.preventDefault(); submitBtn.click(); return; }
