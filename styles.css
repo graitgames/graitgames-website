@@ -2309,6 +2309,14 @@ select:disabled {
   padding: var(--space-sm);
 }
 
+/* Real thumbnail image filling the 16:9 .game-thumb box */
+.game-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* Category tag pinned to the top-left corner of the thumbnail */
 .game-tag {
   position: absolute;
