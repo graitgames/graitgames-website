@@ -137,74 +137,6 @@
       .stat-value { font-size: 1.25rem; }
     }
 
-    /* Game-over popup — see the HTML comment above #gameOverModal for why
-       this is a separate, full-viewport modal instead of reusing .overlay. */
-    .game-over-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 2000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(7, 7, 15, 0.88);
-      padding: 24px;
-      overflow-y: auto;
-    }
-    .game-over-modal.hidden { display: none; }
-    .game-over-card {
-      position: relative;
-      background: var(--bg-panel);
-      border: 2px solid var(--color-orange);
-      border-radius: var(--border-radius-lg);
-      box-shadow: var(--glow-orange);
-      padding: 28px 24px;
-      max-width: 380px;
-      width: 100%;
-      text-align: center;
-      margin: auto;
-    }
-    /* Dismisses the popup without restarting, so the player can screenshot
-       their final result and/or reach the header's Back/Restart buttons,
-       which stay visible underneath (mobile fullscreen keeps the header
-       shown at all times). */
-    .game-over-close {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: transparent;
-      border: 2px solid var(--color-orange);
-      color: var(--color-orange);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      cursor: pointer;
-    }
-    @media (hover: hover) {
-      .game-over-close:hover { background: var(--color-orange); color: var(--bg-primary); }
-    }
-    .game-over-card h2 {
-      font-family: var(--font-headline);
-      font-size: 1.2rem;
-      letter-spacing: 1px;
-      color: var(--color-orange);
-      text-shadow: var(--glow-orange);
-      margin: 0 0 12px;
-    }
-    .game-over-card p {
-      font-family: var(--font-body);
-      font-size: 0.9rem;
-      color: var(--text-description);
-      margin: 0 0 16px;
-    }
-    .game-over-leaderboard {
-      margin-top: 20px;
-      text-align: left;
-    }
-
     /* Mobile fullscreen — see styles.css "GAME PAGE COMPONENTS" for the
        shared header/stats/stage shell. This game has no XP/health bar or
        separate touch-controls row (dragging/tapping the canvas itself is
@@ -302,23 +234,8 @@
 
   </main>
 
-  <!-- Game-over popup: covers the full viewport (not just the canvas box)
-       so it always has room, regardless of how tall the play area itself
-       is. Shown by endGame() instead of the in-canvas #overlay, which
-       stays reserved for the pre-game "Ready?" screen. -->
-  <div class="game-over-modal hidden" id="gameOverModal" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
-    <div class="game-over-card">
-      <button type="button" class="game-over-close" id="gameOverClose" aria-label="Close">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
-      </button>
-      <h2 id="gameOverTitle">Game Over</h2>
-      <p id="gameOverText"></p>
-      <button type="button" class="btn btn-secondary" id="playAgainBtn">▶ Play Again</button>
-      <div class="game-over-leaderboard" id="gameOverLeaderboard"></div>
-    </div>
-  </div>
-
   <script src="../leaderboard.js"></script>
+  <script src="../game-over-card.js"></script>
   <script src="../game-fullscreen.js"></script>
   <script src="../touch-joystick.js"></script>
   <script>
@@ -338,14 +255,15 @@
     var overlayText = document.getElementById('overlay-text');
     var startBtn = document.getElementById('start-btn');
     var restartBtn = document.getElementById('restartBtn');
-    var gameOverModal = document.getElementById('gameOverModal');
-    var gameOverTitle = document.getElementById('gameOverTitle');
-    var gameOverText = document.getElementById('gameOverText');
-    var playAgainBtn = document.getElementById('playAgainBtn');
-    var gameOverLeaderboard = document.getElementById('gameOverLeaderboard');
 
     var MOBILE_FULLSCREEN = true;
     var fullscreen = GameFullscreen.init({ el: 'game', enabled: MOBILE_FULLSCREEN, onChange: function () { resizeCanvas(); } });
+
+    var gameOverCard = GameOverCard.init({
+      parent: 'game',
+      color: 'orange',
+      onPlayAgain: function () { startGame(); }
+    });
 
     var W = 760, H = 570; // logical resolution (4:3)
     var DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -1246,12 +1164,7 @@
       if (rafId) cancelAnimationFrame(rafId);
       var summary = 'Oh no! The cats got away with all your chicks!';
       Leaderboard.trySubmit(currentScore, function (accepted) {
-        gameOverTitle.textContent = accepted ? '✓ Score Saved!' : '💀 Game Over';
-        gameOverText.textContent = summary;
-        Leaderboard.renderCompact(gameOverLeaderboard, 3);
-        playAgainLocked = false;
-        gameOverCloseHandled = false;
-        gameOverModal.classList.remove('hidden');
+        gameOverCard.show({ accepted: accepted, text: summary });
       });
     }
 
@@ -1262,36 +1175,9 @@
     restartBtn.addEventListener('click', function () {
       if (rafId) cancelAnimationFrame(rafId);
       running = false;
-      gameOverModal.classList.add('hidden');
+      gameOverCard.hide();
       showStandardOverlay('Ready?', '', '▶ Start Game');
     });
-    // Bound to both pointerup (fires immediately and reliably on touch —
-    // this button appears right as a collision ends the game, often while
-    // the player still has a finger down on the canvas, the same "needs a
-    // second tap" situation Gnome Crawler's power-up cards had) and click
-    // (keyboard/mouse activation never fires pointerup). playAgainLocked
-    // stops a mouse click — which fires both pointerup and click — from
-    // running this twice.
-    var playAgainLocked = false;
-    function guardedPlayAgain() {
-      if (playAgainLocked) return;
-      playAgainLocked = true;
-      gameOverModal.classList.add('hidden');
-      startGame();
-    }
-    playAgainBtn.addEventListener('pointerup', guardedPlayAgain);
-    playAgainBtn.addEventListener('click', guardedPlayAgain);
-
-    // Just dismisses the popup (no restart) — same pointerup+click guard
-    // pattern as Play Again, since it lives in the same modal.
-    var gameOverCloseHandled = false;
-    function closeGameOverModal() {
-      if (gameOverCloseHandled) return;
-      gameOverCloseHandled = true;
-      gameOverModal.classList.add('hidden');
-    }
-    document.getElementById('gameOverClose').addEventListener('pointerup', closeGameOverModal);
-    document.getElementById('gameOverClose').addEventListener('click', closeGameOverModal);
 
     // initial canvas sizing
     resizeCanvas();
