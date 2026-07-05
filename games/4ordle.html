@@ -515,7 +515,14 @@
          ON-SCREEN KEYBOARD
          Rendered dynamically by renderKeyboard()
          ============================================ -->
-    <div id="keyboard" role="group" aria-label="Letter keyboard" data-fs-role="controls"></div>
+    <!-- Deliberately untagged with data-fs-role — the shared "controls" role's
+         15vw side padding was designed for the joystick+button pair (keeps
+         them thumb-reachable, inset from the true screen edges), which
+         squeezes a full-width keyboard row far too narrow. A full 10-key
+         row needs its own existing width handling (see #keyboard CSS)
+         instead, and default (untagged) flex-item sizing already keeps it
+         docked at the bottom, sized to its own content. -->
+    <div id="keyboard" role="group" aria-label="Letter keyboard"></div>
 
     <!-- ============================================
          TAP TO PLAY GATE
