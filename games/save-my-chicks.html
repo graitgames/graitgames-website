@@ -293,6 +293,7 @@
 
   <script src="../leaderboard.js"></script>
   <script src="../game-fullscreen.js"></script>
+  <script src="../touch-joystick.js"></script>
   <script>
   (function () {
     'use strict';
@@ -402,6 +403,9 @@
     });
     window.addEventListener('keyup', function (e) { keys[e.key] = false; });
 
+    // Desktop only — mobile uses the shared joystick + Fire button instead
+    // (see TouchJoystick.init() below), matching Gnome Crawler's control
+    // scheme instead of dragging directly on the canvas.
     canvas.addEventListener('mousedown', function (e) {
       handlePointer(e.clientX, e.clientY);
       tryFire();
@@ -410,18 +414,6 @@
       if (e.buttons === 1) handlePointer(e.clientX, e.clientY);
     });
 
-    canvas.addEventListener('touchstart', function (e) {
-      e.preventDefault();
-      var t = e.touches[0];
-      handlePointer(t.clientX, t.clientY);
-      tryFire();
-    }, { passive: false });
-    canvas.addEventListener('touchmove', function (e) {
-      e.preventDefault();
-      var t = e.touches[0];
-      handlePointer(t.clientX, t.clientY);
-    }, { passive: false });
-
     function handlePointer(clientX, clientY) {
       var rect = canvas.getBoundingClientRect();
       var y = clientY - rect.top;
@@ -429,6 +421,22 @@
     }
 
     function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    // Mobile joystick + Fire button (shared component — see touch-joystick.js
+    // for the identical control layout Gnome Crawler uses). Joystick up/down
+    // sets the same keys{} flags the keyboard Up/Down keys do, so update()
+    // needs no changes; left/right are mapped to unused key names since this
+    // game has no mobile aim control — Fire always shoots straight ahead.
+    TouchJoystick.init({
+      parent: 'game',
+      keys: keys,
+      keyNames: { up: 'ArrowUp', down: 'ArrowDown', left: '_joyUnusedLeft', right: '_joyUnusedRight' },
+      moveLabel: 'Move bird',
+      actionLabel: 'FIRE',
+      actionAriaLabel: 'Fire seed',
+      actionIcon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>',
+      onActionStart: function () { tryFire(); }
+    });
 
     // ---------- Entities init ----------
     function initClouds() {

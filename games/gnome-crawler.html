@@ -277,22 +277,6 @@
   padding: 3px;
 }
 
-.touch-controls {
-  display: none;
-  width: 100%;
-  max-width: 640px;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-top: 4px;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-@media (pointer: coarse), (max-width: 820px) {
-  .touch-controls { display: flex; }
-}
-
 /* Keep all 3 stat boxes on one row on narrow phones instead of wrapping
    (which was pushing the 3rd box below the playable area). */
 @media (max-width: 480px) {
@@ -301,57 +285,6 @@
   .stat-label { font-size: 0.58rem; }
   .stat-value { font-size: 1.2rem; }
 }
-.joystick-base {
-  position: relative;
-  width: 116px;
-  height: 116px;
-  border-radius: 50%;
-  background: var(--bg-panel);
-  border: 2px solid var(--color-cyan);
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-.joystick-thumb {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 52px;
-  height: 52px;
-  margin: -26px 0 0 -26px;
-  border-radius: 50%;
-  background: rgba(0, 234, 255, 0.25);
-  border: 2px solid var(--color-cyan);
-  box-shadow: var(--glow-cyan);
-  pointer-events: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-.joystick-base.active-touch { box-shadow: var(--glow-cyan); }
-.action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--bg-panel);
-  border: 2px solid var(--color-orange);
-  color: var(--color-orange);
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-.action-btn:active, .action-btn.active-touch { background: rgba(255,107,43,0.25); box-shadow: var(--glow-orange); }
 
 .action-btn-wrap {
   position: relative;
@@ -468,16 +401,6 @@
 
     </div>
 
-    <div class="touch-controls" id="touchControls" data-fs-role="controls">
-      <div class="joystick-base" id="joystickBase" aria-label="Move gnome" role="slider" aria-valuetext="Drag to move">
-        <div class="joystick-thumb" id="joystickThumb"></div>
-      </div>
-      <button type="button" class="action-btn" id="dashBtn" data-key=" " aria-label="Spirit step dash">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h7l-1 8 11-12h-7l1-8z"/></svg>
-        DASH
-      </button>
-    </div>
-
   </main>
 
   <!-- Game-over popup: covers the full viewport (not just the canvas box)
@@ -495,6 +418,7 @@
 
 <script src="../leaderboard.js"></script>
 <script src="../game-fullscreen.js"></script>
+<script src="../touch-joystick.js"></script>
 <script>
 (function () {
   'use strict';
@@ -1296,86 +1220,25 @@
   window.addEventListener('keyup', function (e) { keys[e.key.toLowerCase()] = false; });
 
   // ── Touch controls ──────────────────────────────────────────────────
-  // The joystick drags within a circular base and sets/clears the same
-  // keys{} flags the keyboard handlers use (arrowup/down/left/right), so
-  // updatePlayer() needs no changes — dragging diagonally just sets two
-  // flags at once, exactly like pressing two arrow keys together.
-  (function setupTouchControls() {
-    var joyBase = document.getElementById('joystickBase');
-    var joyThumb = document.getElementById('joystickThumb');
-    var joyPointerId = null;
-    var DIR_KEYS = ['arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
-
-    function clearDirKeys() {
-      for (var i = 0; i < DIR_KEYS.length; i++) keys[DIR_KEYS[i]] = false;
-    }
-
-    function updateJoystick(clientX, clientY) {
-      var rect = joyBase.getBoundingClientRect();
-      var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
-      var maxDist = rect.width / 2;
-      var dx = clientX - cx, dy = clientY - cy;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; dist = maxDist; }
-      joyThumb.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
-
-      clearDirKeys();
-      var DEAD_ZONE = 0.25;
-      if (dist / maxDist <= DEAD_ZONE) return;
-
-      // Snap to one of 4 cardinal directions based on the 90° quadrant the
-      // joystick angle falls in (0° = up), so diagonal drags still only
-      // move the gnome in a single straight direction, never diagonally.
-      var angle = Math.atan2(dx, -dy) * 180 / Math.PI; // 0=up, 90=right, ±180=down, -90=left
-      if (angle > -45 && angle <= 45) keys['arrowup'] = true;
-      else if (angle > 45 && angle <= 135) keys['arrowright'] = true;
-      else if (angle > -135 && angle <= -45) keys['arrowleft'] = true;
-      else keys['arrowdown'] = true;
-    }
-
-    function resetJoystick() {
-      joyThumb.style.transform = 'translate(0px, 0px)';
-      clearDirKeys();
-    }
-
-    joyBase.addEventListener('pointerdown', function (e) {
-      e.preventDefault();
-      joyPointerId = e.pointerId;
-      joyBase.classList.add('active-touch');
-      joyBase.setPointerCapture(joyPointerId);
-      updateJoystick(e.clientX, e.clientY);
-    });
-    joyBase.addEventListener('pointermove', function (e) {
-      if (e.pointerId !== joyPointerId) return;
-      e.preventDefault();
-      updateJoystick(e.clientX, e.clientY);
-    });
-    function endJoystick(e) {
-      if (joyPointerId === null || (e && e.pointerId !== joyPointerId)) return;
-      joyPointerId = null;
-      joyBase.classList.remove('active-touch');
-      resetJoystick();
-    }
-    joyBase.addEventListener('pointerup', endJoystick);
-    joyBase.addEventListener('pointercancel', endJoystick);
-    joyBase.addEventListener('pointerleave', endJoystick);
-
-    var dashBtn = document.getElementById('dashBtn');
-    function triggerDash(e) {
-      e.preventDefault();
-      dashBtn.classList.add('active-touch');
+  // Shared joystick component (touch-joystick.js) drags within a circular
+  // base and sets/clears the same keys{} flags the keyboard handlers use
+  // (arrowup/down/left/right), so updatePlayer() needs no changes.
+  TouchJoystick.init({
+    parent: 'game',
+    keys: keys,
+    keyNames: { up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright' },
+    moveLabel: 'Move gnome',
+    actionLabel: 'DASH',
+    actionAriaLabel: 'Spirit step dash',
+    actionIcon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h7l-1 8 11-12h-7l1-8z"/></svg>',
+    onActionStart: function () {
       if (abilities.spiritstep && dashCooldown <= 0 && !choosing && !gameOver_ && started) {
         dashActive = 12;
         invuln = Math.max(invuln, 24);
         dashCooldown = Math.max(8 - abilities.spiritstep, 3) * 60;
       }
     }
-    function releaseDash(e) { if (e) e.preventDefault(); dashBtn.classList.remove('active-touch'); }
-    dashBtn.addEventListener('pointerdown', triggerDash);
-    dashBtn.addEventListener('pointerup', releaseDash);
-    dashBtn.addEventListener('pointercancel', releaseDash);
-    dashBtn.addEventListener('pointerleave', releaseDash);
-  })();
+  });
 
   function tryMove(entity, dx, dy) {
     var next = { x: entity.x + dx, y: entity.y + dy, w: entity.w, h: entity.h };
