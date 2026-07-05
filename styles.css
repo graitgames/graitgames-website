@@ -737,17 +737,35 @@ pre code {
   padding: 0 var(--space-md);
 }
 
-/* --- SECTION SPACING --- */
+/* Site-wide mobile side padding: 2.5% of screen width on every page,
+   replacing the fixed --space-md gutter, which felt inconsistent with the
+   percentage-based padding used in the game fullscreen shell. */
+@media (max-width: 768px) {
+  .container,
+  .container-wide,
+  .container-narrow {
+    padding: 0 2.5%;
+  }
+}
+
+/* --- SECTION SPACING ---
+   Longhand top/bottom only (not the "X 0" shorthand) so these classes only
+   ever add vertical spacing — combining .section with .container-narrow/
+   .container-wide/.container (as most pages do) must not zero out whatever
+   left/right padding that container class set. */
 .section {
-  padding: var(--space-3xl) 0;
+  padding-top: var(--space-3xl);
+  padding-bottom: var(--space-3xl);
 }
 
 .section-sm {
-  padding: var(--space-2xl) 0;
+  padding-top: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
 }
 
 .section-lg {
-  padding: var(--space-4xl) 0;
+  padding-top: var(--space-4xl);
+  padding-bottom: var(--space-4xl);
 }
 
 
@@ -1875,7 +1893,8 @@ select:disabled {
 
 /* --- GENERIC ABOUT SECTION + ALTERNATING BACKGROUNDS ---------------------- */
 .about-section {
-  padding: var(--space-3xl) 0;
+  padding-top: var(--space-3xl);
+  padding-bottom: var(--space-3xl);
 }
 
 /* Alternating darker band (Deep Space) with subtle top/bottom dividers */
@@ -3353,6 +3372,77 @@ main {
 .btn-restart:focus-visible {
   outline: 2px solid var(--color-cyan);
   outline-offset: 3px;
+}
+
+/* Mobile fullscreen game shell — applied by game-fullscreen.js.
+   Mark each game's top-level sections with data-fs-role="header|stats|bar|
+   stage|controls" (a game may omit "bar" if it has no XP/health bar) so
+   every game gets the same stacking order and proportions in fullscreen,
+   regardless of how that game is laid out on desktop. The game's own
+   inline <style> block is still responsible for making its "stage" role
+   (the play area) actually fill the space this reserves for it. */
+#game.is-mobile-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  margin: 0;
+  /* Top/bottom use vh (not %, which CSS resolves against width, not height)
+     so phones with an unusable status-bar/notch area get real breathing
+     room: 10% of screen height at top, 5% at bottom, 2.5% of width on
+     each side. */
+  padding: 10vh 2.5% 5vh 2.5%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+#game.is-mobile-fullscreen > .game-description,
+#game.is-mobile-fullscreen .game-title-bar {
+  display: none;
+}
+#game.is-mobile-fullscreen [data-fs-role="header"],
+#game.is-mobile-fullscreen [data-fs-role="stats"],
+#game.is-mobile-fullscreen [data-fs-role="bar"] {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+#game.is-mobile-fullscreen [data-fs-role="stage"] {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+/* The controls row breaks out of #game's own 2.5vw side padding and re-pads
+   itself at 15vw, so the joystick/button sit 15% in from the true screen
+   edges (not 15% + the shell's 2.5%) — vw stays screen-relative regardless
+   of the parent's padding, unlike percentages, which would compound. */
+#game.is-mobile-fullscreen [data-fs-role="controls"] {
+  flex: 0 0 auto;
+  width: 100vw;
+  max-width: none;
+  margin: 0 0 0 -2.5vw;
+  padding: 0 15vw;
+  box-sizing: border-box;
+}
+/* leaderboard.js injects .lb-panel as a static-position element inside the
+   "stage" role below 1000px width, which would otherwise eat space meant
+   for the play area. It's not one of the fullscreen shell's 5 sections, so
+   hide it during gameplay — but if the player just submitted a top-10
+   score (see each game's handleGameOver, which toggles this class), show
+   it again underneath the game-over overlay's Play Again button so they
+   can see where they landed. .lb-initials-overlay is unaffected (it's an
+   absolute-position modal, not a flex child, so it never takes up layout
+   space either way). */
+#game.is-mobile-fullscreen .lb-panel {
+  display: none;
+}
+#game.is-mobile-fullscreen.lb-just-submitted .lb-panel {
+  display: block;
 }
 
 /* ============================================================================
