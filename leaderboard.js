@@ -180,8 +180,32 @@
       });
     });
 
-    submitBtn.addEventListener('click', handleSubmit);
-    skipBtn.addEventListener('click', handleSkip);
+    // Bound to both pointerup (fires immediately and reliably on touch —
+    // these buttons live in an overlay that pops up mid-gameplay, right as
+    // the player dies, which is the same "needs a second tap" situation the
+    // power-up cards had) and click (keyboard/mouse activation never fires
+    // pointerup). actionsLocked stops a mouse click — which fires both
+    // pointerup and click — from running the handler twice; it's reset
+    // each time the overlay is (re)shown in trySubmit.
+    submitBtn.addEventListener('pointerup', guardedSubmit);
+    submitBtn.addEventListener('click', guardedSubmit);
+    skipBtn.addEventListener('pointerup', guardedSkip);
+    skipBtn.addEventListener('click', guardedSkip);
+  }
+
+  var actionsLocked = false;
+  function guardedSubmit() {
+    if (actionsLocked) return;
+    actionsLocked = true;
+    // handleSubmit bails out (returns false) if the initials aren't filled
+    // in yet — unlock immediately so the player can fix them and try again,
+    // rather than locking the button after a no-op tap.
+    if (handleSubmit() === false) actionsLocked = false;
+  }
+  function guardedSkip() {
+    if (actionsLocked) return;
+    actionsLocked = true;
+    handleSkip();
   }
 
   /* ── API calls ──────────────────────────────────────────────────── */
@@ -194,7 +218,7 @@
 
   function handleSubmit() {
     var initials = initBoxes.map(function (b) { return b.value.toUpperCase(); }).join('');
-    if (!/^[A-Z]{3}$/.test(initials)) return;
+    if (!/^[A-Z]{3}$/.test(initials)) return false;
 
     submitBtn.disabled    = true;
     skipBtn.disabled      = true;
@@ -216,6 +240,7 @@
         skipBtn.disabled      = false;
         submitBtn.textContent = 'Submit';
       });
+    return true;
   }
 
   function handleSkip() { closeOverlay(false); }
@@ -303,6 +328,7 @@
       if (qualifies) {
         scoreLabel.textContent = 'You scored ' + score + '!';
         initBoxes.forEach(function (b) { b.value = ''; });
+        actionsLocked = false;
         lbOverlay.classList.add('active');
         // No auto-focus here: trySubmit is called from deep inside the game
         // loop (a collision/game-over check), not from a user gesture, and
