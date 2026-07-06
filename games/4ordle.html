@@ -851,7 +851,6 @@
     var NUM_BOARDS  = 4;  /* Number of simultaneous boards */
     var MAX_GUESSES = 9;  /* Maximum guesses allowed */
     var WORD_LEN    = 5;  /* Letters per word */
-    var ALPHABET    = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
     /* Mobile fullscreen — entered on the Tap to Play gate's button, the
        real user gesture the browser requires (see BOOT SEQUENCE below). */
@@ -1110,12 +1109,17 @@
               var quad = document.createElement('span');
               quad.className = 'quad q' + q;
               var st = status ? status[q] : null;
-              /* Once a board is solved, drop its green (correct) hint so the
-                 quadrant reads as default/grey — the board's done, so the
-                 "correct letter" cue is no longer useful. Orange (present) and
-                 dark (absent) hints are kept for the still-active boards. */
-              if (st && !(solved[q] && st === 'correct')) {
-                quad.classList.add(st);
+              /* Once a board is solved, everything about it is moot — a letter
+                 that's been guessed at all (status truthy) reads as the same
+                 resolved grey ('absent') on that board's quadrant, whether it
+                 was actually correct, present, or simply never tested against
+                 this specific board (e.g. first typed in a later guess, after
+                 this board had already stopped being scored). A letter that's
+                 never been guessed anywhere stays fully untouched (status
+                 itself is null) instead of being marked resolved too. */
+              var effectiveSt = (solved[q] && status) ? 'absent' : st;
+              if (effectiveSt) {
+                quad.classList.add(effectiveSt);
               }
               /* Only an unsolved board's colored status keeps the letter alive. */
               if (!solved[q] && (st === 'correct' || st === 'present')) {
@@ -1294,20 +1298,6 @@
         /* Check if this guess solves this board */
         if (currentGuess === targets[b]) {
           solved[b] = true;
-
-          /* Once a board is solved, it's skipped in every future guess's
-             scoring loop above (nothing left to learn about it) — but that
-             means a letter typed for the first time in a later guess would
-             never get a quadrant set for THIS board, leaving it at the
-             default transparent/black instead of a resolved grey. Since a
-             solved board has nothing ambiguous left, backfill every letter
-             now: 'absent' for anything not in the word (bumpKeyState's
-             rank-based upgrade-only logic means this can't downgrade a
-             letter that's genuinely 'correct' or 'present' from this or an
-             earlier guess — absent is the lowest rank). */
-          for (var li = 0; li < ALPHABET.length; li++) {
-            bumpKeyState(ALPHABET[li], b, 'absent');
-          }
         }
       }
 
