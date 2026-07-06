@@ -461,6 +461,59 @@
       letter-spacing: 0.05em;
       font-weight: 700;
     }
+
+    /* ============================================
+       MOBILE FULLSCREEN — GAME AREA REDESIGN
+       Header stays exactly as it is. The guess/solved counter text is
+       hidden entirely. The keyboard keeps its normal fixed size — only
+       its distance from the bottom of the screen (3%) is controlled
+       here. Everything between the header and keyboard (the boards)
+       stretches to fill whatever space remains, with a 2% gap above and
+       below, and each board's rows are sized so the currently-active
+       row is always 4/3 the height of every other row (empty,
+       already-submitted, or the solved winning guess) — the same ratio
+       the desktop layout already uses at its fixed sizes (18px : 24px).
+       ============================================ */
+    #game.is-mobile-fullscreen {
+      padding-bottom: 3vh; /* overrides the shared shell's 5vh bottom padding */
+    }
+    #game.is-mobile-fullscreen .game-status-bar {
+      display: none;
+    }
+    #game.is-mobile-fullscreen #boards {
+      /* flex-basis:0 (not the shared stage role's "auto") forces this to
+         size purely from flex-grow math, filling exactly the space
+         allotted rather than shrinking to its grid content's own
+         preferred size first. */
+      flex: 1 1 0;
+      margin-top: 2vh;
+      margin-bottom: 2vh;
+      grid-template-rows: 1fr 1fr;
+    }
+    #game.is-mobile-fullscreen .board {
+      height: 100%;
+      min-height: 0;
+    }
+    #game.is-mobile-fullscreen .grid {
+      flex: 1 1 auto;
+      height: 100%;
+      min-height: 0;
+    }
+    #game.is-mobile-fullscreen .row {
+      flex: 3 1 0;
+      height: auto;
+      min-height: 0;
+    }
+    #game.is-mobile-fullscreen .row.row-active {
+      flex: 4 1 0;
+    }
+    #game.is-mobile-fullscreen .tile {
+      height: 100%;
+    }
+    #game.is-mobile-fullscreen #keyboard {
+      flex: 0 0 auto;
+      margin-top: 0; /* the 2% gap above the keyboard comes from #boards's own margin-bottom, not this */
+    }
   </style>
 </head>
 <body>
