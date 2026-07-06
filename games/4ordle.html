@@ -326,7 +326,14 @@
 
     .quad.correct { background: var(--tile-correct); }
     .quad.present { background: var(--tile-present); }
-    .quad.absent  { background: var(--tile-absent); }
+    /* Lighter grey (matching .key.dead below) rather than --tile-absent's
+       very dark navy — that dark tone barely stood out from the key's own
+       background, making it hard to tell "confirmed absent in this board"
+       apart from "not yet guessed" at a glance on a partially-known key
+       (e.g. correct/present in some boards, absent in others). The board
+       tiles themselves (.tile.absent) keep the darker --tile-absent look;
+       this only affects the keyboard's per-board quadrants. */
+    .quad.absent  { background: #3a3a45; }
 
     /* The letter label sits above the quadrant layers. A subtle dark drop
        shadow (not a glow) keeps it legible over any quadrant colour. */
@@ -467,15 +474,21 @@
        Header stays exactly as it is. The guess/solved counter text is
        hidden entirely. The keyboard keeps its normal fixed size — only
        its distance from the bottom of the screen (3%) is controlled
-       here. Everything between the header and keyboard (the boards)
-       stretches to fill whatever space remains, with a 2% gap above and
-       below, and each board's rows are sized so the currently-active
-       row is always 4/3 the height of every other row (empty,
-       already-submitted, or the solved winning guess) — the same ratio
-       the desktop layout already uses at its fixed sizes (18px : 24px).
+       here. The boards stretch to fill whatever space remains between a
+       2% gap below the header and a 1.5% gap above/below the feedback
+       message text (e.g. "Not in word list"), with the boards claiming
+       all of the space freed up by that tighter message spacing. Each
+       board's rows are sized so the currently-active row is always 4/3
+       the height of every other row (empty, already-submitted, or the
+       solved winning guess) — the same ratio the desktop layout already
+       uses at its fixed sizes (18px : 24px).
        ============================================ */
     #game.is-mobile-fullscreen {
       padding-bottom: 3vh; /* overrides the shared shell's 5vh bottom padding */
+      /* Replaced by precise per-element margins below instead of a uniform
+         shared gap, so every gap in this page's vertical rhythm is exact
+         rather than "margin + an extra 8px on top." */
+      gap: 0;
     }
     #game.is-mobile-fullscreen .game-status-bar {
       display: none;
@@ -487,7 +500,7 @@
          preferred size first. */
       flex: 1 1 0;
       margin-top: 2vh;
-      margin-bottom: 2vh;
+      margin-bottom: 1.5vh; /* the 1.5% gap above the message text */
       grid-template-rows: 1fr 1fr;
     }
     #game.is-mobile-fullscreen .board {
@@ -510,9 +523,16 @@
     #game.is-mobile-fullscreen .tile {
       height: 100%;
     }
+    #game.is-mobile-fullscreen #message {
+      margin-top: 0; /* the 1.5% gap above comes from #boards's own margin-bottom */
+      margin-bottom: 1.5vh; /* the 1.5% gap below the message text */
+    }
+    #game.is-mobile-fullscreen #dict-status {
+      margin-top: 0; /* usually empty during play — avoid adding extra space on top of #message's 1.5vh */
+    }
     #game.is-mobile-fullscreen #keyboard {
       flex: 0 0 auto;
-      margin-top: 0; /* the 2% gap above the keyboard comes from #boards's own margin-bottom, not this */
+      margin-top: 0; /* the gap above the keyboard comes from #message's own margin-bottom (or #dict-status, if it has content) */
     }
   </style>
 </head>
