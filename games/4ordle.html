@@ -851,6 +851,7 @@
     var NUM_BOARDS  = 4;  /* Number of simultaneous boards */
     var MAX_GUESSES = 9;  /* Maximum guesses allowed */
     var WORD_LEN    = 5;  /* Letters per word */
+    var ALPHABET    = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
     /* Mobile fullscreen — entered on the Tap to Play gate's button, the
        real user gesture the browser requires (see BOOT SEQUENCE below). */
@@ -1293,6 +1294,20 @@
         /* Check if this guess solves this board */
         if (currentGuess === targets[b]) {
           solved[b] = true;
+
+          /* Once a board is solved, it's skipped in every future guess's
+             scoring loop above (nothing left to learn about it) — but that
+             means a letter typed for the first time in a later guess would
+             never get a quadrant set for THIS board, leaving it at the
+             default transparent/black instead of a resolved grey. Since a
+             solved board has nothing ambiguous left, backfill every letter
+             now: 'absent' for anything not in the word (bumpKeyState's
+             rank-based upgrade-only logic means this can't downgrade a
+             letter that's genuinely 'correct' or 'present' from this or an
+             earlier guess — absent is the lowest rank). */
+          for (var li = 0; li < ALPHABET.length; li++) {
+            bumpKeyState(ALPHABET[li], b, 'absent');
+          }
         }
       }
 
