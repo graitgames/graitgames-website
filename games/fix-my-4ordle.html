@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Fix My 4ordle — GRaiT GAMES</title>
+  <meta name="description" content="Fix My 4ordle — Two rows are already filled in with awkward words before you even start. Solve four Wordles in the guesses you have left! A GRaiT GAMES original." />
+
+  <!-- Font preconnects: speeds up Google Fonts loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- GRaiT GAMES brand fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+  <!-- Master design system (one level up from /games/) -->
+  <link rel="stylesheet" href="../styles.css" />
+
+  <style>
+    /* ============================================
+       CSS CUSTOM PROPERTIES (DESIGN TOKENS)
+       These match the GRaiT GAMES brand exactly.
+       Using variables means one change here updates
+       the whole game's look instantly.
+       ============================================ */
+    :root {
+      --color-orange:       #FF6B2B;
+      --color-green:        #39FF14;
+      --color-cyan:         #00EAFF;
+      --color-cyan-2:       #00C8DC;
+      --bg-primary:         #07070F;
+      --bg-secondary:       #0D0D1A;
+      --bg-panel:           #131323;
+      --border-accessible:  rgba(255, 255, 255, 0.15);
+      --text-primary:       #FFFFFF;
+      --text-muted:         rgba(255, 255, 255, 0.6);
+      --text-description:   rgba(255, 255, 255, 0.75);
+
+      /* Tile state colors */
+      --tile-correct:  #39FF14; /* Neon green  = correct position */
+      --tile-present:  #FF6B2B; /* Orange      = wrong position   */
+      --tile-absent:   #1a1a2e; /* Deep space  = not in word      */
+
+      /* Neon glow effects (on borders/boxes only — NOT on text) */
+      --glow-green:  0 0 12px rgba(57, 255, 20, 0.45);
+      --glow-orange: 0 0 12px rgba(255, 107, 43, 0.45);
+      --glow-cyan:   0 0 12px rgba(0, 234, 255, 0.35);
+    }
+
+    /* ============================================
+       GAME FONT OVERRIDE
+       Use Arial throughout the game and force all
+       text uppercase. Scoped to #game so the injected
+       site nav/footer keep their own brand fonts.
+       ============================================ */
+    #game,
+    #game * {
+      font-family: Arial, Helvetica, sans-serif !important;
+      text-transform: uppercase !important;
+    }
+
+    #game {
+      padding-top: 32px;
+      padding-bottom: 40px;
+      /* Disable the browser's double-tap-to-zoom gesture (which fires when a
+         player taps the same on-screen key twice quickly) while still allowing
+         normal page scrolling. */
+      touch-action: manipulation;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -999px;
+      left: 0;
+      background: var(--color-cyan);
+      color: var(--bg-primary);
+      padding: 8px 16px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      z-index: 9999;
+      border-radius: 0 0 8px 0;
+    }
+    .skip-link:focus { top: 0; }
+
+    /* Status bar — sits below the title row */
+    .game-status-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding-top: 6px;
+    }
+
+    /* Status text (e.g. "2 / 4 solved · Guess 4 / 9") */
+    #status {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    /* Override the game-wide Arial rule so the title keeps Press Start 2P */
+    #game .game-title-bar {
+      font-family: 'Press Start 2P', monospace !important;
+      text-transform: none !important;
+    }
+
+    /* Focus ring override for keyboard nav (WCAG requirement) */
+    .btn-restart:focus-visible {
+      outline: 2px solid var(--color-cyan);
+      outline-offset: 3px;
+    }
+
+    /* ============================================
+       GAME BOARDS GRID
+       2-column layout on desktop, stacks on mobile
+       ============================================ */
+    #boards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* Individual board panel */
+    .board {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-accessible);
+      border-radius: 8px;
+      padding: 6px 10%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    /* Green glow border when a board is solved */
+    .board.solved {
+      border-color: var(--color-green);
+      box-shadow: var(--glow-green);
+    }
+
+    /* Orange glow border when game ends unsolved */
+    .board.failed {
+      border-color: var(--color-orange);
+      box-shadow: var(--glow-orange);
+      opacity: 0.75;
+    }
+
+    /* ============================================
+       TILE GRID
+       9 rows × 5 columns
+       ============================================ */
+    .grid {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      width: 100%;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+    }
+
+    /* Empty future rows — thin placeholder line */
+    .row.row-empty {
+      height: 18px;
+      overflow: hidden;
+    }
+    .row.row-empty .tile {
+      height: 18px;
+      border-width: 1px;
+      border-radius: 2px;
+      font-size: 0;
+    }
+
+    /* Active row — input row */
+    .row.row-active .tile {
+      height: 24px;
+      font-size: 14px;
+    }
+
+    /* Solved row — all-green winning guess */
+    .row.row-solved .tile {
+      height: 24px;
+      font-size: 0.8rem;
+    }
+
+    /* Base tile — played rows are 18px with small text */
+    .tile {
+      width: 100%;
+      height: 18px;
+      border: 2px solid var(--border-accessible);
+      background: var(--bg-panel);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      line-height: 1;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      border-radius: 4px;
+      transition: transform 0.15s ease, background 0.25s ease, border-color 0.25s ease;
+    }
+
+    /* Tile has a letter typed but not yet submitted */
+    .tile.filled {
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: scale(1.06);
+    }
+
+    /* ✅ Correct position — neon green */
+    .tile.correct {
+      background: var(--tile-correct);
+      border-color: var(--tile-correct);
+      color: var(--bg-primary); /* Dark text on bright bg for contrast */
+    }
+
+    /* 🟡 Right letter, wrong position — orange */
+    .tile.present {
+      background: var(--tile-present);
+      border-color: var(--tile-present);
+      color: var(--bg-primary);
+    }
+
+    /* ❌ Letter not in word — dark/absent */
+    .tile.absent {
+      background: var(--tile-absent);
+      border-color: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    /* ============================================
+       MESSAGE & DICTIONARY STATUS
+       ============================================ */
+    #message {
+      height: 24px;
+      margin-top: 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--color-cyan);
+      text-align: center;
+      /* aria-live="polite" on the element announces to screen readers */
+    }
+
+    #dict-status {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      text-align: center;
+      max-width: 600px;
+    }
+
+    /* ============================================
+       ON-SCREEN KEYBOARD
+       ============================================ */
+    #keyboard {
+      margin: 4px auto 0;    /* auto left/right margins centre the keyboard */
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;   /* centre the rows within the keyboard block */
+      gap: 6px;
+    }
+
+    .krow {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      gap: 5px;
+    }
+
+    .key {
+      /* Base key style — neutral grey. position:relative + overflow:hidden so
+         the four coloured quadrant layers can be absolutely positioned inside. */
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-accessible);
+      color: var(--text-primary);
+      padding: 6px 6px;
+      min-width: 28px;
+      border-radius: 5px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 1.48rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      flex: 1;
+      max-width: 42px;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      /* Prevent double-tap zoom on the keys themselves */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .key.wide {
+      flex: 1.7;
+      max-width: 68px;
+      font-size: 1.27rem;
+      letter-spacing: 0;
+    }
+    .key[data-key="ENTER"] { font-size: 10.6px; }
+
+    /* ---- Quadrant coloring (one per board, like Quordle) ----
+       Each letter key holds four .quad layers, arranged 2×2:
+         q0 = board 1 (top-left)     q1 = board 2 (top-right)
+         q2 = board 3 (bottom-left)  q3 = board 4 (bottom-right)
+       Each quadrant is tinted green/orange/dark per that board's status. */
+    .quad {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      background: transparent;   /* unknown letters: show the neutral key bg */
+      pointer-events: none;
+    }
+    .quad.q0 { top: 0;    left: 0; }
+    .quad.q1 { top: 0;    right: 0; }
+    .quad.q2 { bottom: 0; left: 0; }
+    .quad.q3 { bottom: 0; right: 0; }
+
+    .quad.correct { background: var(--tile-correct); }
+    .quad.present { background: var(--tile-present); }
+    /* Lighter grey (matching .key.dead below) rather than --tile-absent's
+       very dark navy — that dark tone barely stood out from the key's own
+       background, making it hard to tell "confirmed absent in this board"
+       apart from "not yet guessed" at a glance on a partially-known key
+       (e.g. correct/present in some boards, absent in others). The board
+       tiles themselves (.tile.absent) keep the darker --tile-absent look;
+       this only affects the keyboard's per-board quadrants. */
+    .quad.absent  { background: #3a3a45; }
+
+    /* The letter label sits above the quadrant layers. A subtle dark drop
+       shadow (not a glow) keeps it legible over any quadrant colour. */
+    .klabel {
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+    }
+
+    /* Used letters: dim the label from white to grey. The dark text-shadow
+       above keeps it legible where it overlaps a coloured quadrant. */
+    .klabel.used {
+      color: var(--text-muted);
+    }
+
+    /* "Dead" key: a used letter that's in none of the four words. Fill the key
+       with a clearly distinct mid-grey (darker than the grey label so contrast
+       holds) and flatten the quadrants, so eliminated letters read as one solid
+       grey block — an unmistakable double cue alongside the grey label. */
+    .key.dead {
+      background: #3a3a45;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    .key.dead .quad { background: transparent; }
+
+    .key:hover:not(:disabled) { filter: brightness(1.2); }
+
+    .key:focus-visible {
+      outline: 2px solid var(--color-cyan);
+      outline-offset: 2px;
+    }
+
+    /* ============================================
+       RESPONSIVE DESIGN
+       Mobile-first: shrink tiles on small screens
+       ============================================ */
+    @media (max-width: 600px) {
+      .tile { height: 18px; font-size: 0.65rem; }
+      .row.row-active .tile { height: 24px; font-size: 0.8rem; }
+      .row.row-solved .tile { height: 24px; font-size: 0.8rem; }
+      .row.row-empty { height: 18px; }
+      .row.row-empty .tile { height: 18px; }
+      .game-title { font-size: 0.9rem; }
+      .key   { padding: 6px 4px; font-size: 1.27rem; }
+      .key[data-key="ENTER"] { font-size: 10.6px; }
+      #boards { gap: 4px; }
+    }
+
+    @media (max-width: 380px) {
+      .tile { height: 18px; font-size: 0.6rem; }
+      .row.row-active .tile { height: 24px; font-size: 0.75rem; }
+      .row.row-solved .tile { height: 24px; font-size: 0.75rem; }
+      .key  { padding: 8px 2px; }
+    }
+
+    /* ============================================
+       REDUCED MOTION
+       Respects user's OS-level "reduce motion" pref.
+       Disables all animations for users who need it.
+       ============================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    /* ============================================
+       END-OF-GAME OVERLAY
+       Pop-up shown when all 4 boards are solved or
+       the player runs out of guesses. Reveals any
+       words the player missed.
+       ============================================ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7, 7, 15, 0.88);
+      padding: 24px;
+    }
+    .overlay.hidden { display: none; }
+    .overlay-card {
+      position: relative;
+      background: var(--bg-panel);
+      border: 2px solid var(--color-orange);
+      border-radius: 10px;
+      box-shadow: var(--glow-orange);
+      padding: 28px 24px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+    /* Dismisses the end-of-game popup without restarting, so the player
+       can screenshot their result and/or reach the header's Back/Restart
+       buttons, which stay visible underneath in mobile fullscreen. */
+    .game-over-close {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: transparent;
+      border: 2px solid var(--color-orange);
+      color: var(--color-orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: pointer;
+    }
+    @media (hover: hover) {
+      .game-over-close:hover { background: var(--color-orange); color: var(--bg-primary); }
+    }
+    .overlay-card h2 {
+      color: var(--color-orange);
+      font-size: 1.2rem;
+      letter-spacing: 1px;
+      margin: 0 0 12px;
+    }
+    .overlay-card p {
+      color: var(--text-description);
+      line-height: 1.5;
+      font-size: 0.85rem;
+      margin: 0 0 8px;
+    }
+    .overlay-card .missed-words {
+      color: var(--color-cyan);
+      letter-spacing: 0.05em;
+      font-weight: 700;
+    }
+
+    /* ============================================
+       MOBILE FULLSCREEN — GAME AREA REDESIGN
+       Header stays exactly as it is. The guess/solved counter text is
+       hidden entirely. The keyboard keeps its normal fixed size — only
+       its distance from the bottom of the screen (3%) is controlled
+       here. The boards stretch to fill whatever space remains between a
+       2% gap below the header and a 1.5% gap above/below the feedback
+       message text (e.g. "Not in word list"), with the boards claiming
+       all of the space freed up by that tighter message spacing. Each
+       board's rows are sized so the currently-active row is always 4/3
+       the height of every other row (empty, already-submitted, or the
+       solved winning guess) — the same ratio the desktop layout already
+       uses at its fixed sizes (18px : 24px).
+       ============================================ */
+    #game.is-mobile-fullscreen {
+      padding-bottom: 3vh; /* overrides the shared shell's 5vh bottom padding */
+      /* Replaced by precise per-element margins below instead of a uniform
+         shared gap, so every gap in this page's vertical rhythm is exact
+         rather than "margin + an extra 8px on top." */
+      gap: 0;
+    }
+    #game.is-mobile-fullscreen .game-status-bar {
+      display: none;
+    }
+    #game.is-mobile-fullscreen #boards {
+      /* flex-basis:0 (not the shared stage role's "auto") forces this to
+         size purely from flex-grow math, filling exactly the space
+         allotted rather than shrinking to its grid content's own
+         preferred size first. */
+      flex: 1 1 0;
+      margin-top: 2vh;
+      margin-bottom: 1.5vh; /* the 1.5% gap above the message text */
+      grid-template-rows: 1fr 1fr;
+    }
+    #game.is-mobile-fullscreen .board {
+      height: 100%;
+      min-height: 0;
+    }
+    #game.is-mobile-fullscreen .grid {
+      flex: 1 1 auto;
+      height: 100%;
+      min-height: 0;
+    }
+    #game.is-mobile-fullscreen .row {
+      flex: 3 1 0;
+      height: auto;
+      min-height: 0;
+    }
+    #game.is-mobile-fullscreen .row.row-active {
+      flex: 4 1 0;
+    }
+    #game.is-mobile-fullscreen .tile {
+      height: 100%;
+    }
+    #game.is-mobile-fullscreen #message {
+      margin-top: 0; /* the 1.5% gap above comes from #boards's own margin-bottom */
+      margin-bottom: 1.5vh; /* the 1.5% gap below the message text */
+    }
+    #game.is-mobile-fullscreen #dict-status {
+      margin-top: 0; /* usually empty during play — avoid adding extra space on top of #message's 1.5vh */
+    }
+    #game.is-mobile-fullscreen #keyboard {
+      flex: 0 0 auto;
+      margin-top: 0; /* the gap above the keyboard comes from #message's own margin-bottom (or #dict-status, if it has content) */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Skip link: hidden visually, revealed on keyboard focus.
+       Essential for screen reader and keyboard-only users. -->
+  <a href="#game" class="skip-link">Skip to game</a>
+
+  <!-- Navigation injected by site's nav.js -->
+  <nav id="main-nav"></nav>
+
+  <main id="game" class="container-narrow">
+
+    <!-- ============================================
+         HEADER
+         ============================================ -->
+    <header role="banner" class="game-header" data-fs-role="header">
+      <!-- Back to catalog -->
+      <a href="/games.html" class="btn btn-outline-cyan btn-icon" aria-label="Back to Catalog"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></a>
+
+      <!-- Game title -->
+      <p class="game-title-bar" role="heading" aria-level="1">FIX MY 4ORDLE</p>
+
+      <!-- Restart button (disabled until dictionary is loaded) -->
+      <button class="btn-restart" id="newBtn" disabled
+              aria-label="Start a new Fix My 4ordle game">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+    </header>
+
+    <!-- Live status: boards solved + current guess count -->
+    <div class="game-status-bar" data-fs-role="stats">
+      <span id="status" aria-live="polite" aria-atomic="true">Loading…</span>
+    </div>
+
+    <!-- ============================================
+         FOUR GAME BOARDS
+         Rendered dynamically by renderBoards()
+         aria-label on the container describes purpose
+         ============================================ -->
+    <div id="boards" role="group" aria-label="Four Wordle boards" data-fs-role="stage"></div>
+
+    <!-- Message area: flashes feedback like "Not in word list"
+         aria-live="assertive" interrupts screen readers immediately
+         (used here because the message is time-sensitive feedback) -->
+    <div id="message" role="status" aria-live="assertive" aria-atomic="true"></div>
+
+    <!-- Dictionary load status (non-critical info) -->
+    <div id="dict-status" aria-live="polite"></div>
+
+    <!-- ============================================
+         ON-SCREEN KEYBOARD
+         Rendered dynamically by renderKeyboard()
+         ============================================ -->
+    <!-- Deliberately untagged with data-fs-role — the shared "controls" role's
+         15vw side padding was designed for the joystick+button pair (keeps
+         them thumb-reachable, inset from the true screen edges), which
+         squeezes a full-width keyboard row far too narrow. A full 10-key
+         row needs its own existing width handling (see #keyboard CSS)
+         instead, and default (untagged) flex-item sizing already keeps it
+         docked at the bottom, sized to its own content. -->
+    <div id="keyboard" role="group" aria-label="Letter keyboard"></div>
+
+    <!-- ============================================
+         TAP TO PLAY GATE
+         Shown on page load, on both desktop and mobile.
+         The button stays disabled ("Loading…") until the
+         dictionary finishes loading. Tapping it is the
+         real user gesture mobile fullscreen is entered on.
+         ============================================ -->
+    <div class="overlay" id="startOverlay" role="dialog" aria-modal="true" aria-labelledby="startOverlayTitle">
+      <div class="overlay-card">
+        <h2 id="startOverlayTitle">Ready?</h2>
+        <p>The AI has gone berserk and already guessed twice! Help it solve these four words in 7 more guesses.</p>
+        <button type="button" class="btn btn-secondary" id="startBtn" disabled>Loading…</button>
+      </div>
+    </div>
+
+    <!-- ============================================
+         END-OF-GAME OVERLAY
+         Shown once all 4 boards are solved or the
+         player runs out of guesses.
+         ============================================ -->
+    <div class="overlay hidden" id="endOverlay" role="dialog" aria-modal="true" aria-labelledby="endOverlayTitle">
+      <div class="overlay-card">
+        <button type="button" class="game-over-close" id="endOverlayClose" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        </button>
+        <h2 id="endOverlayTitle">Game Over</h2>
+        <p id="endOverlayText"></p>
+        <button type="button" class="btn btn-secondary" id="playAgainBtn">Play Again</button>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="../game-fullscreen.js"></script>
+  <script>
+  /* ============================================
+     Fix My 4ordle — GRaiT GAMES
+     A 4ordle variant: the first two guess rows are
+     pre-filled with random, deliberately awkward
+     5-letter words (never the solution, exactly one
+     vowel each) before the player gets a turn —
+     leaving only 7 of the normal 9 guesses to
+     actually solve the four boards.
+
+     Built for: GRaiT GAMES (www.graitgames.com)
+     Father-son AI learning project.
+
+     Word list source:
+     github.com/tabatkins/wordle-list
+     (fetched once, cached in localStorage)
+     ============================================ */
+  (function () {
+    'use strict';
+
+    /* ============================================
+       ANSWER POOL
+       These are the words chosen as hidden answers.
+       They are common, familiar 5-letter words.
+       The full validation dictionary (from GitHub)
+       is much larger and used to check guesses.
+       ============================================ */
+    var ANSWERS = [
+      /* --- A --- */
+      "about","above","abuse","actor","acute","admit","adopt","adult","after","again",
+      "agent","agree","ahead","alarm","album","alert","alike","alive","alley","allow",
+      "alone","along","alter","amber","among","angel","anger","angle","angry","anime",
+      "ankle","apart","apple","apply","apron","arena","argue","arise","array","arrow",
+      "aside","asset","attic","audit","avoid","awake","award","aware","awful",
+      /* --- B --- */
+      "bacon","badge","baker","basic","basis","batch","beach","beard","beast","began",
+      "begin","begun","being","below","bench","birch","birth","black","blade","blame",
+      "bland","blank","blast","blaze","bleak","blend","bless","blind","blink","block",
+      "blood","bloom","blown","blunt","board","bonus","boost","booth","bound","brain",
+      "brand","brass","brave","bread","break","breed","brick","brief","brine","bring",
+      "brisk","broad","broke","brook","broom","broth","brown","brush","build","built",
+      "bulge","bulky","burst","buyer",
+      /* --- C --- */
+      "cabin","cable","camel","candy","cargo","carry","catch","cause","cedar","chain",
+      "chair","chalk","chaos","chart","chase","cheap","check","cheek","cheer","chess",
+      "chest","chief","child","china","choir","chose","civic","civil","claim","clamp",
+      "clash","class","clean","clear","clerk","click","cliff","climb","cling","clock",
+      "close","cloth","cloud","clown","coach","coast","comet","comic","coral","could",
+      "count","court","cover","craft","cramp","crash","crazy","cream","creek","crime",
+      "crisp","cross","crowd","crown","cruel","crumb","crush","curve","cycle",
+      /* --- D --- */
+      "daily","daisy","dance","dealt","death","debut","decoy","defer","delay","delta",
+      "dense","depot","depth","derby","digit","dirty","disco","dizzy","doing","doubt",
+      "dough","dozen","draft","drain","drama","drape","drawn","dread","dream","dress",
+      "dried","drift","drill","drink","drive","drove","dryer","dwarf","dying",
+      /* --- E --- */
+      "eager","early","earth","eight","elite","ember","empty","enemy","enjoy","enter",
+      "entry","equal","error","essay","event","every","exact","exist","extra",
+      /* --- F --- */
+      "fable","faith","false","fancy","fault","feast","fence","ferry","fever","fiber",
+      "field","fifth","fifty","fight","final","finch","first","fjord","flare","flash",
+      "fleet","flesh","float","floor","fluid","flute","focus","foggy","force","forge",
+      "forth","forty","forum","found","frame","frank","fraud","fresh","front","frost",
+      "fruit","fully","funny","fuzzy",
+      /* --- G --- */
+      "gauze","giant","given","glade","glass","gleam","glide","globe","gloom","gloss",
+      "glove","going","grace","grade","grand","grant","grasp","grass","grate","grave",
+      "graze","great","greed","green","greet","grief","grill","groan","groin","grope",
+      "gross","group","grove","grown","gruff","guard","guava","guess","guest","guide",
+      "guile","guise","gulch","gully","gusto","gypsy",
+      /* --- H --- */
+      "habit","happy","harsh","heart","heavy","hedge","helix","hence","hippo","holly",
+      "homer","honey","honor","horse","hotel","house","human","humid","hurry","hyena",
+      /* --- I --- */
+      "icing","ideal","image","inbox","index","inept","infer","inner","input","irony",
+      "issue","ivory",
+      /* --- J --- */
+      "jazzy","jewel","jiffy","jolly","joust","judge","juice","juicy","jumbo","jumpy",
+      /* --- K --- */
+      "kayak","kebab","khaki","kinky","kitty","knack","kneel","knelt","knife","knock",
+      "knoll","known",
+      /* --- L --- */
+      "label","lance","large","later","laugh","layer","leafy","learn","lease","least",
+      "leave","ledge","legal","level","light","limit","liver","llama","local","lodge",
+      "logic","loose","lower","lucky","lunar","lunch","lusty","lying",
+      /* --- M --- */
+      "magic","major","maker","manor","maple","march","masse","match","maxim","mayor",
+      "meant","media","mercy","merit","metal","milky","mimic","minor","minus","model",
+      "money","month","moral","mossy","motor","mount","mouse","mouth","movie","muddy",
+      "mulch","music","musty","myrrh",
+      /* --- N --- */
+      "naive","nasty","never","newly","night","noble","noise","north","novel","nudge",
+      "nurse","nutty","nymph",
+      /* --- O --- */
+      "occur","ocean","offer","often","olive","onion","optic","orbit","order","other",
+      "ought","outdo","outer","ovary","ozone",
+      /* --- P --- */
+      "paint","panel","panic","paper","party","pasta","pasty","peace","pearl","pedal",
+      "penny","perch","pesky","phase","phone","photo","piano","piece","pilot","pinch",
+      "pitch","pixel","pizza","place","plaid","plain","plane","plank","plant","plate",
+      "plaza","plead","pluck","plumb","plume","plump","plunk","point","polar","polka",
+      "pound","power","press","price","pride","prime","print","prior","prism","prize",
+      "probe","prone","proof","proud","prove","prowl","puffy","pulse","puppy","purse",
+      /* --- Q --- */
+      "qualm","queen","query","quest","queue","quick","quiet","quirk","quite","quota",
+      "quoth",
+      /* --- R --- */
+      "rabbi","radar","radio","raise","rally","ranch","range","rapid","ratio","raven",
+      "reach","ready","realm","rebel","refer","reign","relax","relic","repay","repel",
+      "rider","rifle","right","risky","rival","river","robin","rocky","rouge","rough",
+      "round","route","royal","rugby","ruler","rural","rusty",
+      /* --- S --- */
+      "salad","sandy","sauce","savvy","scald","scalp","scaly","scamp","scant","scare",
+      "scarf","scary","scene","scone","scope","score","scout","scowl","seize","sense",
+      "serve","seven","shack","shade","shady","shaft","shake","shaky","shall","shame",
+      "shape","share","shark","sharp","shawl","sheen","sheep","sheer","sheet","shelf",
+      "shell","shift","shirt","shock","shoot","short","shown","shrug","siege","sight",
+      "since","sixth","sixty","skate","skill","skimp","skull","slang","slash","sleep",
+      "sleet","slide","slime","slimy","sling","sloth","small","smart","smear","smile",
+      "smirk","smite","smoke","snack","snail","snake","snare","sneak","sniff","snore",
+      "snowy","solar","solid","solve","sorry","sound","south","space","spare","spark",
+      "spawn","speak","spear","speed","spend","spicy","spill","spine","spite","split",
+      "spoke","spoof","spook","sport","spout","staff","stage","stain","stake","stale",
+      "stall","stand","stare","stark","start","state","steam","steel","steep","steer",
+      "stern","stick","stiff","still","stock","stomp","stone","stood","store","stork",
+      "storm","story","stout","strap","straw","strip","strut","stuck","study","stuff",
+      "stump","stung","style","sugar","suite","sulky","super","surge","swamp","swear",
+      "sweat","sweep","sweet","swift","swirl","swoop",
+      /* --- T --- */
+      "table","taken","tango","tangy","tardy","taste","teach","teeth","tempo","tense",
+      "tenth","thank","theft","their","theme","there","these","thick","thing","think",
+      "third","those","three","threw","throw","thumb","tidal","tiger","tight","timid",
+      "title","today","token","tonic","topic","total","touch","tough","tower","toxic",
+      "track","trade","trail","train","tramp","trash","treat","trend","trial","tried",
+      "troop","trout","trove","truce","truck","truly","trump","trunk","trust","truth",
+      "tulip","twice","twixt",
+      /* --- U --- */
+      "udder","ulcer","unfit","unity","until","upper","upset","urban","usage","usual",
+      "utter",
+      /* --- V --- */
+      "vague","valid","valor","valve","vapor","vault","vaunt","venom","verge","vigor",
+      "viral","virus","visit","visor","vista","vital","vivid","vixen","voice","vomit",
+      "voter","vouch",
+      /* --- W --- */
+      "waltz","waste","watch","water","weary","weave","wedge","weedy","weird","whale",
+      "wheat","wheel","where","which","while","white","whole","whose","widow","wield",
+      "windy","witty","woman","women","world","worry","worse","worst","worth","would",
+      "wound","wrath","write","wrong","wrote",
+      /* --- Y --- */
+      "yacht","yearn","yield","young","youth",
+      /* --- Z --- */
+      "zebra","zesty","zonal"
+    ];
+
+    /* ============================================
+       VALIDATION DICTIONARY
+       We fetch the full ~14,000-word Wordle list
+       from the official public GitHub repo by
+       tabatkins. This is the same list the NYT
+       Wordle game uses to validate guesses.
+
+       Strategy:
+       1. Check localStorage for a cached copy
+       2. If missing/stale, fetch from GitHub
+       3. On network failure, fall back to ANSWERS
+       ============================================ */
+    var DICT_URL       = "https://raw.githubusercontent.com/tabatkins/wordle-list/main/words";
+    var DICT_CACHE_KEY = "graitFordle_dict_v1"; /* same cache as 4ordle — identical word list, no need to fetch twice */
+    var VALID_GUESSES  = null; /* Will be a Set<string> once loaded */
+
+    async function loadDictionary() {
+      /* --- Try localStorage cache first (instant load) --- */
+      try {
+        var cached = localStorage.getItem(DICT_CACHE_KEY);
+        if (cached) {
+          var arr = JSON.parse(cached);
+          if (Array.isArray(arr) && arr.length > 5000) {
+            VALID_GUESSES = new Set(arr);
+            setDictStatus(''); /* loaded silently — no debug text on screen */
+            return;
+          }
+        }
+      } catch (cacheError) { /* Cache corrupt — continue to network fetch */ }
+
+      /* --- Fetch from GitHub (one-time, ~100 KB) --- */
+      try {
+        setDictStatus('Fetching Wordle dictionary from GitHub (~100 KB, one-time)…');
+        var res = await fetch(DICT_URL);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var text = await res.text();
+
+        /* Filter to only clean 5-letter lowercase words */
+        var words = text.split(/\s+/).filter(function (w) {
+          return /^[a-z]{5}$/.test(w);
+        });
+
+        if (words.length < 5000) throw new Error('List suspiciously short');
+
+        VALID_GUESSES = new Set(words);
+
+        /* Cache for next visit */
+        try { localStorage.setItem(DICT_CACHE_KEY, JSON.stringify(words)); } catch (e) {}
+
+        setDictStatus(''); /* loaded silently — no debug text on screen */
+
+      } catch (networkError) {
+        /* Graceful fallback: use answer pool only */
+        VALID_GUESSES = new Set(ANSWERS);
+        setDictStatus('⚠ Could not load full dictionary — using built-in word list. Some valid words may be rejected.');
+      }
+    }
+
+    function setDictStatus(message) {
+      document.getElementById('dict-status').textContent = message;
+    }
+
+    /* ============================================
+       CONSTANTS & CONFIGURATION
+       Centralised here so they're easy to find
+       and change if we ever want to adjust the game.
+       ============================================ */
+    var NUM_BOARDS  = 4;  /* Number of simultaneous boards */
+    var MAX_GUESSES = 9;  /* Maximum guesses allowed (2 are pre-filled, leaving 7 for the player) */
+    var WORD_LEN    = 5;  /* Letters per word */
+    var PREFILL_ROWS = 2; /* Number of guess rows already filled in before the player's turn */
+
+    /* Mobile fullscreen — entered on the Tap to Play gate's button, the
+       real user gesture the browser requires (see BOOT SEQUENCE below). */
+    var MOBILE_FULLSCREEN = true;
+    var fullscreen = GameFullscreen.init({ el: 'game', enabled: MOBILE_FULLSCREEN });
+
+    /* ============================================
+       GAME STATE
+       All mutable game data lives here.
+       Reset by newGame() at the start of each round.
+       ============================================ */
+    var targets      = []; /* The 4 hidden answer words */
+    var solved       = []; /* Boolean per board: has it been solved? */
+    var guesses      = []; /* Array of submitted guess strings (shared across boards) */
+    var currentGuess = ''; /* Letters typed so far (not yet submitted) */
+    var keyState     = {}; /* letter -> best status seen across all boards */
+    var gameOver     = false;
+
+    /* ============================================
+       TARGET SELECTION
+       Fisher-Yates partial shuffle: picks 4 unique
+       random words from the answer pool.
+
+       Why unique? So two boards never share the
+       same answer — that would be confusing and unfair.
+       ============================================ */
+    function pickTargets() {
+      var pool = ANSWERS.slice(); /* Copy so we don't modify the original */
+      var selected = [];
+      for (var i = 0; i < NUM_BOARDS; i++) {
+        var randomIndex = Math.floor(Math.random() * pool.length);
+        selected.push(pool.splice(randomIndex, 1)[0]);
+        /* splice() removes the chosen word so it can't be picked again */
+      }
+      return selected;
+    }
+
+    /* ============================================
+       PRE-FILL WORD SELECTION (Fix My 4ordle twist)
+       Picks the words that fill the first two guess
+       rows before the player's turn. Both rules are
+       enforced against the full validation dictionary
+       (not just the smaller ANSWERS pool), since that
+       gives far more candidates with exactly one vowel:
+         1. Never one of the 4 current solutions.
+         2. Exactly one vowel (a/e/i/o/u) in the word.
+       ============================================ */
+    function countVowels(word) {
+      var count = 0;
+      for (var i = 0; i < word.length; i++) {
+        if ('aeiou'.indexOf(word[i]) !== -1) count++;
+      }
+      return count;
+    }
+
+    function pickPrefillWords(targetWords) {
+      var candidates = [];
+      VALID_GUESSES.forEach(function (w) {
+        if (countVowels(w) === 1 && targetWords.indexOf(w) === -1) {
+          candidates.push(w);
+        }
+      });
+      var picks = [];
+      while (picks.length < PREFILL_ROWS && candidates.length > 0) {
+        var idx = Math.floor(Math.random() * candidates.length);
+        picks.push(candidates.splice(idx, 1)[0]);
+      }
+      return picks;
+    }
+
+    /* ============================================
+       NEW GAME
+       Resets all state, pre-fills the first two guess
+       rows with awkward random words, and renders.
+       ============================================ */
+    function newGame() {
+      if (!VALID_GUESSES) return; /* Safety: don't start before dictionary loads */
+      targets      = pickTargets();
+      solved       = [false, false, false, false];
+      guesses      = [];
+      currentGuess = '';
+      keyState     = {};
+      gameOver     = false;
+      document.getElementById('message').textContent = '';
+      hideEndOverlay();
+
+      /* The Fix My 4ordle twist: two rows are already "used" before the
+         player gets a turn, leaving MAX_GUESSES - PREFILL_ROWS (7) guesses
+         to actually solve the boards. Processed through the exact same
+         scoring path a real submitted guess uses, so the boards and
+         keyboard reflect them identically to a normal guess. */
+      var prefillWords = pickPrefillWords(targets);
+      for (var p = 0; p < prefillWords.length; p++) {
+        scoreAndRecordGuess(prefillWords[p]);
+      }
+
+      renderBoards();
+      renderKeyboard();
+      updateStatus();
+    }
+
+    /* ============================================
+       SCORING ALGORITHM
+       Given a guess and a target word, returns an
+       array of 5 status strings: "correct", "present",
+       or "absent" for each letter position.
+
+       Two-pass approach (same as official Wordle):
+       Pass 1: Mark exact matches (correct).
+       Pass 2: Mark letters in wrong position (present).
+
+       We track letter counts to handle duplicate
+       letters correctly — e.g. guessing "speed"
+       against "debug" should only mark one 'e'.
+       ============================================ */
+    function scoreGuess(guess, target) {
+      var result     = ['absent', 'absent', 'absent', 'absent', 'absent'];
+      var targetArr  = target.split('');
+      var guessArr   = guess.split('');
+      var letterCounts = {}; /* How many of each letter remain unmatched in target */
+
+      /* Pass 1: Find correct (green) letters */
+      for (var i = 0; i < WORD_LEN; i++) {
+        if (guessArr[i] === targetArr[i]) {
+          result[i] = 'correct';
+        } else {
+          /* Count unmatched target letters for pass 2 */
+          letterCounts[targetArr[i]] = (letterCounts[targetArr[i]] || 0) + 1;
+        }
+      }
+
+      /* Pass 2: Find present (orange) letters */
+      for (var j = 0; j < WORD_LEN; j++) {
+        if (result[j] === 'correct') continue; /* Already matched */
+        var letter = guessArr[j];
+        if (letterCounts[letter] > 0) {
+          result[j] = 'present';
+          letterCounts[letter]--; /* Consume one count so duplicates aren't over-marked */
+        }
+      }
+
+      return result;
+    }
+
+    /* ============================================
+       KEYBOARD STATE TRACKING
+       We show the best status a letter has achieved
+       across ALL boards on the keyboard.
+
+       Priority: correct > present > absent
+       (A letter that's correct in board 1 should
+       show green even if it's absent in board 2)
+       ============================================ */
+    var STATUS_RANK = { absent: 1, present: 2, correct: 3 };
+
+    /* keyState[letter] is an array of 4 statuses — one per board — so the
+       on-screen key can show each board's progress in its own quadrant.
+       For a given board we keep the BEST status seen (correct > present >
+       absent), exactly like the official Quordle keyboard. */
+    function bumpKeyState(letter, boardIndex, newStatus) {
+      if (!keyState[letter]) keyState[letter] = [null, null, null, null];
+      var currentStatus = keyState[letter][boardIndex];
+      if (!currentStatus || STATUS_RANK[newStatus] > STATUS_RANK[currentStatus]) {
+        keyState[letter][boardIndex] = newStatus;
+      }
+    }
+
+    /* ============================================
+       RENDER: BOARDS
+       Rebuilds all four boards from current state.
+       Called after every guess and keypress.
+       ============================================ */
+    function renderBoards() {
+      var container = document.getElementById('boards');
+      container.innerHTML = '';
+
+      for (var b = 0; b < NUM_BOARDS; b++) {
+        var boardEl = document.createElement('div');
+        boardEl.className = 'board';
+        boardEl.setAttribute('aria-label', 'Board ' + (b + 1) + (solved[b] ? ', solved' : ''));
+
+        if (solved[b])  boardEl.classList.add('solved');
+        else if (gameOver) boardEl.classList.add('failed');
+
+        var gridEl = document.createElement('div');
+        gridEl.className = 'grid';
+        gridEl.setAttribute('role', 'grid');
+        gridEl.setAttribute('aria-label', 'Board ' + (b + 1) + ' guesses');
+
+        for (var r = 0; r < MAX_GUESSES; r++) {
+          var rowEl  = document.createElement('div');
+          rowEl.className = 'row';
+          rowEl.setAttribute('role', 'row');
+
+          var isActive = (r === guesses.length && !solved[b] && !gameOver);
+          var isPlayed = (r < guesses.length);
+          if (!isActive && !isPlayed) rowEl.classList.add('row-empty');
+          if (isActive) rowEl.classList.add('row-active');
+
+          var rowText   = '';
+          var rowStatus = null;
+
+          if (r < guesses.length) {
+            /* This row has a submitted guess */
+            rowText = guesses[r];
+
+            if (solved[b]) {
+              /* Once a board is solved, stop showing rows after the winning guess */
+              var winGuessIndex = guesses.indexOf(targets[b]);
+              if (r > winGuessIndex) {
+                rowText = ''; /* Blank rows after the solve */
+              } else {
+                rowStatus = scoreGuess(rowText, targets[b]);
+                if (rowStatus && rowStatus.every(function(s) { return s === 'correct'; })) {
+                  rowEl.classList.add('row-solved');
+                }
+              }
+            } else {
+              rowStatus = scoreGuess(rowText, targets[b]);
+            }
+
+          } else if (r === guesses.length && !solved[b] && !gameOver) {
+            /* This is the active row — show letters being typed */
+            rowText = currentGuess.padEnd(WORD_LEN, ' ');
+          }
+
+          /* Render each tile in the row */
+          for (var c = 0; c < WORD_LEN; c++) {
+            var tileEl = document.createElement('div');
+            tileEl.className = 'tile';
+            tileEl.setAttribute('role', 'gridcell');
+
+            var ch = (rowText[c] && rowText[c] !== ' ') ? rowText[c] : '';
+            tileEl.textContent = ch;
+
+            if (rowStatus) {
+              tileEl.classList.add(rowStatus[c]);
+              tileEl.setAttribute('aria-label', ch + ' ' + rowStatus[c]);
+            } else if (ch) {
+              tileEl.classList.add('filled');
+              tileEl.setAttribute('aria-label', ch);
+            } else {
+              tileEl.setAttribute('aria-label', 'empty');
+            }
+
+            rowEl.appendChild(tileEl);
+          }
+
+          gridEl.appendChild(rowEl);
+        }
+
+        boardEl.appendChild(gridEl);
+        container.appendChild(boardEl);
+      }
+    }
+
+    /* ============================================
+       RENDER: KEYBOARD
+       Three rows of keys. Each key shows the best
+       status it has achieved across all boards.
+       ============================================ */
+    var KEY_ROWS = [
+      'qwertyuiop'.split(''),
+      'asdfghjkl'.split(''),
+      ['BACK', 'z','x','c','v','b','n','m', 'ENTER']
+    ];
+
+    function renderKeyboard() {
+      var kb = document.getElementById('keyboard');
+      kb.innerHTML = '';
+
+      for (var ri = 0; ri < KEY_ROWS.length; ri++) {
+        var rowEl = document.createElement('div');
+        rowEl.className = 'krow';
+
+        for (var ki = 0; ki < KEY_ROWS[ri].length; ki++) {
+          var k   = KEY_ROWS[ri][ki];
+          var btn = document.createElement('button');
+          btn.className = 'key';
+          btn.type = 'button';
+
+          var isAction = (k === 'ENTER' || k === 'BACK');
+
+          if (isAction) {
+            btn.classList.add('wide');
+            btn.dataset.key = k;
+            /* Action keys have no quadrants: BACK shows ⌫, ENTER shows label */
+            btn.textContent = k === 'BACK' ? '⌫' : k;
+          } else {
+            /* Letter key: render four quadrant layers (one per board) then the
+               letter label on top. Each quadrant is tinted by that board's
+               best-known status for this letter. */
+            var status = keyState[k.toLowerCase()]; /* array[4] or undefined */
+            /* hasHint = true only if this letter still gives USEFUL information,
+               i.e. it has a green/orange status on a board that's NOT yet solved.
+               Colored hints on already-solved boards don't count — that info is
+               spent — so a letter whose only colors are on solved boards becomes
+               dead. */
+            var hasHint = false;
+            for (var q = 0; q < 4; q++) {
+              var quad = document.createElement('span');
+              quad.className = 'quad q' + q;
+              var st = status ? status[q] : null;
+              /* Once a board is solved, everything about it is moot — a letter
+                 that's been guessed at all (status truthy) reads as the same
+                 resolved grey ('absent') on that board's quadrant, whether it
+                 was actually correct, present, or simply never tested against
+                 this specific board (e.g. first typed in a later guess, after
+                 this board had already stopped being scored). A letter that's
+                 never been guessed anywhere stays fully untouched (status
+                 itself is null) instead of being marked resolved too. */
+              var effectiveSt = (solved[q] && status) ? 'absent' : st;
+              if (effectiveSt) {
+                quad.classList.add(effectiveSt);
+              }
+              /* Only an unsolved board's colored status keeps the letter alive. */
+              if (!solved[q] && (st === 'correct' || st === 'present')) {
+                hasHint = true;
+              }
+              btn.appendChild(quad);
+            }
+
+            /* "Dead" letter: used in a guess but no longer useful — it has no
+               green/orange status on ANY unsolved board (either it's in none of
+               the words, or its only colored boards are already solved). Give
+               the whole key a grey background so eliminated letters are obvious
+               at a glance — a double cue alongside the grey label. */
+            if (status && !hasHint) btn.classList.add('dead');
+
+            var label = document.createElement('span');
+            label.className = 'klabel';
+            /* Dim letters that have already been used in a guess (white -> grey)
+               so players can see at a glance which letters they've tried. */
+            if (status) label.classList.add('used');
+            label.textContent = k;
+            btn.appendChild(label);
+          }
+
+          /* Accessible label for screen readers */
+          btn.setAttribute('aria-label',
+            k === 'BACK'  ? 'Backspace' :
+            k === 'ENTER' ? 'Enter guess' :
+            'Letter ' + k.toUpperCase()
+          );
+
+          /* Closure trick: capture k in its own scope */
+          (function (key) {
+            btn.addEventListener('click', function () { handleKey(key); });
+          }(k));
+
+          rowEl.appendChild(btn);
+        }
+        kb.appendChild(rowEl);
+      }
+    }
+
+    /* ============================================
+       UPDATE STATUS BAR
+       While playing: "X / 4 solved · Guess N / 9"
+       When all solved: "4 / 4 solved · N Guesses"
+       ============================================ */
+    function updateStatus() {
+      var solvedCount = solved.filter(Boolean).length;
+      var statusEl    = document.getElementById('status');
+      if (solvedCount === 4) {
+        var used = guesses.length;
+        statusEl.textContent =
+          '4 / 4 solved · ' + used + (used === 1 ? ' Guess' : ' Guesses');
+      } else {
+        var guessNum = Math.min(guesses.length + 1, MAX_GUESSES);
+        statusEl.textContent =
+          solvedCount + ' / 4 solved · Guess ' + guessNum + ' / ' + MAX_GUESSES;
+      }
+    }
+
+    /* ============================================
+       FLASH MESSAGE
+       Shows temporary feedback (auto-clears after
+       1.8 seconds). Uses aria-live so screen readers
+       announce it without user action.
+       ============================================ */
+    var flashTimer = null;
+    function flashMessage(msg) {
+      var el = document.getElementById('message');
+      el.textContent = msg;
+      clearTimeout(flashTimer);
+      flashTimer = setTimeout(function () { el.textContent = ''; }, 1800);
+    }
+
+    /* ============================================
+       END-OF-GAME OVERLAY
+       Shows the final results (and any missed words)
+       in a pop-up once the game ends, instead of the
+       transient flash message used for in-round hints.
+       ============================================ */
+    function showEndOverlay(title, text) {
+      document.getElementById('endOverlayTitle').textContent = title;
+      document.getElementById('endOverlayText').innerHTML = text;
+      playAgainHandled = false;
+      endOverlayCloseHandled = false;
+      document.getElementById('endOverlay').classList.remove('hidden');
+    }
+    function hideEndOverlay() {
+      document.getElementById('endOverlay').classList.add('hidden');
+    }
+
+    // Both buttons below live in the end-of-game popup, which appears
+    // mid-gameplay (right as the last guess is submitted) — the same
+    // situation that needed pointerup+click (not click alone) elsewhere,
+    // since a plain click can be delayed or dropped by iOS Safari's touch
+    // handling for an element that just became interactive. Each is
+    // guarded against double-firing (a mouse click fires both events).
+    var playAgainHandled = false;
+    function guardedPlayAgain() {
+      if (playAgainHandled) return;
+      playAgainHandled = true;
+      newGame();
+    }
+    document.getElementById('playAgainBtn').addEventListener('pointerup', guardedPlayAgain);
+    document.getElementById('playAgainBtn').addEventListener('click', guardedPlayAgain);
+
+    var endOverlayCloseHandled = false;
+    function closeEndOverlay() {
+      if (endOverlayCloseHandled) return;
+      endOverlayCloseHandled = true;
+      hideEndOverlay();
+    }
+    document.getElementById('endOverlayClose').addEventListener('pointerup', closeEndOverlay);
+    document.getElementById('endOverlayClose').addEventListener('click', closeEndOverlay);
+
+    /* ============================================
+       INPUT HANDLING
+       Single entry point for all input — keyboard
+       events and on-screen key clicks both call here.
+       ============================================ */
+    function handleKey(k) {
+      if (gameOver || !VALID_GUESSES) return;
+
+      if (k === 'ENTER') {
+        submitGuess();
+        return;
+      }
+
+      if (k === 'BACK') {
+        currentGuess = currentGuess.slice(0, -1); /* Remove last character */
+        renderBoards();
+        return;
+      }
+
+      /* Only accept single alphabet characters, and only if under word length */
+      if (/^[a-zA-Z]$/.test(k) && currentGuess.length < WORD_LEN) {
+        currentGuess += k.toLowerCase();
+        renderBoards();
+      }
+    }
+
+    /* ============================================
+       SCORE + RECORD A GUESS
+       Shared by submitGuess() (the player's own guesses)
+       and newGame()'s pre-fill step — scores a word
+       against every unsolved board, updates the keyboard
+       state, and marks any board it happens to solve.
+       Does NOT touch currentGuess, end-of-game checks, or
+       re-rendering — callers handle those themselves.
+       ============================================ */
+    function scoreAndRecordGuess(word) {
+      guesses.push(word);
+
+      for (var b = 0; b < NUM_BOARDS; b++) {
+        if (solved[b]) continue; /* Skip already-solved boards */
+
+        var score = scoreGuess(word, targets[b]);
+
+        /* Update keyboard colour for each letter, per board */
+        for (var i = 0; i < WORD_LEN; i++) {
+          bumpKeyState(word[i], b, score[i]);
+        }
+
+        /* Check if this guess solves this board */
+        if (word === targets[b]) {
+          solved[b] = true;
+        }
+      }
+    }
+
+    /* ============================================
+       SUBMIT GUESS
+       Validates the guess, scores it against all
+       boards, checks win/lose conditions, and
+       updates all UI.
+       ============================================ */
+    function submitGuess() {
+      /* Must have a full 5-letter word */
+      if (currentGuess.length !== WORD_LEN) {
+        flashMessage('Need 5 letters!');
+        return;
+      }
+
+      /* Must be in the official Wordle dictionary */
+      if (!VALID_GUESSES.has(currentGuess)) {
+        flashMessage('Not in word list');
+        return;
+      }
+
+      scoreAndRecordGuess(currentGuess);
+      currentGuess = ''; /* Clear the active guess */
+
+      /* --- Check end conditions --- */
+      var allSolved = solved.every(Boolean);
+
+      if (allSolved) {
+        gameOver = true;
+        setTimeout(function () {
+          showEndOverlay(
+            '🎉 You Solved It!',
+            'All 4 words solved in ' + guesses.length + ' guesses!<br>' +
+            '<span class="missed-words">' + targets.join(', ').toUpperCase() + '</span>'
+          );
+        }, 120);
+
+      } else if (guesses.length >= MAX_GUESSES) {
+        gameOver = true;
+        /* Show which words the player solved vs. missed */
+        var solvedWords = targets.filter(function (_, i) { return solved[i]; });
+        var missedWords = targets.filter(function (_, i) { return !solved[i]; });
+        setTimeout(function () {
+          var text = 'You ran out of guesses.';
+          if (solvedWords.length) {
+            text += '<br>Solved: ' + solvedWords.join(', ').toUpperCase();
+          }
+          text += '<br>Missed: <span class="missed-words">' + missedWords.join(', ').toUpperCase() + '</span>';
+          showEndOverlay('Out of Guesses', text);
+        }, 120);
+      }
+
+      renderBoards();
+      renderKeyboard();
+      updateStatus();
+    }
+
+    /* ============================================
+       KEYBOARD INPUT (Physical keyboard)
+       Maps keyboard events to our handleKey function.
+       e.preventDefault() stops arrow keys / space
+       from scrolling the page while playing.
+       ============================================ */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleKey('ENTER');
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleKey('BACK');
+      } else if (/^[a-zA-Z]$/.test(e.key)) {
+        handleKey(e.key);
+      }
+    });
+
+    /* ============================================
+       BOOT SEQUENCE
+       1. Load the dictionary (async — may take a moment) — the Tap to
+          Play gate's button stays disabled ("Loading…") until this
+          finishes, matching the existing Restart-button pattern.
+       2. Enable the Restart button and the gate's Start button.
+       3. Wait for the player to tap the gate — that's the real user
+          gesture mobile fullscreen enters on, and the point where the
+          first game actually starts (not on page load), matching
+          Gnome Crawler and Save My Chicks.
+       ============================================ */
+    var newBtn = document.getElementById('newBtn');
+    var startOverlay = document.getElementById('startOverlay');
+    var startBtn = document.getElementById('startBtn');
+
+    (async function init() {
+      await loadDictionary();
+      newBtn.disabled = false;
+      startBtn.disabled = false;
+      startBtn.textContent = '▶ Start Game';
+    }());
+
+    /* Attach click handlers here (inside the IIFE) so they can reach the
+       private newGame() function. The old inline onclick="newGame()" failed
+       because newGame is not on the global scope. */
+    startBtn.addEventListener('click', function () {
+      if (fullscreen) fullscreen.enter();
+      startOverlay.classList.add('hidden');
+      newGame();
+    });
+    /* Restart re-shows the Tap to Play gate rather than jumping straight
+       into a new round, matching Gnome Crawler/Save My Chicks — Play
+       Again (in the end-of-game popup) is the one that skips the gate
+       and starts a new round immediately. */
+    newBtn.addEventListener('click', function () {
+      startOverlay.classList.remove('hidden');
+    });
+
+  }()); /* End IIFE — no globals polluted */
+  </script>
+
+  <!-- Site nav and footer injected by these scripts (one level up) -->
+  <script src="../nav.js"></script>
+  <script src="../footer.js"></script>
+
+</body>
+</html>
