@@ -215,7 +215,7 @@
            leaderboard panel (appended after .game-viewport by leaderboard.js)
            flows underneath instead of overlapping the game or getting hidden
            behind the fixed-height .game-stage box. -->
-      <div class="game-viewport">
+      <div class="game-viewport" id="gameViewport">
         <div class="game-canvas-frame">
           <canvas id="gameCanvas" aria-label="Save My Chicks game area"></canvas>
         </div>
@@ -238,6 +238,7 @@
   <script src="../game-over-card.js"></script>
   <script src="../game-fullscreen.js"></script>
   <script src="../touch-joystick.js"></script>
+  <script src="../pause-button.js"></script>
   <script>
   (function () {
     'use strict';
@@ -263,6 +264,12 @@
       parent: 'game',
       color: 'orange',
       onPlayAgain: function () { startGame(); }
+    });
+
+    var pauseBtn = PauseButton.init({
+      parent: 'gameViewport',
+      onPause: function () { paused = true; },
+      onResume: function () { paused = false; }
     });
 
     var W = 760, H = 570; // logical resolution (4:3)
@@ -296,12 +303,14 @@
       bgPrimary: '#07070F',
       bgSecondary: '#0D0D1A',
       white: '#FFFFFF',
-      muted: 'rgba(255,255,255,0.6)'
+      muted: 'rgba(255,255,255,0.6)',
+      purple: '#B347FF'
     };
 
     // ---------- Game state ----------
+    var MAX_LIVES = 5;
     var currentScore = 0;
-    var lives = 5;
+    var lives = MAX_LIVES;
     var wave = 1;
     var running = false;
     var paused = false;
@@ -331,6 +340,15 @@
     var catsSpawned = 0;
     var catsHandled = 0; // popped or escaped, to know when wave ends
     var waveBanner = { text: '', timer: 0 }; // on-screen "WAVE N" notice
+    var globalTime = 0; // accumulated seconds, used for idle animation (nest bob, etc.)
+
+    // Chick-rescue bonus (Wave 3+): one purple balloon carrying a rescuable
+    // chick may appear per wave, only while the nest is missing a chick.
+    var RESCUE_MIN_WAVE = 3;
+    var CHICK_RESCUE_BALLOON_DY = -22; // balloon's draw offset from chickRescue.y — the hittable target, not the chick hanging below it
+    var chickRescue = null; // {x, y, vy} while active, else null
+    var rescueSpawnedThisWave = false;
+    var rescueThreshold = 0; // catsSpawned count that triggers the rescue balloon
 
     var keys = {};
     var aimDir = 0; // -1 up, 1 down
@@ -360,6 +378,7 @@
     });
 
     function handlePointer(clientX, clientY) {
+      if (!running || paused) return;
       var rect = canvas.getBoundingClientRect();
       var y = clientY - rect.top;
       bird.y = clamp(y, 40, H - 40);
@@ -398,7 +417,7 @@
 
     function resetGameState() {
       currentScore = 0;
-      lives = 5;
+      lives = MAX_LIVES;
       wave = 1;
       cats = [];
       seeds = [];
@@ -414,6 +433,10 @@
       bird.vy = 0;
       waveBanner.text = '';
       waveBanner.timer = 0;
+      globalTime = 0;
+      chickRescue = null;
+      rescueSpawnedThisWave = false;
+      rescueThreshold = randomRescueThreshold();
       initClouds();
       updateHUD();
     }
@@ -473,6 +496,24 @@
         wobble: (Math.random() - 0.5) * 0.6
       });
       catsSpawned++;
+
+      if (!rescueSpawnedThisWave && wave >= RESCUE_MIN_WAVE && lives < MAX_LIVES && catsSpawned >= rescueThreshold) {
+        spawnChickRescue();
+        rescueSpawnedThisWave = true;
+      }
+    }
+
+    function randomRescueThreshold() {
+      return 5 + Math.floor(Math.random() * 3); // 5, 6, or 7 cats spawned
+    }
+
+    function spawnChickRescue() {
+      var goingUp = Math.random() < 0.5;
+      chickRescue = {
+        x: W * 0.4 + Math.random() * (W * 0.4),
+        y: goingUp ? H + 30 : -30,
+        vy: goingUp ? -(70 + Math.random() * 30) : (70 + Math.random() * 30)
+      };
     }
 
     // ---------- Audio (synthesized — no external files, fully license-free) ----------
@@ -617,6 +658,31 @@
       }
     }
 
+    function playChickSavedSound() {
+      var ac = getAudioCtx();
+      if (!ac) return;
+      if (ac.state === 'suspended') ac.resume();
+
+      var now = ac.currentTime;
+
+      // bright ascending sparkle for a rescued chick
+      var freqs = [660, 880, 1100];
+      for (var k = 0; k < freqs.length; k++) {
+        var startT = now + k * 0.07;
+        var osc = ac.createOscillator();
+        var gain = ac.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freqs[k], startT);
+        gain.gain.setValueAtTime(0.001, startT);
+        gain.gain.linearRampToValueAtTime(0.2, startT + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, startT + 0.2);
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.start(startT);
+        osc.stop(startT + 0.22);
+      }
+    }
+
     function playCollisionSound() {
       var ac = getAudioCtx();
       if (!ac) return;
@@ -676,6 +742,8 @@
     // ---------- Update ----------
     function update(dt) {
       if (paused || !running) return;
+
+      globalTime += dt;
 
       // bird aim control
       var aimUp = keys['ArrowLeft'] || keys['a'] || keys['A'];
@@ -753,6 +821,29 @@
         }
       }
 
+      // update chick-rescue bonus balloon (Wave 3+, one chance per wave)
+      if (chickRescue) {
+        chickRescue.y += chickRescue.vy * dt;
+
+        var rescueBalloonY = chickRescue.y + CHICK_RESCUE_BALLOON_DY;
+        for (var rc = 0; rc < cats.length; rc++) {
+          var rcat = cats[rc];
+          if (!rcat.alive) continue;
+          var rdx = chickRescue.x - rcat.x;
+          var rdy = rescueBalloonY - rcat.y;
+          if (Math.sqrt(rdx * rdx + rdy * rdy) < 28 * ENTITY_SCALE) {
+            spawnParticles(chickRescue.x, rescueBalloonY, COLORS.purple, 14);
+            playPopSound();
+            chickRescue = null;
+            break;
+          }
+        }
+
+        if (chickRescue && (chickRescue.y < -50 || chickRescue.y > H + 50)) {
+          chickRescue = null;
+        }
+      }
+
       // update seeds
       for (var s = seeds.length - 1; s >= 0; s--) {
         var sd = seeds[s];
@@ -764,6 +855,24 @@
           updateHUD();
           continue;
         }
+        // collision with chick-rescue bonus balloon (hitbox is the balloon
+        // itself, not the chick hanging below it)
+        if (chickRescue) {
+          var rescueBalloonY = chickRescue.y + CHICK_RESCUE_BALLOON_DY;
+          var cdx = sd.x - chickRescue.x;
+          var cdy = sd.y - rescueBalloonY;
+          if (Math.sqrt(cdx * cdx + cdy * cdy) < 20 * ENTITY_SCALE) {
+            seeds.splice(s, 1);
+            lives = Math.min(MAX_LIVES, lives + 1);
+            updateHUD();
+            spawnParticles(chickRescue.x, rescueBalloonY, COLORS.purple, 20);
+            spawnPopup(chickRescue.x, rescueBalloonY, '+1 CHICK SAVED!', COLORS.purple, 1);
+            playChickSavedSound();
+            chickRescue = null;
+            continue;
+          }
+        }
+
         // collision with cats
         for (var j = cats.length - 1; j >= 0; j--) {
           var cat = cats[j];
@@ -821,8 +930,8 @@
       // wave banner countdown
       if (waveBanner.timer > 0) waveBanner.timer -= dt;
 
-      // wave complete check
-      if (catsSpawned >= catsToSpawnThisWave && cats.length === 0 && catsHandled >= catsToSpawnThisWave) {
+      // wave complete check (must also resolve any active chick-rescue balloon first)
+      if (catsSpawned >= catsToSpawnThisWave && cats.length === 0 && catsHandled >= catsToSpawnThisWave && !chickRescue) {
         nextWave();
       }
     }
@@ -861,6 +970,8 @@
       catsToSpawnThisWave = 6 + wave * 2;
       spawnInterval = Math.max(500, 1600 - wave * 100);
       currentScore += 250;
+      rescueSpawnedThisWave = false;
+      rescueThreshold = randomRescueThreshold();
       updateHUD();
       showWaveBanner(wave);
     }
@@ -917,10 +1028,16 @@
       ctx.lineTo(W - 4, H);
       ctx.stroke();
 
+      // nest showing chicks left, bottom-left of the play area
+      drawNest();
+
       // cats with balloons
       for (var i = 0; i < cats.length; i++) {
         drawCat(cats[i]);
       }
+
+      // chick-rescue bonus balloon, if active
+      drawChickRescue();
 
       // seeds
       ctx.fillStyle = COLORS.green;
@@ -1123,6 +1240,99 @@
       ctx.restore();
     }
 
+    function drawChick(x, y) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      ctx.fillStyle = '#FFD23F';
+      ctx.beginPath();
+      ctx.arc(0, 0, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = COLORS.orange;
+      ctx.beginPath();
+      ctx.moveTo(5, 0);
+      ctx.lineTo(11, -2);
+      ctx.lineTo(5, 3);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = COLORS.bgPrimary;
+      ctx.beginPath();
+      ctx.arc(2, -2, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    var NEST_SLOTS = [
+      { dx: -22, dy: -6 },
+      { dx: -11, dy: -12 },
+      { dx: 0, dy: -14 },
+      { dx: 11, dy: -12 },
+      { dx: 22, dy: -6 }
+    ];
+
+    function drawNest() {
+      var chickCount = clamp(lives, 0, MAX_LIVES);
+
+      ctx.save();
+      ctx.translate(46, H - 42);
+      ctx.scale(ENTITY_SCALE, ENTITY_SCALE);
+
+      ctx.fillStyle = '#5C3B1E';
+      ctx.strokeStyle = '#8A5A2B';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 34, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.lineWidth = 1;
+      for (var t = -1; t <= 1; t++) {
+        ctx.beginPath();
+        ctx.moveTo(-26, t * 5);
+        ctx.lineTo(26, t * 5 + 3);
+        ctx.stroke();
+      }
+
+      for (var i = 0; i < chickCount; i++) {
+        var slot = NEST_SLOTS[i];
+        drawChick(slot.dx, slot.dy + Math.sin(globalTime * 2 + i) * 1.5);
+      }
+
+      ctx.restore();
+    }
+
+    function drawChickRescue() {
+      if (!chickRescue) return;
+
+      ctx.save();
+      ctx.translate(chickRescue.x, chickRescue.y);
+      ctx.scale(ENTITY_SCALE, ENTITY_SCALE);
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, -14);
+      ctx.lineTo(0, 6);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.shadowColor = COLORS.purple;
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = COLORS.purple;
+      ctx.beginPath();
+      ctx.ellipse(0, -22, 13, 16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      drawChick(0, 10);
+
+      ctx.restore();
+    }
+
     // ---------- Loop ----------
     function loop(ts) {
       if (!lastTime) lastTime = ts;
@@ -1154,6 +1364,7 @@
       running = true;
       paused = false;
       lastTime = 0;
+      pauseBtn.setEnabled(true);
       hideOverlay();
       showWaveBanner(wave);
       rafId = requestAnimationFrame(loop);
@@ -1161,6 +1372,7 @@
 
     function endGame(catCollision) {
       running = false;
+      pauseBtn.setEnabled(false);
       if (rafId) cancelAnimationFrame(rafId);
       var summary = 'Oh no! The cats got away with all your chicks!';
       Leaderboard.trySubmit(currentScore, function (accepted) {
@@ -1175,6 +1387,7 @@
     restartBtn.addEventListener('click', function () {
       if (rafId) cancelAnimationFrame(rafId);
       running = false;
+      pauseBtn.setEnabled(false);
       gameOverCard.hide();
       showStandardOverlay('Ready?', '', '▶ Start Game');
     });
