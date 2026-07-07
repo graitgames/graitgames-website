@@ -897,9 +897,16 @@
        PRE-FILL WORD SELECTION (Fix My 4ordle twist)
        Picks the words that fill the first two guess
        rows before the player's turn. Both rules are
-       enforced against the full validation dictionary
-       (not just the smaller ANSWERS pool), since that
-       gives far more candidates with exactly one vowel:
+       enforced against the curated ANSWERS pool (the
+       same list actual puzzle solutions are drawn
+       from), NOT the full validation dictionary —
+       VALID_GUESSES is a much looser "don't unfairly
+       reject a real player's guess" list that includes
+       plenty of obscure/non-words (e.g. "awdls") which
+       are technically accepted guesses but don't read
+       as a believable prior guess to show the player.
+       ANSWERS still has 281 one-vowel candidates, more
+       than enough:
          1. Never one of the 4 current solutions.
          2. Exactly one vowel (a/e/i/o/u) in the word.
        ============================================ */
@@ -913,7 +920,7 @@
 
     function pickPrefillWords(targetWords) {
       var candidates = [];
-      VALID_GUESSES.forEach(function (w) {
+      ANSWERS.forEach(function (w) {
         if (countVowels(w) === 1 && targetWords.indexOf(w) === -1) {
           candidates.push(w);
         }
