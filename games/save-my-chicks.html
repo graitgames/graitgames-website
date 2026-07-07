@@ -469,6 +469,11 @@
     function spawnCat() {
       var dir = getWaveDirection(wave);
       var speed = 55 + wave * 8 + Math.random() * 20;
+      // Cats felt too fast on mobile at every wave (small screens make a
+      // fixed pixel speed cross more of the visible area per second) — ease
+      // off by a flat 20% there; wave-to-wave scaling is otherwise identical
+      // on both platforms.
+      if (ENTITY_SCALE < 1) speed *= 0.8;
       var availableTypes = getAvailableBalloonTypes(wave);
       var type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
       var x, y;
@@ -825,7 +830,7 @@
       if (chickRescue) {
         chickRescue.y += chickRescue.vy * dt;
 
-        var rescueBalloonY = chickRescue.y + CHICK_RESCUE_BALLOON_DY;
+        var rescueBalloonY = chickRescue.y + CHICK_RESCUE_BALLOON_DY * ENTITY_SCALE;
         for (var rc = 0; rc < cats.length; rc++) {
           var rcat = cats[rc];
           if (!rcat.alive) continue;
@@ -856,12 +861,15 @@
           continue;
         }
         // collision with chick-rescue bonus balloon (hitbox is the balloon
-        // itself, not the chick hanging below it)
+        // itself, not the chick hanging below it). On mobile the hit radius
+        // is a flat, more generous value rather than shrinking with the
+        // sprite — touch aiming is far less precise than mouse/keyboard.
         if (chickRescue) {
-          var rescueBalloonY = chickRescue.y + CHICK_RESCUE_BALLOON_DY;
+          var rescueBalloonY = chickRescue.y + CHICK_RESCUE_BALLOON_DY * ENTITY_SCALE;
+          var rescueHitRadius = ENTITY_SCALE < 1 ? 26 : 20;
           var cdx = sd.x - chickRescue.x;
           var cdy = sd.y - rescueBalloonY;
-          if (Math.sqrt(cdx * cdx + cdy * cdy) < 20 * ENTITY_SCALE) {
+          if (Math.sqrt(cdx * cdx + cdy * cdy) < rescueHitRadius) {
             seeds.splice(s, 1);
             lives = Math.min(MAX_LIVES, lives + 1);
             updateHUD();
