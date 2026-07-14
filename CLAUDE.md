@@ -35,7 +35,13 @@ this repo and should not be edited.**
   `touch-joystick.js`, `game-over-card.js`, `game-fullscreen.js`, and
   `pause-button.js` all follow — new reusable UI should match this pattern,
   not be built inline per-game.
-- **New game without a leaderboard/joystick** (puzzle, word game, turn-based)
+- **New word/keyboard game** (on-screen + physical keyboard input, typically
+  no leaderboard, e.g. 4ordle, Fix My 4ordle) →
+  [WORD_KEYBOARD_GAME_STARTER.md](WORD_KEYBOARD_GAME_STARTER.md). Documents
+  the Tap to Play gate pattern, why the keyboard must NOT be tagged
+  `data-fs-role="controls"`, and the flex/grid sizing gotchas for making the
+  play area stretch to fill mobile fullscreen.
+- **New game without a leaderboard/joystick/keyboard** (puzzle, turn-based)
   → [NEW_GAME_STARTER.md](NEW_GAME_STARTER.md).
 - **Adding/reordering a game on the catalog page** →
   [GAME-CATALOG-MANAGEMENT-GUIDE.md](GAME-CATALOG-MANAGEMENT-GUIDE.md).
