@@ -79,7 +79,13 @@
     /* ============================================
        LAYOUT
        ============================================ */
-    #game {
+    /* The outer #game <main> is the mobile-fullscreen shell (game-fullscreen.js
+       toggles .is-mobile-fullscreen on it and styles.css lays out its
+       data-fs-role children). On desktop it's just the normal .game-wrap box. */
+
+    /* The play arena — canvas + HUD + menu overlay. Tagged data-fs-role="stage"
+       so the fullscreen shell gives it the flexible middle slot. */
+    .game-arena {
       position: relative;
       width: 100%;
       /* vh fallback first, then svh ("small viewport height"). svh is locked to
@@ -100,6 +106,15 @@
       -webkit-user-select: none;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+    }
+
+    /* In mobile fullscreen the arena is the "stage" role (flex:1 1 auto from
+       styles.css) — drop the fixed 80svh box so it fills whatever height the
+       shell leaves between the header and the joystick controls. */
+    #game.is-mobile-fullscreen .game-arena {
+      height: 100%;
+      min-height: 0;
+      border-radius: 0;
     }
 
     /* ============================================
@@ -187,6 +202,9 @@
 
     /* Pause button */
     #pause-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       margin-top: 6px;
       padding: 4px 12px;
       background: rgba(255,255,255,0.06);
@@ -400,16 +418,16 @@
 <!-- ============================================
      MAIN GAME AREA
      ============================================ -->
-<main class="game-wrap" aria-label="Space Dogfight">
+<main class="game-wrap" id="game" aria-label="Space Dogfight">
 
   <!-- Header bar: back | title | restart -->
-  <div class="game-header">
+  <div class="game-header" data-fs-role="header">
     <a href="/games.html" class="btn btn-outline-cyan btn-icon" aria-label="Back to Catalog"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></a>
     <p class="game-title-bar" role="heading" aria-level="1">SPACE DOGFIGHT</p>
     <button type="button" class="btn-restart" aria-label="Restart game" onclick="window.location.reload()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
   </div>
 
-  <div id="game" aria-label="Space Dogfight game">
+  <div class="game-arena" data-fs-role="stage" aria-label="Space Dogfight game">
 
   <!-- Canvas (full screen) -->
   <canvas id="game-canvas" aria-label="Space Dogfight arena — player ship vs AI ship"></canvas>
@@ -444,7 +462,7 @@
         <div class="bar-fill shield" id="a-sh" style="width:0%"></div>
       </div>
       <!-- Pause button sits under AI bar per design request -->
-      <button id="pause-btn" aria-label="Pause game" aria-pressed="false">⏸ Pause</button>
+      <button id="pause-btn" aria-label="Pause game" aria-pressed="false"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg> Pause</button>
     </div>
 
   </div><!-- /hud -->
@@ -461,7 +479,7 @@
       <span style="color:var(--color-green)">GAMES</span>
     </p>
     <h1 id="menu-title">Space Dogfight</h1>
-    <p class="subtitle">
+    <p class="subtitle" id="menu-instructions">
       Aim with your <span style="color:var(--color-orange)">mouse</span>, move with
       <span style="color:var(--color-cyan)">WASD / Arrows</span>, shoot with
       <span style="color:var(--color-green)">Space or Click</span>.
@@ -484,9 +502,14 @@
     </div>
   </div>
 
-  </div><!-- /#game arena -->
+  </div><!-- /.game-arena -->
 
 </main><!-- /game-wrap -->
+
+<!-- Shared mobile components (one level up) — loaded before the game script
+     so it can call TouchJoystick.init() and GameFullscreen.init(). -->
+<script src="../touch-joystick.js"></script>
+<script src="../game-fullscreen.js"></script>
 
 <script>
 (function () {
@@ -557,7 +580,12 @@
   // Input state
   var keys    = {};
   var mouseX  = 0, mouseY = 0;
-  var touchDx = 0, touchDy = 0, touchFire = false;
+  var touchDx = 0, touchDy = 0;   // analog joystick vector (supports diagonals)
+
+  /* Treat coarse-pointer / narrow viewports as "mobile": aiming auto-locks
+     onto the AI (there's no mouse to aim with) and the touch controls show. */
+  var IS_MOBILE = window.matchMedia('(pointer: coarse), (max-width: 820px)').matches;
+  var fullscreen = null;          // GameFullscreen handle (mobile only)
 
   /* ============================================
      CANVAS RESIZE
@@ -603,16 +631,23 @@
   document.addEventListener('mousedown',  function (e) { if (e.button === 0) keys['Space'] = true; });
   document.addEventListener('mouseup',    function (e) { if (e.button === 0) keys['Space'] = false; });
 
+  /* SVG glyphs for the pause button (Unicode ⏸/▶ render as emoji on iOS). */
+  var PAUSE_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  var PLAY_SVG  = '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
+  function setPauseBtn(isPaused) {
+    elPauseBtn.innerHTML = (isPaused ? PLAY_SVG + ' Resume' : PAUSE_SVG + ' Pause');
+    elPauseBtn.setAttribute('aria-label', isPaused ? 'Resume game' : 'Pause game');
+  }
+
   /* Pause / resume */
   function togglePause() {
     if (gameState !== 'playing' && !paused) return;
     paused = !paused;
     elPauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    setPauseBtn(paused);
     if (paused) {
-      elPauseBtn.textContent = '▶ Resume';
       elPauseBtn.classList.add('active');
     } else {
-      elPauseBtn.textContent = '⏸ Pause';
       elPauseBtn.classList.remove('active');
       lastTime = performance.now(); // avoid dt spike on resume
     }
@@ -620,67 +655,85 @@
   elPauseBtn.addEventListener('click', togglePause);
 
   /* ============================================
-     TOUCH CONTROLS (mobile D-pad + fire)
+     PLAYER FIRING — one shot per request, gated by the fire-rate cooldown
+     (used by the mobile FIRE button; desktop holds Space, see update()).
      ============================================ */
-  function setupTouchControls() {
-    var tc = document.createElement('div');
-    tc.setAttribute('aria-label', 'Mobile touch controls');
-    tc.style.cssText = 'position:absolute;bottom:0;left:0;right:0;height:140px;display:flex;gap:12px;padding:12px;pointer-events:all;z-index:30';
-    tc.innerHTML =
-      '<div id="dpad" aria-label="Move ship" style="width:130px;height:120px;position:relative;flex-shrink:0">' +
-        '<div style="position:absolute;inset:0;background:rgba(255,255,255,.06);border-radius:50%;border:1px solid rgba(255,255,255,0.15)"></div>' +
-      '</div>' +
-      '<div style="flex:1;display:flex;align-items:center;justify-content:flex-end;padding-right:16px">' +
-        '<button id="fire-btn" aria-label="Fire weapon" style="width:80px;height:80px;background:rgba(255,107,43,.2);border:2px solid var(--color-orange);border-radius:50%;color:var(--color-orange);font-family:var(--font-headline);font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer">FIRE</button>' +
-      '</div>';
-    /* Anchor the controls inside the game arena (which is position:relative) so
-       they sit at the bottom of the arena rather than the page. */
-    (document.getElementById('game') || document.body).appendChild(tc);
-
-    var dp = document.getElementById('dpad');
-    var dpRect, dpActive = false, dpId = null;
-
-    function dpStart(e) {
-      dpRect = dp.getBoundingClientRect();
-      dpActive = true;
-      for (var i = 0; i < e.changedTouches.length; i++) {
-        var t = e.changedTouches[i];
-        if (t.target === dp || dp.contains(t.target)) { dpId = t.identifier; break; }
-      }
-      e.preventDefault();
+  function firePlayerShot() {
+    if (gameState !== 'playing' || paused) return;
+    if (playerFireTimer <= 0) {
+      fireBullet(playerShip, playerShip.spread);
+      playerFireTimer = FIRE_RATE;
     }
-    function dpMove(e) {
-      if (!dpActive) return;
-      e.preventDefault(); /* block page scroll/chrome toggle while steering */
-      for (var i = 0; i < e.changedTouches.length; i++) {
-        var t = e.changedTouches[i];
-        if (t.identifier === dpId) {
-          var cx = dpRect.left + dpRect.width / 2;
-          var cy = dpRect.top  + dpRect.height / 2;
-          var dx = t.clientX - cx, dy = t.clientY - cy;
-          var dist = Math.sqrt(dx*dx + dy*dy), maxR = 50;
-          touchDx = Math.abs(dx) > 8 ? dx / Math.max(dist, maxR) * Math.min(dist, maxR) / maxR : 0;
-          touchDy = Math.abs(dy) > 8 ? dy / Math.max(dist, maxR) * Math.min(dist, maxR) / maxR : 0;
-        }
-      }
-    }
-    function dpEnd(e) {
-      for (var i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === dpId) { dpActive = false; touchDx = 0; touchDy = 0; dpId = null; }
-      }
-    }
-    /* touchmove/touchstart are NON-passive so preventDefault() can stop the
-       page from scrolling (and thus toggling the mobile browser chrome) while
-       the joystick is in use. */
-    dp.addEventListener('touchstart', dpStart, { passive: false });
-    document.addEventListener('touchmove',  dpMove, { passive: false });
-    document.addEventListener('touchend',   dpEnd,  { passive: true });
-
-    var fb = document.getElementById('fire-btn');
-    fb.addEventListener('touchstart', function (e) { touchFire = true;  e.preventDefault(); }, { passive: false });
-    fb.addEventListener('touchend',   function (e) { touchFire = false; e.preventDefault(); }, { passive: false });
   }
-  setupTouchControls();
+
+  /* ============================================
+     TOUCH CONTROLS (mobile) — shared joystick component + analog diagonals
+     --------------------------------------------------------------------------
+     touch-joystick.js renders the standard circular joystick + round action
+     button (styled identically across every game) and appends them as the
+     fullscreen "controls" row. Its built-in output snaps to 4 cardinal
+     directions only, so we point its keyNames at inert placeholder keys and
+     instead read an ANALOG vector off the same joystick base into
+     touchDx/touchDy — giving true diagonal strafing, which matters a lot in a
+     dogfight. The action button fires one shot per tap.
+     ============================================ */
+  var joystick = (typeof TouchJoystick !== 'undefined') ? TouchJoystick.init({
+    parent: 'game',
+    keys: keys,
+    // Inert placeholder keys — movement comes from the analog read below, not
+    // from the component's 4-way cardinal snapping.
+    keyNames: { up: '_ju', down: '_jd', left: '_jl', right: '_jr' },
+    moveLabel: 'Move ship',
+    actionLabel: 'FIRE',
+    actionAriaLabel: 'Fire weapon',
+    actionIcon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>',
+    onActionStart: firePlayerShot
+  }) : null;
+
+  /* Read a continuous 2D vector from the shared joystick base (diagonals),
+     feeding touchDx/touchDy that update() already consumes. */
+  if (joystick && joystick.element) {
+    var joyBase = joystick.element.querySelector('.joystick-base');
+    var joyId = null;
+    var DEAD = 0.25; // radial dead-zone (fraction of the joystick radius)
+
+    function readJoy(clientX, clientY) {
+      var rect = joyBase.getBoundingClientRect();
+      var r = rect.width / 2;
+      var dx = (clientX - (rect.left + r)) / r;
+      var dy = (clientY - (rect.top  + r)) / r;
+      var mag = Math.sqrt(dx * dx + dy * dy);
+      if (mag > 1) { dx /= mag; dy /= mag; mag = 1; }
+      if (mag < DEAD) { touchDx = 0; touchDy = 0; }
+      else { touchDx = dx; touchDy = dy; }
+    }
+    function endJoy(e) {
+      if (joyId === null || (e && e.pointerId !== joyId)) return;
+      joyId = null; touchDx = 0; touchDy = 0;
+    }
+    /* These listeners run alongside the component's own (which move the thumb);
+       both share the same captured pointer, so movement and visuals stay synced. */
+    joyBase.addEventListener('pointerdown', function (e) { joyId = e.pointerId; readJoy(e.clientX, e.clientY); });
+    joyBase.addEventListener('pointermove', function (e) { if (e.pointerId === joyId) readJoy(e.clientX, e.clientY); });
+    joyBase.addEventListener('pointerup', endJoy);
+    joyBase.addEventListener('pointercancel', endJoy);
+    joyBase.addEventListener('pointerleave', endJoy);
+  }
+
+  /* ============================================
+     MOBILE FULLSCREEN
+     On mobile the arena expands to fill the screen when the game starts.
+     GameFullscreen.init() returns null on desktop, so `fullscreen` stays null
+     there and every fullscreen call below is a harmless no-op. The actual
+     enter() happens inside startGame() (a real tap gesture, which browsers
+     require to grant fullscreen).
+     ============================================ */
+  var MOBILE_FULLSCREEN = true;
+  fullscreen = (typeof GameFullscreen !== 'undefined') ? GameFullscreen.init({
+    el: 'game',
+    enabled: MOBILE_FULLSCREEN,
+    onChange: function () { resizeCanvas(); }
+  }) : null;
 
   /* ============================================
      SHIP FACTORY
@@ -930,13 +983,21 @@
     if (keys['ArrowDown']  || keys['KeyS'] || touchDy >  0.1) mvy =  1;
     playerShip.vx = mvx * sp;
     playerShip.vy = mvy * sp;
-    /* Player always faces mouse cursor */
-    playerShip.angle = Math.atan2(mouseY - playerShip.y, mouseX - playerShip.x) + Math.PI / 2;
+    /* Aiming: on desktop the ship faces the mouse; on mobile (no mouse) it
+       auto-locks onto the AI, since there's only ever one enemy to shoot. */
+    if (IS_MOBILE) {
+      playerShip.angle = Math.atan2(aiShip.y - playerShip.y, aiShip.x - playerShip.x) + Math.PI / 2;
+    } else {
+      playerShip.angle = Math.atan2(mouseY - playerShip.y, mouseX - playerShip.x) + Math.PI / 2;
+    }
     clampShip(playerShip);
 
     /* -- Player shooting -- */
+    /* Timer always ticks so the mobile FIRE button's per-tap cooldown advances;
+       desktop holds Space (or mouse) for continuous fire. Mobile fires one shot
+       per tap via firePlayerShot() (wired to the joystick's action button). */
     playerFireTimer -= dt;
-    if ((keys['Space'] || touchFire) && playerFireTimer <= 0) {
+    if (keys['Space'] && playerFireTimer <= 0) {
       fireBullet(playerShip, playerShip.spread);
       playerFireTimer = FIRE_RATE;
     }
@@ -1272,9 +1333,12 @@
      START GAME — called by difficulty buttons
      ============================================ */
   window.startGame = function (diff) {
+    /* Enter mobile fullscreen on this tap (a real user gesture) before the
+       round starts; no-op on desktop / when already fullscreen. */
+    if (fullscreen) fullscreen.enter();
     difficulty = diff || difficulty;
     paused     = false;
-    elPauseBtn.textContent = '⏸ Pause';
+    setPauseBtn(false);
     elPauseBtn.classList.remove('active');
     elPauseBtn.setAttribute('aria-pressed', 'false');
     elMenu.classList.add('hidden');
@@ -1289,6 +1353,16 @@
   /* ============================================
      BOOT — draw static starfield before start
      ============================================ */
+  /* Swap the desktop control hint for touch instructions on mobile. */
+  if (IS_MOBILE) {
+    var elInstructions = document.getElementById('menu-instructions');
+    if (elInstructions) elInstructions.innerHTML =
+      'Move with the <span style="color:var(--color-cyan)">joystick</span> — your aim ' +
+      '<span style="color:var(--color-orange)">locks onto the enemy</span> automatically. ' +
+      'Tap <span style="color:var(--color-green)">FIRE</span> to shoot. ' +
+      'Survive as long as you can — the AI gets faster every round!';
+  }
+
   stars = generateStars();
   (function staticDraw() {
     ctx.fillStyle = COLOR_BG;
