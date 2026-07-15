@@ -36,7 +36,10 @@ var PauseButton = (function () {
       position: absolute;\
       top: 10px;\
       right: 10px;\
-      z-index: 5;\
+      /* Must sit ABOVE the .gg-pause-card (z-index 8) so it stays visible and\
+         tappable while paused — otherwise the card covers it and there is no\
+         way to resume on touch devices (no Esc/P keyboard shortcut). */\
+      z-index: 9;\
       display: inline-flex;\
       align-items: center;\
       justify-content: center;\
