@@ -143,7 +143,8 @@
       max-width: 42%;
       pointer-events: all;
     }
-    .pinfo.right { align-items: flex-end; }
+    /* Keep the AI panel clear of the shared pause button in the top-right. */
+    .pinfo.right { align-items: flex-end; margin-right: 40px; }
 
     .pname {
       font-family: var(--font-headline);
@@ -200,34 +201,13 @@
       margin-top: 2px;
     }
 
-    /* Pause button */
-    #pause-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 6px;
-      padding: 4px 12px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border-accessible);
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 1px;
-      border-radius: 3px;
-      cursor: pointer;
-      pointer-events: all;
-      text-transform: uppercase;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    #pause-btn:hover, #pause-btn:focus {
-      border-color: var(--color-cyan);
-      color: var(--color-cyan);
-      outline: none;
-    }
-    #pause-btn.active {
-      border-color: var(--color-orange);
-      color: var(--color-orange);
-    }
+    /* Pause control is the shared pause-button.js component (same as Save My
+       Chicks) — pinned to the arena's top-right corner. The AI HUD panel is
+       shifted left (see .pinfo.right below) so the two never overlap. */
+
+    /* Mobile touch controls (shared touch-joystick.js) only appear during an
+       active match — never on the start/loading or game-over overlays. */
+    #game:not(.is-playing) .touch-controls { display: none !important; }
 
     /* Narrow phones: tighten HUD padding and bar widths so the AI panel and
        pause button stay fully inside the arena. */
@@ -236,7 +216,6 @@
       .bar-track { max-width: 130px; }
       .pname { font-size: 10px; letter-spacing: 1px; }
       #score-display { font-size: 17px; }
-      #pause-btn { padding: 3px 8px; }
     }
 
     /* ============================================
@@ -461,8 +440,6 @@
       <div class="bar-track shield-track">
         <div class="bar-fill shield" id="a-sh" style="width:0%"></div>
       </div>
-      <!-- Pause button sits under AI bar per design request -->
-      <button id="pause-btn" aria-label="Pause game" aria-pressed="false"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg> Pause</button>
     </div>
 
   </div><!-- /hud -->
@@ -510,6 +487,7 @@
      so it can call TouchJoystick.init() and GameFullscreen.init(). -->
 <script src="../touch-joystick.js"></script>
 <script src="../game-fullscreen.js"></script>
+<script src="../pause-button.js"></script>
 
 <script>
 (function () {
@@ -549,7 +527,9 @@
   var elRound     = document.getElementById('round-info');
   var elBanner    = document.getElementById('round-banner');
   var elMenu      = document.getElementById('overlay-menu');
-  var elPauseBtn  = document.getElementById('pause-btn');
+  var elGame      = document.getElementById('game');            // outer fullscreen shell
+  var elArena     = document.querySelector('.game-arena');      // play area (pause btn anchor)
+  var pauseBtn    = null;                                       // shared PauseButton handle
 
   /* ============================================
      GAME STATE
@@ -618,7 +598,7 @@
     if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) {
       e.preventDefault();
     }
-    if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
+    /* Esc / P pause is handled by the shared pause-button.js component. */
   });
   document.addEventListener('keyup',      function (e) { keys[e.code] = false; });
   document.addEventListener('mousemove',  function (e) {
@@ -631,28 +611,20 @@
   document.addEventListener('mousedown',  function (e) { if (e.button === 0) keys['Space'] = true; });
   document.addEventListener('mouseup',    function (e) { if (e.button === 0) keys['Space'] = false; });
 
-  /* SVG glyphs for the pause button (Unicode ⏸/▶ render as emoji on iOS). */
-  var PAUSE_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
-  var PLAY_SVG  = '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
-  function setPauseBtn(isPaused) {
-    elPauseBtn.innerHTML = (isPaused ? PLAY_SVG + ' Resume' : PAUSE_SVG + ' Pause');
-    elPauseBtn.setAttribute('aria-label', isPaused ? 'Resume game' : 'Pause game');
+  /* ============================================
+     PAUSE — shared pause-button.js component (same control + "Paused" card as
+     Save My Chicks), pinned to the arena's top-right corner. It owns the icon
+     button, the Esc/P shortcut, and the pause overlay; the game just freezes
+     its loop via the onPause/onResume callbacks. Enabled only during a match
+     (see startGame / showEndScreen).
+     ============================================ */
+  if (typeof PauseButton !== 'undefined' && elArena) {
+    pauseBtn = PauseButton.init({
+      parent: elArena,
+      onPause:  function () { paused = true; },
+      onResume: function () { paused = false; lastTime = performance.now(); } // avoid dt spike on resume
+    });
   }
-
-  /* Pause / resume */
-  function togglePause() {
-    if (gameState !== 'playing' && !paused) return;
-    paused = !paused;
-    elPauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
-    setPauseBtn(paused);
-    if (paused) {
-      elPauseBtn.classList.add('active');
-    } else {
-      elPauseBtn.classList.remove('active');
-      lastTime = performance.now(); // avoid dt spike on resume
-    }
-  }
-  elPauseBtn.addEventListener('click', togglePause);
 
   /* ============================================
      PLAYER FIRING — one shot per request, gated by the fire-rate cooldown
@@ -1122,6 +1094,8 @@
      ============================================ */
   function showEndScreen() {
     gameState = 'menu';
+    if (pauseBtn) pauseBtn.setEnabled(false);
+    elGame.classList.remove('is-playing'); // hide the touch controls on the end screen
     if (scores[0] > highScore) highScore = scores[0];
     var roundsLabel = (round - 1) === 1 ? 'round' : 'rounds';
 
@@ -1211,21 +1185,7 @@
     if (playerShip) drawShip(playerShip, COLOR_PLAYER);
     if (aiShip)     drawShip(aiShip,     COLOR_AI);
 
-    /* Pause overlay drawn on canvas */
-    if (paused) {
-      ctx.fillStyle = 'rgba(7,7,15,0.75)';
-      ctx.fillRect(-10, -10, W + 20, H + 20);
-      ctx.fillStyle   = '#fff';
-      ctx.font        = 'bold 32px "Orbitron", sans-serif';
-      ctx.textAlign   = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('PAUSED', W / 2, H / 2);
-      ctx.font        = '14px "Share Tech Mono", monospace';
-      ctx.fillStyle   = 'rgba(255,255,255,0.6)';
-      ctx.fillText('Press P, Esc, or click Resume', W / 2, H / 2 + 44);
-      ctx.textAlign   = 'left';
-      ctx.textBaseline = 'alphabetic';
-    }
+    /* The "Paused" overlay is drawn by the shared pause-button.js card. */
 
     ctx.restore();
   }
@@ -1338,9 +1298,8 @@
     if (fullscreen) fullscreen.enter();
     difficulty = diff || difficulty;
     paused     = false;
-    setPauseBtn(false);
-    elPauseBtn.classList.remove('active');
-    elPauseBtn.setAttribute('aria-pressed', 'false');
+    if (pauseBtn) pauseBtn.setEnabled(true);
+    elGame.classList.add('is-playing'); // reveals the mobile touch controls
     elMenu.classList.add('hidden');
     round  = 1;
     scores = [0, 0];
@@ -1357,10 +1316,8 @@
   if (IS_MOBILE) {
     var elInstructions = document.getElementById('menu-instructions');
     if (elInstructions) elInstructions.innerHTML =
-      'Move with the <span style="color:var(--color-cyan)">joystick</span> — your aim ' +
-      '<span style="color:var(--color-orange)">locks onto the enemy</span> automatically. ' +
-      'Tap <span style="color:var(--color-green)">FIRE</span> to shoot. ' +
-      'Survive as long as you can — the AI gets faster every round!';
+      'Move with the joystick and tap <span style="color:var(--color-orange)">FIRE</span> to shoot. ' +
+      'Survive as long as you can. The AI gets faster every round!';
   }
 
   stars = generateStars();
