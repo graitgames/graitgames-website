@@ -1895,6 +1895,10 @@ select:disabled {
   line-height: 1.7;
   color: var(--text-description);
 }
+/* Space between stacked mission paragraphs (the hero can carry more than one). */
+.about-mission + .about-mission {
+  margin-top: 1em;
+}
 
 /* --- GENERIC ABOUT SECTION + ALTERNATING BACKGROUNDS ---------------------- */
 .about-section {
