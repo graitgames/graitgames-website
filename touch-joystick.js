@@ -94,6 +94,18 @@ var TouchJoystick = (function () {
       -webkit-touch-callout: none;\
     }\
     .action-btn:active, .action-btn.active-touch { background: rgba(255,107,43,0.25); box-shadow: var(--glow-orange); }\
+    /* While a joystick/button touch is in progress, disable text selection and\
+       the iOS long-press callout PAGE-WIDE. The finger routinely slides off the\
+       joystick and over selectable HUD text (score, buff pills, progress) mid-\
+       drag; scoping this only to .touch-controls left that text selectable,\
+       which is what let the Copy/Find Selection/Look Up menu slip through. This\
+       class is only present during an active drag, so normal page selection\
+       (menus, copying text between rounds) is unaffected the rest of the time. */\
+    body.joystick-dragging, body.joystick-dragging * {\
+      -webkit-user-select: none !important;\
+      user-select: none !important;\
+      -webkit-touch-callout: none !important;\
+    }\
   ';
 
   function injectStyles() {
@@ -102,6 +114,37 @@ var TouchJoystick = (function () {
     style.id = 'touch-joystick-styles';
     style.textContent = CSS;
     document.head.appendChild(style);
+  }
+
+  // Definitive suppression of iOS Safari's native touch-selection gesture.
+  // preventDefault() on a POINTER event does NOT cancel the underlying touch
+  // gesture on iOS, so pointer-level guards can't stop selection/callout once
+  // the finger leaves the joystick. Preventing default on the actual touchmove
+  // (with passive:false) is the only reliable way to kill it. We attach this at
+  // the document level only while a control is being dragged, then detach it.
+  //
+  // dragDepth is ref-counted across every control on the page (a twin-stick
+  // game has two joysticks + a button sharing it), so each control MUST balance
+  // exactly one begin with one end — the per-control guards in init() below
+  // (ignoring extra fingers on an already-active control) are what keep that
+  // true. If it ever leaked above 0, the body class + touchmove blocker would
+  // stick and freeze page scrolling/selection until reload.
+  var dragDepth = 0;
+  function blockTouchMove(e) { e.preventDefault(); }
+  function beginDragSuppression() {
+    dragDepth++;
+    if (dragDepth === 1) {
+      document.body.classList.add('joystick-dragging');
+      document.addEventListener('touchmove', blockTouchMove, { passive: false });
+    }
+  }
+  function endDragSuppression() {
+    if (dragDepth === 0) return;
+    dragDepth--;
+    if (dragDepth === 0) {
+      document.body.classList.remove('joystick-dragging');
+      document.removeEventListener('touchmove', blockTouchMove, { passive: false });
+    }
   }
 
   function init(opts) {
@@ -165,10 +208,16 @@ var TouchJoystick = (function () {
     }
 
     joyBase.addEventListener('pointerdown', function (e) {
+      // Ignore extra fingers while one pointer is already tracked — otherwise a
+      // second touch on the joystick would begin drag-suppression a second time
+      // without a matching end, leaking dragDepth and sticking the page-wide
+      // block on forever (see beginDragSuppression above).
+      if (joyPointerId !== null) return;
       e.preventDefault();
       joyPointerId = e.pointerId;
       joyBase.classList.add('active-touch');
       joyBase.setPointerCapture(joyPointerId);
+      beginDragSuppression();
       updateJoystick(e.clientX, e.clientY);
     });
     joyBase.addEventListener('pointermove', function (e) {
@@ -181,19 +230,29 @@ var TouchJoystick = (function () {
       joyPointerId = null;
       joyBase.classList.remove('active-touch');
       resetJoystick();
+      endDragSuppression();
     }
     joyBase.addEventListener('pointerup', endJoystick);
     joyBase.addEventListener('pointercancel', endJoystick);
     joyBase.addEventListener('pointerleave', endJoystick);
 
+    var actionActive = false;
     function triggerAction(e) {
+      // Same guard as the joystick: ignore a second finger landing on an
+      // already-held button so begin/end drag-suppression stays balanced.
+      if (actionActive) return;
       e.preventDefault();
+      actionActive = true;
       actionBtn.classList.add('active-touch');
+      beginDragSuppression();
       if (opts.onActionStart) opts.onActionStart();
     }
     function releaseAction(e) {
       if (e) e.preventDefault();
+      if (!actionActive) return;
+      actionActive = false;
       actionBtn.classList.remove('active-touch');
+      endDragSuppression();
       if (opts.onActionEnd) opts.onActionEnd();
     }
     actionBtn.addEventListener('pointerdown', triggerAction);
