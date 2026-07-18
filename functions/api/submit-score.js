@@ -30,7 +30,7 @@ const GAME_CAPS = {
   '4ordle':         9999,
   'save-my-chicks': 99999,
   'gnome-crawler':  99999,
-  'aim-trainer':    999,
+  'aim-trainer':    99999,
 };
 
 const MAX_SUBMISSIONS_PER_WINDOW = 5;

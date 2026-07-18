@@ -699,10 +699,11 @@
       var accuracy = calculateAccuracy();
       var summary = 'You collected ' + currentTargets + ' targets for ' + currentScore +
         ' points, with ' + accuracy + '% accuracy. You reached level ' + currentLevel + '.';
-      // The leaderboard ranks players by total targets collected (not raw
-      // score, which can go negative). leaderboard.js injects its own Top 10
-      // panel + initials-entry overlay; game-over-card.js shows the result.
-      Leaderboard.trySubmit(currentTargets, function (accepted) {
+      // The leaderboard ranks players by total round score. A score of 0 or
+      // below (more misses than hits) simply won't qualify. leaderboard.js
+      // injects its own Top 10 panel + initials-entry overlay; game-over-card.js
+      // shows the result.
+      Leaderboard.trySubmit(currentScore, function (accepted) {
         gameOverCard.show({ accepted: accepted, text: summary });
       });
     }
