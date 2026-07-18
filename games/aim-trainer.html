@@ -497,12 +497,56 @@
       timeEl.textContent = timeLeft;
     }
 
+    var SPAWN_PADDING = 8;   // px kept clear around the HUD / pause UI
+
+    // Rectangles (in field-local coords) that targets must not spawn behind:
+    // the top-left Level/Multiplier HUD and the top-right pause button.
+    function reservedRects() {
+      var stageRect = stage.getBoundingClientRect();
+      var els = [document.querySelector('.hud'), pauseBtn && pauseBtn.button];
+      var rects = [];
+      els.forEach(function (el) {
+        if (!el) return;
+        var r = el.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) return;
+        rects.push({
+          left:   r.left   - stageRect.left - SPAWN_PADDING,
+          top:    r.top    - stageRect.top  - SPAWN_PADDING,
+          right:  r.right  - stageRect.left + SPAWN_PADDING,
+          bottom: r.bottom - stageRect.top  + SPAWN_PADDING
+        });
+      });
+      return rects;
+    }
+
+    function overlapsReserved(x, y, size, rects) {
+      for (var i = 0; i < rects.length; i++) {
+        var rr = rects[i];
+        if (x < rr.right && x + size > rr.left && y < rr.bottom && y + size > rr.top) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     function randomPosition(size) {
       var maxX = Math.max(0, stage.clientWidth - size);
       var maxY = Math.max(0, stage.clientHeight - size);
+      var rects = reservedRects();
+
+      for (var attempt = 0; attempt < 30; attempt++) {
+        var x = Math.floor(Math.random() * (maxX + 1));
+        var y = Math.floor(Math.random() * (maxY + 1));
+        if (!overlapsReserved(x, y, size, rects)) return { x: x, y: y };
+      }
+
+      // Fallback (should be rare): drop below the reserved top band so the
+      // target is always fully clear of the HUD / pause button.
+      var bandBottom = 0;
+      rects.forEach(function (rr) { if (rr.bottom > bandBottom) bandBottom = rr.bottom; });
       return {
-        x: Math.floor(Math.random() * maxX),
-        y: Math.floor(Math.random() * maxY)
+        x: Math.floor(Math.random() * (maxX + 1)),
+        y: Math.min(maxY, Math.max(0, Math.ceil(bandBottom)))
       };
     }
 
