@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aim Trainer — GRaiT GAMES</title>
+<meta name="description" content="Aim Trainer — click the glowing targets with your mouse on PC or tap them on your screen on mobile before time runs out. Chain hits to build a multiplier and level up. A GRaiT GAMES original." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="../styles.css" />
+
+<style>
+/* Game-specific styles only — shared chrome (:root, .btn*, .game-header,
+   .game-title-bar, .btn-icon, .btn-restart) lives in styles.css. */
+
+#game {
+  padding-top: 32px;
+  padding-bottom: 40px;
+}
+
+/* Stats row (Score · Targets · Time) */
+.game-stats {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.stat-box {
+  flex: 1 1 0;
+  min-width: 90px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-accessible);
+  border-radius: var(--border-radius-lg);
+  padding: 12px;
+  text-align: center;
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-family: var(--font-headline);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-green);
+}
+.stat-value.negative { color: var(--color-orange); }
+
+/* Game stage — outer wrapper keeps its own normal-flow height via the inner
+   .game-viewport (the only in-flow child) so leaderboard.js's Top 10 panel
+   flows underneath the play area instead of overlapping it on mobile. */
+.game-stage {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* .game-viewport IS the play field — targets, HUD, overlay and the pause
+   card/button are all appended into it. */
+.game-viewport {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  min-height: 340px;
+  max-height: 520px;
+  background:
+    linear-gradient(var(--border-accessible) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, var(--border-accessible) 1px, transparent 1px) 0 0 / 32px 32px,
+    var(--bg-panel);
+  border: 1px solid var(--border-accessible);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+}
+
+/* Desktop / PC (non-fullscreen): size the play field so the header, the
+   Score / Targets / Time boxes, and the field all fit within the viewport
+   during gameplay — the boxes stay visible above the play area without
+   scrolling, matching how mobile fullscreen keeps them pinned at the top. */
+@media (min-width: 821px) {
+  .game-viewport {
+    height: clamp(320px, calc(100vh - 400px), 520px);
+    min-height: 320px;
+    max-height: 520px;
+  }
+}
+
+/* On-stage HUD — live Level + Multiplier readout during play. Pinned
+   top-left (top-right is reserved for the pause button). pointer-events:none
+   so it never swallows a click/tap meant for the field. */
+.hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 4;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 62px;
+  padding: 5px 10px;
+  background: rgba(7, 7, 15, 0.6);
+  border: 1px solid var(--border-accessible);
+  border-radius: var(--border-radius);
+}
+.hud-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.hud-value {
+  font-family: var(--font-headline);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.hud-value.level { color: var(--color-cyan); }
+.hud-value.mult  { color: var(--color-orange); }
+
+/* Target — base shape, color set per level by modifier class below */
+.target {
+  position: absolute;
+  z-index: 2;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  animation: target-pop 0.16s ease-out;
+}
+.target:focus-visible { outline: 3px solid var(--color-green); outline-offset: 2px; }
+
+.target-cyan {
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), var(--color-cyan) 45%, var(--color-cyan-2) 100%);
+  box-shadow: 0 0 16px rgba(0, 234, 255, 0.65), 0 0 28px rgba(0, 234, 255, 0.35);
+}
+.target-green {
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), var(--color-green) 45%, var(--color-green-2) 100%);
+  box-shadow: 0 0 16px rgba(57, 255, 20, 0.65), 0 0 28px rgba(57, 255, 20, 0.35);
+}
+.target-orange {
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), var(--color-orange) 45%, var(--color-orange-2) 100%);
+  box-shadow: 0 0 16px rgba(255, 107, 43, 0.65), 0 0 28px rgba(255, 107, 43, 0.35);
+}
+
+@keyframes target-pop {
+  from { transform: scale(0.3); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.target.hit {
+  animation: target-hit 0.18s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes target-hit {
+  to { transform: scale(1.6); opacity: 0; }
+}
+
+/* Level-up toast */
+.level-up-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-headline);
+  font-weight: 900;
+  font-size: 1.6rem;
+  letter-spacing: 3px;
+  color: var(--color-cyan);
+  text-shadow: var(--glow-cyan), 0 0 24px rgba(0, 234, 255, 0.6);
+  pointer-events: none;
+  z-index: 5;
+  animation: level-up-pop 0.9s ease-out forwards;
+}
+@keyframes level-up-pop {
+  0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  20%  { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+  70%  { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.15); opacity: 0; }
+}
+
+/* Combo streak popup — pops on the right edge of the field on each chained hit */
+.combo-popup {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  font-family: var(--font-headline);
+  font-weight: 900;
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  color: var(--color-orange);
+  text-shadow: var(--glow-orange), 0 0 20px rgba(255, 107, 43, 0.6);
+  pointer-events: none;
+  z-index: 6;
+  animation: combo-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes combo-pop {
+  0%   { transform: translateY(-50%) translateX(24px) scale(0.5); opacity: 0; }
+  25%  { transform: translateY(-50%) translateX(0)     scale(1.2); opacity: 1; }
+  65%  { transform: translateY(-50%) translateX(0)     scale(1);   opacity: 1; }
+  100% { transform: translateY(-50%) translateX(10px)  scale(0.9); opacity: 0; }
+}
+
+/* Miss flash feedback */
+.miss-flash {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 2px solid var(--color-orange);
+  background: rgba(255, 107, 43, 0.15);
+  animation: miss-fade 0.4s ease-out forwards;
+}
+@keyframes miss-fade {
+  from { transform: scale(0.4); opacity: 1; }
+  to   { transform: scale(1.4); opacity: 0; }
+}
+
+/* Overlay (ready / game-over fallback) */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(7, 7, 15, 0.88);
+  backdrop-filter: blur(2px);
+  z-index: 10;
+  overflow-y: auto;
+}
+.overlay.hidden { display: none; }
+.overlay h2 {
+  font-family: var(--font-headline);
+  font-size: 1.4rem;
+  color: var(--color-cyan);
+  text-shadow: var(--glow-cyan);
+  letter-spacing: 1px;
+}
+.overlay p {
+  color: var(--text-description);
+  max-width: 42ch;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+/* Controls help line under the stage */
+.controls-help {
+  text-align: center;
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+/* Mobile fullscreen overrides — let the play field fill the space the shared
+   shell reserves for the "stage" role. */
+#game.is-mobile-fullscreen .game-description,
+#game.is-mobile-fullscreen .controls-help {
+  display: none;
+}
+#game.is-mobile-fullscreen [data-fs-role="stage"] {
+  max-width: none;
+  height: 100%;
+}
+#game.is-mobile-fullscreen .game-viewport {
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+}
+
+@media (max-width: 480px) {
+  .combo-popup { font-size: 1rem; right: 10px; }
+  .stat-value { font-size: 1.3rem; }
+  .hud-item { min-width: 54px; padding: 4px 8px; }
+  .hud-value { font-size: 0.95rem; }
+}
+</style>
+</head>
+<body>
+
+  <a href="#game" class="skip-link">Skip to game</a>
+
+  <nav id="main-nav"></nav>
+
+  <main class="container-narrow" id="game">
+
+    <div class="game-header" data-fs-role="header">
+      <a href="/games.html" class="btn btn-outline-cyan btn-icon" aria-label="Back to Catalog">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+        </svg>
+      </a>
+
+      <p class="game-title-bar" role="heading" aria-level="1">AIM TRAINER</p>
+
+      <button type="button" class="btn-restart" id="restartBtn" aria-label="Restart game">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+      </button>
+    </div>
+
+    <p class="game-description" style="text-align:center; color:var(--text-description); margin-bottom:24px; font-family:var(--font-body);">
+      Click the glowing targets with your mouse on PC — or tap them on your screen on mobile — before time runs out. Chain hits to build your multiplier and level up.
+    </p>
+
+    <div class="game-stats" data-fs-role="stats">
+      <div class="stat-box">
+        <div class="stat-label">Score</div>
+        <div class="stat-value" id="score" role="status" aria-live="polite">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Targets</div>
+        <div class="stat-value" id="targets" role="status" aria-live="polite">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Time</div>
+        <div class="stat-value" id="time" role="status" aria-live="polite">30</div>
+      </div>
+    </div>
+
+    <div class="game-stage" id="gameStage" data-fs-role="stage">
+      <div class="game-viewport" id="gameViewport">
+
+        <!-- On-stage live HUD: Level + Multiplier during gameplay -->
+        <div class="hud" aria-hidden="false">
+          <div class="hud-item">
+            <span class="hud-label">Level</span>
+            <span class="hud-value level" id="level" role="status" aria-live="polite">1</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-label">Multiplier</span>
+            <span class="hud-value mult" id="combo">1x</span>
+          </div>
+        </div>
+
+        <div class="overlay" id="overlay">
+          <h2 id="overlay-title">Ready?</h2>
+          <p id="overlay-text"></p>
+          <button type="button" class="btn btn-secondary" id="start-btn">▶ Start Game</button>
+        </div>
+
+      </div>
+    </div><!-- /.game-stage -->
+
+    <p class="controls-help">PC: click the targets with your mouse. Mobile: tap the targets on your screen.</p>
+
+  </main>
+
+  <script src="../leaderboard.js"></script>
+  <script src="../game-over-card.js"></script>
+  <script src="../game-fullscreen.js"></script>
+  <script src="../pause-button.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    var stage = document.getElementById('gameViewport');
+    var scoreEl = document.getElementById('score');
+    var comboEl = document.getElementById('combo');
+    var targetsEl = document.getElementById('targets');
+    var levelEl = document.getElementById('level');
+    var timeEl = document.getElementById('time');
+    var overlay = document.getElementById('overlay');
+    var overlayTitle = document.getElementById('overlay-title');
+    var overlayText = document.getElementById('overlay-text');
+    var startBtn = document.getElementById('start-btn');
+    var restartBtn = document.getElementById('restartBtn');
+
+    var INSTRUCTIONS =
+      'Hit as many targets as you can in 30 seconds. On a computer, click each target with your mouse; ' +
+      'on a phone or tablet, tap it on the screen. Every hit scores +100 times your multiplier. ' +
+      'Chain hits without missing to build the multiplier up to 4x — each hit adds 0.25x, and a miss ' +
+      'resets it to 1x and costs 100 score. Every 20 targets you level up: targets change colour and shrink.';
+
+    var GAME_LENGTH = 30;        // seconds
+    var MIN_TARGET_SIZE = 44;    // px, meets minimum touch target
+    var MAX_TARGET_SIZE = 76;    // px
+    var SHRINK_PER_HIT = 1.2;    // px shaved off max size per hit
+    var TARGETS_PER_LEVEL = 20;  // targets hit before leveling up
+    var SHRINK_PER_LEVEL = 5;    // extra px shaved off max size per level
+    var COLOR_CLASSES = ['target-cyan', 'target-green', 'target-orange'];
+    var MULTIPLIER_STEP = 0.25;  // multiplier gained per consecutive hit
+    var MAX_MULTIPLIER = 4;      // multiplier cap
+
+    var currentScore = 0;
+    var currentTargets = 0;
+    var missCount = 0;
+    var currentLevel = 1;
+    var comboStreak = 0;
+    var multiplier = 1;
+    var timeLeft = GAME_LENGTH;
+    var timerId = null;
+    var currentTargetEl = null;
+    var playing = false;
+    var paused = false;
+
+    // ---- Shared site components ----
+    var fullscreen = GameFullscreen.init({
+      el: 'game',
+      enabled: true,
+      onChange: function () { repositionCurrentTarget(); }
+    });
+
+    var gameOverCard = GameOverCard.init({
+      parent: 'game',
+      color: 'blue',
+      onPlayAgain: function () { startGame(); }
+    });
+
+    var pauseBtn = PauseButton.init({
+      parent: 'gameViewport',
+      onPause: function () {
+        paused = true;
+        clearInterval(timerId);
+      },
+      onResume: function () {
+        paused = false;
+        if (playing) timerId = setInterval(tick, 1000);
+      }
+    });
+
+    function formatMultiplier(m) {
+      return (Math.round(m * 100) / 100) + 'x';
+    }
+
+    function levelForTargetCount(count) {
+      return Math.floor(count / TARGETS_PER_LEVEL) + 1;
+    }
+
+    function showLevelUpToast(level) {
+      var toast = document.createElement('div');
+      toast.className = 'level-up-toast';
+      toast.textContent = 'LEVEL ' + level + '!';
+      stage.appendChild(toast);
+      setTimeout(function () {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 900);
+    }
+
+    function showComboPopup(streak) {
+      var existing = stage.querySelector('.combo-popup');
+      if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+      var popup = document.createElement('div');
+      popup.className = 'combo-popup';
+      popup.textContent = 'COMBO x' + streak;
+      popup.setAttribute('aria-hidden', 'true');
+      stage.appendChild(popup);
+      setTimeout(function () {
+        if (popup.parentNode) popup.parentNode.removeChild(popup);
+      }, 600);
+    }
+
+    function showStandardOverlay(title, text, btnText) {
+      overlayTitle.textContent = title;
+      overlayText.innerHTML = text;
+      startBtn.textContent = btnText;
+      overlay.classList.remove('hidden');
+    }
+
+    function hideOverlay() {
+      overlay.classList.add('hidden');
+    }
+
+    function updateStats() {
+      scoreEl.textContent = currentScore;
+      scoreEl.classList.toggle('negative', currentScore < 0);
+      comboEl.textContent = formatMultiplier(multiplier);
+      targetsEl.textContent = currentTargets;
+      levelEl.textContent = currentLevel;
+      timeEl.textContent = timeLeft;
+    }
+
+    function randomPosition(size) {
+      var maxX = Math.max(0, stage.clientWidth - size);
+      var maxY = Math.max(0, stage.clientHeight - size);
+      return {
+        x: Math.floor(Math.random() * maxX),
+        y: Math.floor(Math.random() * maxY)
+      };
+    }
+
+    function currentTargetSize() {
+      var levelSizeCut = (currentLevel - 1) * SHRINK_PER_LEVEL;
+      return Math.max(MIN_TARGET_SIZE, MAX_TARGET_SIZE - currentTargets * SHRINK_PER_HIT - levelSizeCut);
+    }
+
+    // Keep the live target inside the field after a viewport resize
+    // (e.g. entering/leaving mobile fullscreen).
+    function repositionCurrentTarget() {
+      if (!currentTargetEl) return;
+      var size = currentTargetEl.offsetWidth || currentTargetSize();
+      var pos = randomPosition(size);
+      currentTargetEl.style.left = pos.x + 'px';
+      currentTargetEl.style.top = pos.y + 'px';
+    }
+
+    function spawnTarget() {
+      if (!playing) return;
+      if (currentTargetEl && currentTargetEl.parentNode) {
+        currentTargetEl.parentNode.removeChild(currentTargetEl);
+      }
+
+      var size = currentTargetSize();
+      var pos = randomPosition(size);
+      var colorClass = COLOR_CLASSES[(currentLevel - 1) % COLOR_CLASSES.length];
+
+      var target = document.createElement('button');
+      target.type = 'button';
+      target.className = 'target ' + colorClass;
+      target.style.width = size + 'px';
+      target.style.height = size + 'px';
+      target.style.left = pos.x + 'px';
+      target.style.top = pos.y + 'px';
+      target.setAttribute('aria-label', 'Target, click or tap to hit');
+
+      target.addEventListener('pointerdown', function (e) {
+        e.stopPropagation();
+        hitTarget(target);
+      });
+
+      stage.appendChild(target);
+      currentTargetEl = target;
+    }
+
+    function hitTarget(target) {
+      if (!playing || paused) return;
+      comboStreak += 1;
+      multiplier = Math.min(MAX_MULTIPLIER, 1 + (comboStreak - 1) * MULTIPLIER_STEP);
+      currentScore += Math.round(100 * multiplier);
+      currentTargets += 1;
+
+      if (comboStreak >= 2) {
+        showComboPopup(comboStreak);
+      }
+
+      var newLevel = levelForTargetCount(currentTargets);
+      if (newLevel > currentLevel) {
+        currentLevel = newLevel;
+        showLevelUpToast(currentLevel);
+      }
+
+      updateStats();
+
+      target.classList.add('hit');
+      // Remove the spent target once its pop-out animation finishes, so hit
+      // targets don't accumulate as invisible, still-focusable buttons.
+      setTimeout(function () {
+        if (target.parentNode) target.parentNode.removeChild(target);
+      }, 200);
+      currentTargetEl = null;
+      spawnTarget();
+    }
+
+    function registerMiss(x, y) {
+      if (!playing || paused) return;
+      currentScore -= 100;
+      missCount += 1;
+      comboStreak = 0;
+      multiplier = 1;
+      updateStats();
+
+      var flash = document.createElement('div');
+      flash.className = 'miss-flash';
+      var size = 46;
+      flash.style.width = size + 'px';
+      flash.style.height = size + 'px';
+      flash.style.left = (x - size / 2) + 'px';
+      flash.style.top = (y - size / 2) + 'px';
+      stage.appendChild(flash);
+      setTimeout(function () {
+        if (flash.parentNode) flash.parentNode.removeChild(flash);
+      }, 420);
+    }
+
+    stage.addEventListener('pointerdown', function (e) {
+      if (!playing || paused) return;
+      if (e.target && e.target.classList.contains('target')) return;
+      var rect = stage.getBoundingClientRect();
+      registerMiss(e.clientX - rect.left, e.clientY - rect.top);
+    });
+
+    function tick() {
+      timeLeft -= 1;
+      updateStats();
+      if (timeLeft <= 0) {
+        endGame();
+      }
+    }
+
+    function startGame() {
+      currentScore = 0;
+      currentTargets = 0;
+      missCount = 0;
+      currentLevel = 1;
+      comboStreak = 0;
+      multiplier = 1;
+      timeLeft = GAME_LENGTH;
+      playing = true;
+      paused = false;
+      gameOverCard.hide();
+      updateStats();
+      hideOverlay();
+      pauseBtn.setEnabled(true);
+      spawnTarget();
+      clearInterval(timerId);
+      timerId = setInterval(tick, 1000);
+    }
+
+    function endGame() {
+      playing = false;
+      paused = false;
+      clearInterval(timerId);
+      pauseBtn.setEnabled(false);
+      if (currentTargetEl && currentTargetEl.parentNode) {
+        currentTargetEl.parentNode.removeChild(currentTargetEl);
+        currentTargetEl = null;
+      }
+      gameOver();
+    }
+
+    function calculateAccuracy() {
+      var totalTaps = currentTargets + missCount;
+      if (totalTaps === 0) return 0;
+      return Math.round((currentTargets / totalTaps) * 100);
+    }
+
+    function gameOver() {
+      var accuracy = calculateAccuracy();
+      var summary = 'You collected ' + currentTargets + ' targets for ' + currentScore +
+        ' points, with ' + accuracy + '% accuracy. You reached level ' + currentLevel + '.';
+      // The leaderboard ranks players by total targets collected (not raw
+      // score, which can go negative). leaderboard.js injects its own Top 10
+      // panel + initials-entry overlay; game-over-card.js shows the result.
+      Leaderboard.trySubmit(currentTargets, function (accepted) {
+        gameOverCard.show({ accepted: accepted, text: summary });
+      });
+    }
+
+    function init() {
+      clearInterval(timerId);
+      playing = false;
+      paused = false;
+      currentScore = 0;
+      currentTargets = 0;
+      missCount = 0;
+      currentLevel = 1;
+      comboStreak = 0;
+      multiplier = 1;
+      timeLeft = GAME_LENGTH;
+      pauseBtn.setEnabled(false);
+      if (currentTargetEl && currentTargetEl.parentNode) {
+        currentTargetEl.parentNode.removeChild(currentTargetEl);
+        currentTargetEl = null;
+      }
+      updateStats();
+      showStandardOverlay('Ready?', INSTRUCTIONS, '▶ Start Game');
+    }
+
+    startBtn.addEventListener('click', function () {
+      if (fullscreen) fullscreen.enter();
+      startGame();
+    });
+
+    restartBtn.addEventListener('click', function () {
+      gameOverCard.hide();
+      init();
+    });
+
+    init();
+    Leaderboard.init({ gameKey: 'aim-trainer' });
+  })();
+  </script>
+
+  <script src="../nav.js"></script>
+  <script src="../footer.js"></script>
+
+</body>
+</html>
