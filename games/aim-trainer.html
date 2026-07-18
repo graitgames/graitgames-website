@@ -326,7 +326,7 @@
     </div>
 
     <p class="game-description" style="text-align:center; color:var(--text-description); margin-bottom:24px; font-family:var(--font-body);">
-      Click the glowing targets with your mouse on PC — or tap them on your screen on mobile — before time runs out. Chain hits to build your multiplier and level up.
+      Click the glowing targets with your mouse on PC, or tap them on your screen on mobile, before time runs out. Chain hits to build your multiplier and level up your score.
     </p>
 
     <div class="game-stats" data-fs-role="stats">
@@ -393,10 +393,9 @@
     var restartBtn = document.getElementById('restartBtn');
 
     var INSTRUCTIONS =
-      'Hit as many targets as you can in 30 seconds. On a computer, click each target with your mouse; ' +
-      'on a phone or tablet, tap it on the screen. Every hit scores +100 times your multiplier. ' +
-      'Chain hits without missing to build the multiplier up to 4x — each hit adds 0.25x, and a miss ' +
-      'resets it to 1x and costs 100 score. Every 20 targets you level up: targets change colour and shrink.';
+      'Hit as many targets as you can in 30 seconds. Click with your mouse or tap a touchscreen. ' +
+      'Chain hits without missing to increase your multiplier. Don\'t miss or it resets. ' +
+      'Can you top the leaderboard?';
 
     var GAME_LENGTH = 30;        // seconds
     var MIN_TARGET_SIZE = 44;    // px, meets minimum touch target
