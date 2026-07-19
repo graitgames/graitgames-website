@@ -26,7 +26,10 @@
    ============================================================================ */
 
 const GAME_CAPS = {
-  'space-dogfight': 9999,
+  'space-dogfight':        9999,
+  'space-dogfight-easy':   999,
+  'space-dogfight-medium': 999,
+  'space-dogfight-hard':   999,
   '4ordle':         9999,
   'save-my-chicks': 99999,
   'gnome-crawler':  99999,

@@ -215,11 +215,11 @@
   }
 
   /* ── API calls ──────────────────────────────────────────────────── */
-  function fetchScores() {
+  function fetchScores(done) {
     fetch('/api/scores?game=' + gameKey)
       .then(function (r) { return r.json().then(function (d) { return r.ok ? d : null; }); })
-      .then(function (data) { render(data && data.scores ? data.scores : [], null); })
-      .catch(function () { render([], null); });
+      .then(function (data) { render(data && data.scores ? data.scores : [], null); if (typeof done === 'function') done(); })
+      .catch(function () { render([], null); if (typeof done === 'function') done(); });
   }
 
   function handleSubmit() {
@@ -314,6 +314,17 @@
       injectStyles();
       injectHTML(stage);
       fetchScores();
+    },
+
+    /* Switch the active board to a different game key (e.g. per-difficulty
+       leaderboards that share one panel). Optionally updates the panel
+       heading, and calls `done` once the new board has been fetched +
+       rendered so callers can safely trySubmit against the fresh scores. */
+    setGame: function (key, headingLabel, done) {
+      gameKey = key;
+      var h = document.getElementById('lb-heading');
+      if (headingLabel && h) h.textContent = '// ' + headingLabel + ' //';
+      fetchScores(done);
     },
 
     /* Renders a compact top-N table into the given container element.

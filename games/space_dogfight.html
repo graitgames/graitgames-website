@@ -384,6 +384,54 @@
         transition: none !important;
       }
     }
+
+    /* ============================================
+       LEADERBOARD (per-difficulty, below the arena)
+       ============================================ */
+    /* The arena is full-width, so render the shared leaderboard board as a
+       centered column below it (overriding leaderboard.js's default
+       absolute/right desktop placement). */
+    #lb-anchor {
+      position: relative;
+      width: 100%;
+    }
+    #game .lb-panel {
+      position: static;
+      left: auto;
+      top: auto;
+      width: 100%;
+      max-width: 420px;
+      margin: 16px auto 0;
+    }
+
+    /* Easy / Medium / Hard tabs that switch which board is shown */
+    .lb-diff-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 24px;
+    }
+    .lb-diff-tab {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      background: transparent;
+      border: 1px solid var(--border-accessible);
+      border-radius: var(--border-radius);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .lb-diff-tab:hover { color: var(--text-primary); border-color: var(--color-cyan); }
+    .lb-diff-tab.active { border-color: var(--color-cyan); color: var(--color-cyan); box-shadow: var(--glow-cyan); }
+    .lb-diff-tab:focus-visible { outline: 2px solid var(--color-cyan); outline-offset: 2px; }
+
+    /* Hide the whole leaderboard section in mobile fullscreen (the board is
+       for browsing between runs; the fixed-position initials overlay is a
+       separate element and stays functional). */
+    #game.is-mobile-fullscreen .lb-diff-tabs { display: none; }
   </style>
 </head>
 <body>
@@ -481,6 +529,17 @@
 
   </div><!-- /.game-arena -->
 
+  <!-- Per-difficulty leaderboard (shared leaderboard.js injects .lb-panel +
+       the initials overlay into .game-stage; the tabs switch which board is
+       shown). class="game-stage" is required as leaderboard.js's anchor. -->
+  <section class="game-stage" id="lb-anchor" aria-label="Leaderboards">
+    <div class="lb-diff-tabs" role="tablist" aria-label="Leaderboard difficulty">
+      <button type="button" class="lb-diff-tab" data-diff="easy"   role="tab" aria-selected="false">Easy</button>
+      <button type="button" class="lb-diff-tab active" data-diff="medium" role="tab" aria-selected="true">Medium</button>
+      <button type="button" class="lb-diff-tab" data-diff="hard"   role="tab" aria-selected="false">Hard</button>
+    </div>
+  </section>
+
 </main><!-- /game-wrap -->
 
 <!-- Shared mobile components (one level up) — loaded before the game script
@@ -488,6 +547,7 @@
 <script src="../touch-joystick.js"></script>
 <script src="../game-fullscreen.js"></script>
 <script src="../pause-button.js"></script>
+<script src="../leaderboard.js"></script>
 
 <script>
 (function () {
@@ -1121,6 +1181,14 @@
       '</div>';
 
     elMenu.classList.remove('hidden');
+
+    /* Sync the board to the difficulty just played, then (once its scores are
+       fresh) offer to save the win streak to that difficulty's leaderboard. */
+    if (LB_ENABLED) {
+      setLeaderboardDiff(difficulty, function () {
+        if (scores[0] > 0) Leaderboard.trySubmit(scores[0], function () {});
+      });
+    }
   }
 
   /* ============================================
@@ -1297,6 +1365,7 @@
        round starts; no-op on desktop / when already fullscreen. */
     if (fullscreen) fullscreen.enter();
     difficulty = diff || difficulty;
+    setLeaderboardDiff(difficulty); // show the board for the difficulty being played
     paused     = false;
     if (pauseBtn) pauseBtn.setEnabled(true);
     elGame.classList.add('is-playing'); // reveals the mobile touch controls
@@ -1332,6 +1401,36 @@
       ctx.fill();
     }
   }());
+
+  /* ============================================
+     LEADERBOARD — per-difficulty boards (Easy / Medium / Hard)
+     Each difficulty has its own board; the tabs switch which is shown, and
+     the win streak (scores[0]) is submitted to the played difficulty's key.
+     ============================================ */
+  var LB_ENABLED = (typeof Leaderboard !== 'undefined');
+  var lbTabs = Array.prototype.slice.call(document.querySelectorAll('.lb-diff-tab'));
+
+  function lbKey(diff)   { return 'space-dogfight-' + diff; }
+  function lbLabel(diff) { return (DIFF[diff] ? DIFF[diff].label : diff) + ' Leaderboard'; }
+
+  function setLeaderboardDiff(diff, done) {
+    lbTabs.forEach(function (t) {
+      var on = t.getAttribute('data-diff') === diff;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    if (LB_ENABLED) Leaderboard.setGame(lbKey(diff), lbLabel(diff), done);
+    else if (typeof done === 'function') done();
+  }
+
+  lbTabs.forEach(function (t) {
+    t.addEventListener('click', function () { setLeaderboardDiff(t.getAttribute('data-diff')); });
+  });
+
+  if (LB_ENABLED) {
+    Leaderboard.init({ gameKey: lbKey('medium') });
+    setLeaderboardDiff('medium'); // set heading + active tab to match the default
+  }
 
 })();
 </script>
