@@ -548,6 +548,7 @@
 <script src="../game-fullscreen.js"></script>
 <script src="../pause-button.js"></script>
 <script src="../leaderboard.js"></script>
+<script src="../game-over-card.js"></script>
 
 <script>
 (function () {
@@ -1183,10 +1184,22 @@
     elMenu.classList.remove('hidden');
 
     /* Sync the board to the difficulty just played, then (once its scores are
-       fresh) offer to save the win streak to that difficulty's leaderboard. */
+       fresh) offer to save the win streak and show the end-of-game card with
+       the Top 3 board + Play Again. The card is the leaderboard view that
+       works on mobile fullscreen (the below-arena panel is hidden there);
+       closing it (X) reveals the menu underneath to pick another difficulty. */
     if (LB_ENABLED) {
       setLeaderboardDiff(difficulty, function () {
-        if (scores[0] > 0) Leaderboard.trySubmit(scores[0], function () {});
+        var summary = scores[0] > 0
+          ? 'You won ' + scores[0] + ' ' + roundsLabel + ' in a row on ' + DIFF[difficulty].label + '.'
+          : 'The AI took you down in the first round on ' + DIFF[difficulty].label + '. Try again!';
+        if (scores[0] > 0 && typeof Leaderboard.trySubmit === 'function') {
+          Leaderboard.trySubmit(scores[0], function (accepted) {
+            if (gameOverCard) gameOverCard.show({ accepted: accepted, text: summary });
+          });
+        } else if (gameOverCard) {
+          gameOverCard.show({ accepted: false, text: summary });
+        }
       });
     }
   }
@@ -1438,6 +1451,13 @@
     Leaderboard.init({ gameKey: lbKey('medium') });
     setLeaderboardDiff('medium'); // set heading + active tab to match the default
   }
+
+  /* Shared end-of-game card (result text + Top 3 board + Play Again) — a
+     fixed-position modal that works over mobile fullscreen, unlike the
+     below-arena leaderboard panel which is hidden there. */
+  var gameOverCard = (typeof GameOverCard !== 'undefined' && GameOverCard.init)
+    ? GameOverCard.init({ parent: 'game', color: 'orange', onPlayAgain: function () { startGame(difficulty); } })
+    : null;
 
 })();
 </script>
