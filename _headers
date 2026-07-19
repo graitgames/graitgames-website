@@ -1,16 +1,34 @@
 # Cloudflare Pages custom response headers.
 # https://developers.cloudflare.com/pages/configuration/headers/
 #
-# Shared, non-fingerprinted JS and CSS (leaderboard.js, nav.js, footer.js,
-# pause-button.js, styles.css, etc.) are loaded by every game page and change
-# between deploys. Cloudflare Pages' default of `Cache-Control: max-age=14400`
-# lets a browser serve a stale copy for up to 4 hours, which can mask a shipped
-# fix — e.g. a game page calling a newly added Leaderboard method that the
-# cached script doesn't have yet. Force revalidation instead: the ETag makes it
-# a cheap 304 Not Modified when the file is unchanged, but an updated file is
-# picked up on the very next load.
-/*.js
+# Shared, non-fingerprinted JS/CSS load on every game page and change between
+# deploys. Pages' default (Cache-Control: max-age=14400) lets a returning
+# visitor serve a stale copy for up to 4h, which can mask a shipped fix — e.g.
+# a game page calling a newly added Leaderboard.setGame the cached script
+# lacked, which aborted the game from starting. Force revalidation instead:
+# the ETag makes it a cheap 304 Not Modified when unchanged, but an updated
+# file is picked up on the very next load.
+#
+# NOTE: Pages _headers matches explicit paths reliably (extension globs like
+# /*.js are flaky) — list each shared root-level script/style here, and add
+# any new shared component file to this list.
+/leaderboard.js
   Cache-Control: public, max-age=0, must-revalidate
-
-/*.css
+/nav.js
+  Cache-Control: public, max-age=0, must-revalidate
+/footer.js
+  Cache-Control: public, max-age=0, must-revalidate
+/pause-button.js
+  Cache-Control: public, max-age=0, must-revalidate
+/game-fullscreen.js
+  Cache-Control: public, max-age=0, must-revalidate
+/game-over-card.js
+  Cache-Control: public, max-age=0, must-revalidate
+/touch-joystick.js
+  Cache-Control: public, max-age=0, must-revalidate
+/games.js
+  Cache-Control: public, max-age=0, must-revalidate
+/home.js
+  Cache-Control: public, max-age=0, must-revalidate
+/styles.css
   Cache-Control: public, max-age=0, must-revalidate
