@@ -1419,8 +1419,15 @@
       t.classList.toggle('active', on);
       t.setAttribute('aria-selected', on ? 'true' : 'false');
     });
-    if (LB_ENABLED) Leaderboard.setGame(lbKey(diff), lbLabel(diff), done);
-    else if (typeof done === 'function') done();
+    // The leaderboard is optional — never let it (e.g. a stale cached
+    // leaderboard.js without setGame) throw and block the game from starting.
+    try {
+      if (LB_ENABLED && typeof Leaderboard.setGame === 'function') {
+        Leaderboard.setGame(lbKey(diff), lbLabel(diff), done);
+        return;
+      }
+    } catch (e) { /* fall through to done() below */ }
+    if (typeof done === 'function') done();
   }
 
   lbTabs.forEach(function (t) {
