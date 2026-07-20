@@ -449,6 +449,20 @@
     return 1 + Math.floor(rng() * (axisLen - 2));
   }
 
+  // Hit points a newly spawned skeleton gets, i.e. how much Spectral bolt
+  // damage it takes to kill. Scales with Crawler level so enemies don't stay
+  // one-shot forever as the bolt's own damage ramps up:
+  //   lv 1-4 -> 1, lv 5-8 -> 2, lv 9-10 -> 3, lv 11-12 -> 4,
+  //   then +1 every 2 levels (13-14 -> 5, 15-16 -> 6, ...).
+  // Chunks are evicted and regenerated as the player roams, so nearby
+  // skeletons pick up the new value shortly after each level-up.
+  function enemyHp() {
+    var lvl = crawlerLevel || 1;
+    if (lvl <= 4) return 1;
+    if (lvl <= 8) return 2;
+    return 3 + Math.floor((lvl - 9) / 2);
+  }
+
   function generateChunk(cx, cy) {
     var seed = hashSeed(cx, cy, runSeed);
     var rng = seededRng(seed);
@@ -576,7 +590,7 @@
         x: ewx - 9, y: ewy - 9, w: 18, h: 18,
         speed: 0.85 + rng() * 0.5,
         dir: { x: Math.cos(angle), y: Math.sin(angle) },
-        changeTimer: 0, hp: 1, animPhase: rng() * Math.PI * 2, facing: 1
+        changeTimer: 0, hp: enemyHp(), animPhase: rng() * Math.PI * 2, facing: 1
       });
       pool.splice(eidx, 1);
     }
@@ -1009,7 +1023,7 @@
     swift:       { name: 'Swift boots',    icon: '\u26A1', desc: function (lvl) { return '+' + (lvl * 12) + '% speed'; }, max: 4 },
     torch:       { name: 'Wide torch',     icon: '\u25C9', desc: function (lvl) { return '+' + (lvl * 22) + ' light'; }, max: 4 },
     thorns:      { name: 'Ward of thorns', icon: '\u2726', desc: function (lvl) { return 'knockback Lv ' + lvl; }, max: 3 },
-    secondwind:  { name: 'Second wind',    icon: '\u2665', desc: function (lvl) { return 'restore ' + lvl + ' life'; }, max: 5, instant: true },
+    secondwind:  { name: 'Second wind',    icon: '\u2665', desc: function () { return 'restore 1 life'; }, max: 5, instant: true },
     spiritstep:  { name: 'Spirit step',    icon: '\u21AF', desc: function (lvl) { return 'cooldown ' + Math.max(8 - lvl, 3) + 's'; }, max: 4 },
     relicsense:  { name: 'Relic sense',    icon: '\u2736', desc: function (lvl) { return '+' + (lvl * 30) + ' glow'; }, max: 4 },
     spectralbolt:{ name: 'Spectral bolt',  icon: '\u2604', desc: function (lvl) { return lvl + ' dmg, fires every ' + Math.max(3.5 - lvl * 0.5, 1.5).toFixed(1) + 's'; }, max: 4 }
@@ -1398,7 +1412,10 @@
           if (picked) return;
           picked = true;
           abilities[key] = nextLvl;
-          if (def.instant) lives = Math.min(lives + nextLvl, 9);
+          // Instant abilities (Second wind) always restore exactly 1 life —
+          // deliberately NOT scaled by nextLvl, which made repeat picks
+          // (2 lives, 3 lives...) trivialize the run.
+          if (def.instant) lives = Math.min(lives + 1, 9);
           renderAbilityBar();
           overlay.classList.remove('visible');
           choosing = false;
