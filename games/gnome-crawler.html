@@ -83,7 +83,7 @@
   display: flex;
   gap: 6px;
   width: 100%;
-  max-width: 640px;
+  max-width: 760px;
   min-height: 26px;
   flex-wrap: wrap;
 }
@@ -100,6 +100,9 @@
   color: var(--color-orange);
 }
 
+/* Desktop/PC play area. 760px is the site-wide standard stage width (matches
+   Save My Chicks and Aim Trainer) — see the game starter docs. The 32:21 box
+   is Gnome Crawler's own camera framing and is intentionally kept. */
 .canvas-frame {
   position: relative;
   border-radius: var(--border-radius-lg);
@@ -107,7 +110,7 @@
   border: 2px solid var(--border-accessible);
   box-shadow: var(--glow-cyan);
   width: 100%;
-  max-width: 640px;
+  max-width: 760px;
   aspect-ratio: 32 / 21;
 }
 #gameCanvas {
@@ -221,7 +224,7 @@
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--text-muted);
-  max-width: 640px;
+  max-width: 760px;
 }
 
 .minimap-wrap {

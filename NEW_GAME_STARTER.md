@@ -194,6 +194,20 @@ body {
   color: var(--color-green);
 }
 
+/* Game stage — wrapper around the play area.
+   760px is the SITE-WIDE STANDARD play-area width for PC/desktop gameplay.
+   Every game uses it (Save My Chicks, Aim Trainer, Gnome Crawler) so the play
+   field is the same size everywhere in the catalog — do NOT pick a different
+   max-width. Give the play field itself width:100% inside this stage and let
+   its own aspect-ratio set the height. Mobile fullscreen overrides this cap
+   separately, so it only affects desktop. */
+.game-stage {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
 /* General-purpose action button */
 .btn {
   display: inline-flex;
@@ -404,6 +418,9 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 - [ ] If the game introduces a new category, add the sidebar button + `.category-count` badge in `games.html`
 
 **QA**
+- [ ] Desktop: measure the play area at a wide (1280px) viewport — it should render 760px wide,
+      matching Save My Chicks, Aim Trainer, and Gnome Crawler. Also check any sibling rows meant
+      to line up with it use the SAME 760px cap, not a narrower one.
 - [ ] Test header bar on mobile (320px) — back, title, and restart must stay in one row
 - [ ] Test restart button — confirm it resets all game state cleanly
 - [ ] Check focus rings are visible on all interactive elements (keyboard nav)

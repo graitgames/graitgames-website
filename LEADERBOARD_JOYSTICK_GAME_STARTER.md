@@ -220,6 +220,20 @@ body {
   color: var(--color-green);
 }
 
+/* Game stage — wrapper around the play area.
+   760px is the SITE-WIDE STANDARD play-area width for PC/desktop gameplay.
+   Every game uses it (Save My Chicks, Aim Trainer, Gnome Crawler) so the play
+   field is the same size everywhere in the catalog — do NOT pick a different
+   max-width. Give the canvas-frame width:100% inside this stage and let its
+   own aspect-ratio set the height. Mobile fullscreen overrides this cap
+   separately (see the fullscreen section), so it only affects desktop. */
+.game-stage {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
 /* Optional XP/health bar — only include if the game has a leveling or
    health mechanic (Gnome Crawler has one, Save My Chicks doesn't). Should
    span the SAME width as the stat boxes row above it — don't cap it to a
@@ -520,6 +534,10 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 - [ ] Keep only game-specific rules (canvas frame, sprites, custom overlays) in the inline `<style>` block
 - [ ] If the game has an XP/health bar, make sure it has no `max-width` narrower than `.game-stats`
       (they should visually span the same width)
+- [ ] Confirm the desktop play area uses the standard `max-width: 760px` — and that any sibling
+      rows meant to line up with it (ability/buff bars, hint text) use the SAME 760px, not a
+      narrower value. Anything capped below 760px makes the game look smaller than the rest of
+      the catalog.
 
 ### HTML head
 - [ ] Replace the Artifact font `<link>` with the full stack (unchanged from base starter):
@@ -661,6 +679,8 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
       single short playthrough looks fine
 - [ ] Desktop: confirm keyboard controls still work, the full Top 10 leaderboard panel shows in its
       sidebar position, and nothing mobile-specific leaked into the desktop layout
+- [ ] Desktop: measure the play area at a wide (1280px) viewport — it should render 760px wide,
+      matching Save My Chicks, Aim Trainer, and Gnome Crawler side by side
 
 ---
 

@@ -61,6 +61,12 @@ PowerShell static file server on port 8000, no Node/Python needed) — use
   `(function () { 'use strict'; ... })();` — no frameworks, no build step.
 - Brand colors/fonts are CSS custom properties already defined in
   `styles.css` — never hardcode hex values in a game file.
+- **The desktop/PC play area is 760px wide on every game**
+  (`.game-stage { max-width: 760px }`, with the play field at `width: 100%`
+  inside it). Keep new games on that standard so they don't look smaller
+  than the rest of the catalog, and cap any row meant to align with the play
+  area (ability/buff bars, hint text) at the same 760px. Mobile fullscreen
+  overrides this separately, so it only affects desktop.
 - SVG icons only for UI glyphs (back arrow, restart, close) — never Unicode
   characters like `←`/`↺`, which render as emoji on mobile Safari.
 - Only commit and push when explicitly asked.
