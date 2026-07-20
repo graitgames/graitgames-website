@@ -1,3 +1,9 @@
 # Auto-generated document previews of Markdown posts (not part of the site)
 blog/posts/*.pdf
 blog/posts/*.docx
+
+# OS-generated folder metadata (Windows Explorer / macOS Finder), never part
+# of the site — these appear on their own when a folder's view or icon changes.
+desktop.ini
+Thumbs.db
+.DS_Store
