@@ -18,6 +18,36 @@
       padding-bottom: 40px;
     }
 
+    .game-stats {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      flex: 1 1 0;
+      min-width: 90px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-accessible);
+      border-radius: var(--border-radius-lg);
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-family: var(--font-headline);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-green);
+    }
     .stat-value.time  { color: var(--color-cyan); }
     .stat-value.time.low { color: var(--color-orange); text-shadow: var(--glow-orange); }
     .stat-value.target { color: var(--color-orange); }
@@ -734,7 +764,19 @@
     var MOVE_RIGHT = { arrowright: 1, d: 1 };
     var GAME_KEYS = { arrowleft: 1, arrowright: 1, arrowup: 1, arrowdown: 1, a: 1, d: 1, ' ': 1, spacebar: 1 };
 
+    // A/D/space also happen to be text-input characters — when focus is in
+    // the leaderboard initials boxes (or any input/textarea) we must NOT
+    // preventDefault or steal the keypress, or the field silently ignores
+    // the letter the player is trying to type.
+    function isTypingInField(e) {
+      var t = e.target;
+      if (!t) return false;
+      var tag = t.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || t.isContentEditable;
+    }
+
     window.addEventListener('keydown', function (e) {
+      if (isTypingInField(e)) return;
       var k = e.key.toLowerCase();
       if (GAME_KEYS[k]) e.preventDefault();
       if (MOVE_LEFT[k]) keys.left = true;
@@ -742,6 +784,7 @@
       else if (k === ' ' || k === 'spacebar') { if (!e.repeat) castOrStrike(); }
     });
     window.addEventListener('keyup', function (e) {
+      if (isTypingInField(e)) return;
       var k = e.key.toLowerCase();
       if (MOVE_LEFT[k]) keys.left = false;
       else if (MOVE_RIGHT[k]) keys.right = false;
