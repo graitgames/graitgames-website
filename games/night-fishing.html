@@ -178,7 +178,7 @@
     </div>
 
     <p class="game-description" style="text-align:center; color:var(--text-description); margin-bottom:24px; font-family:var(--font-body);">
-      Steer your boat under the moon, drop your line, and strike the moment a fish drifts into the ring. Beat each level's point target before the clock runs out.
+      Steer your boat under the moon, drop your line, and strike the moment a fish enters the ring. Can you reach the point target before time runs out?
     </p>
 
     <div class="game-stats" data-fs-role="stats">
@@ -203,8 +203,8 @@
         </div>
 
         <div class="overlay" id="overlay">
-          <h2 id="overlay-title">NIGHT FISHING</h2>
-          <p id="overlay-text">Move the boat left / right, drop your line, then tap again to hook a fish when it lands inside the strike ring. Avoid the junk &mdash; and the mines.</p>
+          <h2 id="overlay-title">Ready?</h2>
+          <p id="overlay-text">Move the boat, cast your line, and tap again to hook a fish. Avoid the junk, especially the mines!</p>
           <p class="hint" id="overlay-hint">Cyan 10 &nbsp;&bull;&nbsp; Green 25 &nbsp;&bull;&nbsp; Orange 60 &nbsp;&bull;&nbsp; Gold 150</p>
           <button type="button" class="btn btn-secondary" id="start-btn">&#9654; Start Game</button>
         </div>
@@ -504,8 +504,8 @@
       gameOverCard.hide();
       updateStats();
       showOverlay({
-        title: 'NIGHT FISHING',
-        text: 'Move the boat left / right, drop your line, then tap again to hook a fish when it lands inside the strike ring. Avoid the junk &mdash; and the mines.',
+        title: 'Ready?',
+        text: 'Move the boat, cast your line, and tap again to hook a fish. Avoid the junk, especially the mines!',
         hint: 'Cyan 10 &nbsp;&bull;&nbsp; Green 25 &nbsp;&bull;&nbsp; Orange 60 &nbsp;&bull;&nbsp; Gold 150',
         btn: '▶ Start Game', btnClass: 'btn-secondary',
         onAction: function () {
