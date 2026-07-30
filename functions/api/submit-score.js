@@ -34,6 +34,7 @@ const GAME_CAPS = {
   'save-my-chicks': 99999,
   'gnome-crawler':  99999,
   'aim-trainer':    99999,
+  'night-fishing':  999999,
 };
 
 const MAX_SUBMISSIONS_PER_WINDOW = 5;

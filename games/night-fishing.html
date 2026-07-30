@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Night Fishing — GRaiT GAMES</title>
+  <meta name="description" content="Night Fishing — steer your boat under the moon, drop your line, and strike when a fish lands in the ring. Beat each level's point target before time runs out. A GRaiT GAMES original." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../styles.css" />
+
+  <style>
+    #game {
+      padding-top: 32px;
+      padding-bottom: 40px;
+    }
+
+    .stat-value.time  { color: var(--color-cyan); }
+    .stat-value.time.low { color: var(--color-orange); text-shadow: var(--glow-orange); }
+    .stat-value.target { color: var(--color-orange); }
+
+    .game-stage {
+      position: relative;
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .game-viewport {
+      position: relative;
+    }
+
+    .game-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 760 / 580;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-accessible);
+      border-radius: var(--border-radius-lg);
+      overflow: hidden;
+      box-shadow: var(--glow-cyan);
+      touch-action: none;
+    }
+
+    #canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      text-align: center;
+      padding: 24px;
+      background: rgba(7, 7, 15, 0.88);
+      border-radius: var(--border-radius-lg);
+      z-index: 5;
+    }
+    .overlay.hidden { display: none; }
+    .overlay h2 {
+      font-family: var(--font-logo);
+      font-size: 1.05rem;
+      letter-spacing: 1px;
+      color: var(--color-cyan);
+      line-height: 1.5;
+      text-shadow: var(--glow-cyan);
+    }
+    .overlay h2.win  { color: var(--color-green); text-shadow: var(--glow-green); }
+    .overlay h2.lose { color: var(--color-orange); text-shadow: var(--glow-orange); }
+    .overlay p {
+      max-width: 420px;
+      color: var(--text-description);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+    .overlay .hint {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .controls-help {
+      text-align: center;
+      margin-top: 14px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+    }
+    @media (pointer: coarse), (max-width: 820px) {
+      .controls-help { display: none; }
+    }
+
+    #game.is-mobile-fullscreen .game-description,
+    #game.is-mobile-fullscreen .controls-help {
+      display: none;
+    }
+    #game.is-mobile-fullscreen [data-fs-role="stage"] {
+      max-width: none;
+      height: 100%;
+    }
+    #game.is-mobile-fullscreen .game-viewport {
+      height: 100%;
+    }
+    #game.is-mobile-fullscreen .game-frame {
+      max-width: none;
+      aspect-ratio: unset;
+      height: 100%;
+      min-height: 240px;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#game" class="skip-link">Skip to game</a>
+
+  <nav id="main-nav"></nav>
+
+  <main class="container-narrow" id="game">
+
+    <div class="game-header" data-fs-role="header">
+      <a href="/games.html" class="btn btn-outline-cyan btn-icon" aria-label="Back to Catalog">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <p class="game-title-bar" role="heading" aria-level="1">NIGHT FISHING</p>
+      <button type="button" class="btn-restart" id="restartBtn" aria-label="Restart game">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+      </button>
+    </div>
+
+    <p class="game-description" style="text-align:center; color:var(--text-description); margin-bottom:24px; font-family:var(--font-body);">
+      Steer your boat under the moon, drop your line, and strike the moment a fish drifts into the ring. Beat each level's point target before the clock runs out.
+    </p>
+
+    <div class="game-stats" data-fs-role="stats">
+      <div class="stat-box">
+        <div class="stat-label">Time</div>
+        <div class="stat-value time" id="time" role="status" aria-live="off">30</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total Points</div>
+        <div class="stat-value" id="points" role="status" aria-live="polite">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Level Target</div>
+        <div class="stat-value target" id="target">300</div>
+      </div>
+    </div>
+
+    <div class="game-stage" id="gameStage" data-fs-role="stage">
+      <div class="game-viewport" id="gameViewport">
+        <div class="game-frame">
+          <canvas id="canvas" aria-label="Night Fishing game area"></canvas>
+        </div>
+
+        <div class="overlay" id="overlay">
+          <h2 id="overlay-title">NIGHT FISHING</h2>
+          <p id="overlay-text">Move the boat left / right, drop your line, then tap again to hook a fish when it lands inside the strike ring. Avoid the junk &mdash; and the mines.</p>
+          <p class="hint" id="overlay-hint">Cyan 10 &nbsp;&bull;&nbsp; Green 25 &nbsp;&bull;&nbsp; Orange 60 &nbsp;&bull;&nbsp; Gold 150</p>
+          <button type="button" class="btn btn-secondary" id="start-btn">&#9654; Start Game</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="controls-help">Desktop: &larr; &rarr; or A / D to move &nbsp;&middot;&nbsp; Space or click to cast &amp; strike</p>
+
+  </main>
+
+  <script src="../leaderboard.js"></script>
+  <script src="../game-over-card.js"></script>
+  <script src="../game-fullscreen.js"></script>
+  <script src="../touch-joystick.js"></script>
+  <script src="../pause-button.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    /* ══════════════════════════════════════════════════════════════════════
+       NIGHT FISHING — competitive night fishing
+       Boat steers left/right; cast drops a hook that sinks under the boat;
+       tap again to strike a fish inside the strike ring. Beat each level's
+       cumulative point target before 30s runs out to advance.
+       ══════════════════════════════════════════════════════════════════════ */
+
+    // Virtual world (game math). Canvas scales to fit.
+    var VW = 760, VH = 580;
+    var WATERLINE = 132;
+    var MOON = { x: 632, y: 70, r: 46 };
+    var BOAT_Y = WATERLINE, BOAT_HALF = 38, BOAT_SPEED = 320;
+    var HOOK_TOP = WATERLINE + 12, HOOK_BOTTOM = VH - 26;
+    var DESCEND_SPEED = 235, REEL_SPEED = 360, STRIKE_R = 50;
+
+    var FISH_TYPES = {
+      minnow: { value: 10,  color: '#00EAFF', len: 26, hgt: 12, band: [175, 300], speed: 78 },
+      green:  { value: 25,  color: '#39FF14', len: 34, hgt: 16, band: [235, 400], speed: 62 },
+      big:    { value: 60,  color: '#FF6B2B', len: 54, hgt: 26, band: [330, 500], speed: 46 },
+      trophy: { value: 150, color: '#FFD447', len: 60, hgt: 30, band: [400, 540], speed: 98 }
+    };
+
+    // Canvas / rendering
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var frame = canvas.parentNode;
+    var dpr = 1, viewW = VW, viewH = VH;
+
+    function resizeCanvas() {
+      dpr = window.devicePixelRatio || 1;
+      var rect = frame.getBoundingClientRect();
+      viewW = rect.width || VW;
+      viewH = rect.height || VH;
+      canvas.width = Math.round(viewW * dpr);
+      canvas.height = Math.round(viewH * dpr);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', resizeCanvas);
+
+    // Shared components
+    var MOBILE_FULLSCREEN = true;
+    var fullscreen = GameFullscreen.init({ el: 'game', enabled: MOBILE_FULLSCREEN, onChange: function () { resizeCanvas(); } });
+
+    var gameOverCard = GameOverCard.init({
+      parent: 'game',
+      color: 'blue',
+      onPlayAgain: function () { startLevel(1); }
+    });
+
+    var pauseBtn = PauseButton.init({
+      parent: 'gameViewport',
+      onPause: function () { paused = true; },
+      onResume: function () { paused = false; lastTime = 0; }
+    });
+
+    // Game state
+    var keys = {};                 // shared by keyboard AND joystick — never reassign
+    var state = 'ready';           // ready | playing | levelclear | over
+    var level = 1, totalPoints = 0, target = 300, timeLeft = 30;
+    var multiplier = 1;
+    var paused = false;
+    var boat = { x: VW / 2, bob: 0 };
+    var hook = { active: false, phase: 'idle', y: HOOK_TOP, caught: null };
+    var fishes = [], hazards = [], floaters = [], bubbles = [], stars = [];
+    var fishTimer = 0, hazardTimer = 0;
+    var lastTime = 0;
+
+    function targetFor(n) { return 300 + 450 * (n - 1) * n; }
+    function maxFishOnScreen() { return level < 3 ? 3 : level + 1; }
+
+    // Stat / overlay refs
+    var elTime = document.getElementById('time');
+    var elPoints = document.getElementById('points');
+    var elTarget = document.getElementById('target');
+
+    var overlay = document.getElementById('overlay');
+    var overlayTitle = document.getElementById('overlay-title');
+    var overlayText = document.getElementById('overlay-text');
+    var overlayHint = document.getElementById('overlay-hint');
+    var startBtn = document.getElementById('start-btn');
+    var restartBtn = document.getElementById('restartBtn');
+    var overlayAction = null;
+
+    function updateStats() {
+      elTime.textContent = Math.max(0, Math.ceil(timeLeft));
+      elTime.classList.toggle('low', timeLeft <= 10);
+      elPoints.textContent = totalPoints;
+      elTarget.textContent = target;
+    }
+
+    function showOverlay(opts) {
+      overlayTitle.textContent = opts.title;
+      overlayTitle.className = opts.titleClass || '';
+      overlayText.innerHTML = opts.text;
+      overlayHint.style.display = opts.hint ? '' : 'none';
+      if (opts.hint) overlayHint.innerHTML = opts.hint;
+      startBtn.textContent = opts.btn;
+      startBtn.className = 'btn ' + (opts.btnClass || 'btn-secondary');
+      overlayAction = opts.onAction;
+      overlay.classList.remove('hidden');
+    }
+    function hideOverlay() { overlay.classList.add('hidden'); }
+
+    // overlay button: pointerup + click, guarded — needed for mid-gameplay
+    // buttons on iOS Safari (see shared-component checklist notes).
+    var overlayHandled = false;
+    function fireOverlay() {
+      if (overlayHandled) return;
+      overlayHandled = true;
+      var fn = overlayAction;
+      if (fn) fn();
+      setTimeout(function () { overlayHandled = false; }, 50);
+    }
+    startBtn.addEventListener('pointerup', fireOverlay);
+    startBtn.addEventListener('click', fireOverlay);
+
+    // Spawning
+    function rand(a, b) { return a + Math.random() * (b - a); }
+    function pick(weights) {
+      var total = 0, key;
+      for (key in weights) total += weights[key];
+      var r = Math.random() * total;
+      for (key in weights) { r -= weights[key]; if (r <= 0) return key; }
+      return key;
+    }
+    function speedMul() { return 1 + 0.10 * (level - 1); }
+
+    function spawnFish() {
+      var type = pick({
+        minnow: Math.max(1, 6 - level),
+        green: 4,
+        big: 1 + level * 0.5,
+        trophy: 0.2 + level * 0.18
+      });
+      var def = FISH_TYPES[type];
+      var dir = Math.random() < 0.5 ? 1 : -1;
+      fishes.push({
+        type: type, def: def, dir: dir,
+        x: dir === 1 ? -def.len : VW + def.len,
+        y: rand(def.band[0], def.band[1]),
+        speed: def.speed * speedMul() * rand(0.85, 1.15),
+        wig: Math.random() * Math.PI * 2
+      });
+    }
+
+    function spawnHazard() {
+      var isMine = level >= 3 && Math.random() < 0.28 + 0.05 * (level - 3);
+      var type = isMine ? 'mine' : pick({ can: 1, boot: 1, tire: 1, weed: 1 });
+      var dir = Math.random() < 0.5 ? 1 : -1;
+      hazards.push({
+        type: type, dir: dir, mine: isMine, r: isMine ? 20 : 22,
+        x: dir === 1 ? -30 : VW + 30,
+        y: rand(200, 520),
+        speed: rand(28, 46) * (isMine ? 1.1 : 1),
+        blink: 0
+      });
+    }
+
+    function addFloater(x, y, text, color) {
+      floaters.push({ x: x, y: y, text: text, color: color, age: 0, life: 1.1 });
+    }
+    function addBubbles(x, y) {
+      for (var i = 0; i < 6; i++) {
+        bubbles.push({ x: x + rand(-8, 8), y: y, vy: rand(-40, -80), r: rand(1.5, 4), age: 0, life: rand(0.6, 1.1) });
+      }
+    }
+
+    // Cast / strike
+    function castOrStrike() {
+      if (state !== 'playing' || paused) return;
+
+      if (!hook.active) {
+        hook.active = true; hook.phase = 'descending'; hook.y = HOOK_TOP; hook.caught = null;
+        addBubbles(boat.x, HOOK_TOP);
+        return;
+      }
+      if (hook.phase === 'descending') strike();
+    }
+
+    function strike() {
+      var best = null, bestVal = -1;
+      for (var i = 0; i < fishes.length; i++) {
+        var f = fishes[i];
+        var dx = f.x - boat.x, dy = f.y - hook.y;
+        if (dx * dx + dy * dy <= STRIKE_R * STRIKE_R && f.def.value > bestVal) { best = f; bestVal = f.def.value; }
+      }
+      if (best) {
+        var pts = best.def.value * multiplier;
+        totalPoints += pts;
+        addFloater(best.x, best.y - 14, '+' + pts + (multiplier > 1 ? '  x' + multiplier : ''), best.def.color);
+        addBubbles(best.x, best.y);
+        multiplier = Math.min(5, multiplier + 1);
+        fishes.splice(fishes.indexOf(best), 1);
+        hook.phase = 'reeling';
+        hook.caught = best;
+        updateStats();
+        if (totalPoints >= target) levelClear();
+        return;
+      }
+      var hz = hazardAt(boat.x, hook.y, STRIKE_R);
+      if (hz) { penalize(hz, 'MISS'); return; }
+
+      hook.phase = 'reeling';
+    }
+
+    function hazardAt(x, y, r) {
+      for (var i = 0; i < hazards.length; i++) {
+        var h = hazards[i], dx = h.x - x, dy = h.y - y, rr = r + h.r;
+        if (dx * dx + dy * dy <= rr * rr) return h;
+      }
+      return null;
+    }
+
+    function penalize(hz, tag) {
+      var loss = hz.mine ? 4 : 2;
+      timeLeft = Math.max(0, timeLeft - loss);
+      multiplier = 1;
+      addFloater(hz.x, hz.y - 14, '-' + loss + 's ' + (hz.mine ? '!' : tag), '#FF3355');
+      hazards.splice(hazards.indexOf(hz), 1);
+      hook.phase = 'reeling'; hook.caught = null;
+      updateStats();
+      if (timeLeft <= 0) endGame();
+    }
+
+    // Level flow
+    function startLevel(n) {
+      level = n; timeLeft = 30; target = targetFor(n);
+      multiplier = 1;
+      fishes.length = 0; hazards.length = 0; floaters.length = 0; bubbles.length = 0;
+      fishTimer = 0; hazardTimer = 0;
+      hook.active = false; hook.phase = 'idle'; hook.y = HOOK_TOP; hook.caught = null;
+      for (var k in keys) keys[k] = false;   // clear IN PLACE (never keys = {})
+      for (var i = 0; i < maxFishOnScreen(); i++) spawnFish();
+      state = 'playing';
+      paused = false;
+      lastTime = 0;
+      gameOverCard.hide();
+      pauseBtn.setEnabled(true);
+      hideOverlay();
+      updateStats();
+    }
+
+    function levelClear() {
+      state = 'levelclear';
+      var bonus = Math.floor(timeLeft) * (8 + 2 * level);
+      totalPoints += bonus;
+      hook.active = false; hook.phase = 'idle'; hook.caught = null;
+      pauseBtn.setEnabled(false);
+      updateStats();
+      showOverlay({
+        title: 'LEVEL ' + level + ' CLEAR', titleClass: 'win',
+        text: 'Target smashed! <strong>+' + bonus + '</strong> time bonus banked.<br>Level ' + (level + 1) + ' brings faster fish and more hazards.',
+        hint: 'Total Points: ' + totalPoints,
+        btn: '▶ Next Level', btnClass: 'btn-primary',
+        onAction: function () { startLevel(level + 1); }
+      });
+    }
+
+    function endGame() {
+      state = 'over';
+      hook.active = false; hook.phase = 'idle'; hook.caught = null;
+      pauseBtn.setEnabled(false);
+      var summary = 'You reached Level ' + level + ' and hauled in ' + totalPoints + ' points.';
+      Leaderboard.trySubmit(totalPoints, function (accepted) {
+        gameOverCard.show({ accepted: accepted, text: summary });
+      });
+    }
+
+    function resetToReady() {
+      level = 1; totalPoints = 0; target = targetFor(1); timeLeft = 30; multiplier = 1;
+      state = 'ready';
+      paused = false;
+      fishes.length = 0; hazards.length = 0; floaters.length = 0; bubbles.length = 0;
+      hook.active = false; hook.phase = 'idle'; hook.y = HOOK_TOP; hook.caught = null;
+      for (var k in keys) keys[k] = false;
+      for (var i = 0; i < 3; i++) spawnFish();
+      pauseBtn.setEnabled(false);
+      gameOverCard.hide();
+      updateStats();
+      showOverlay({
+        title: 'NIGHT FISHING',
+        text: 'Move the boat left / right, drop your line, then tap again to hook a fish when it lands inside the strike ring. Avoid the junk &mdash; and the mines.',
+        hint: 'Cyan 10 &nbsp;&bull;&nbsp; Green 25 &nbsp;&bull;&nbsp; Orange 60 &nbsp;&bull;&nbsp; Gold 150',
+        btn: '▶ Start Game', btnClass: 'btn-secondary',
+        onAction: function () {
+          if (fullscreen) fullscreen.enter();
+          startLevel(1);
+        }
+      });
+    }
+
+    // Update
+    function update(dt) {
+      if (paused) return;
+
+      boat.bob += dt * 2;
+
+      if (state !== 'playing') return;
+
+      timeLeft -= dt;
+      if (timeLeft <= 0) { timeLeft = 0; updateStats(); endGame(); return; }
+      updateStats();
+
+      var dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+      boat.x += dir * BOAT_SPEED * dt;
+      boat.x = Math.max(BOAT_HALF + 8, Math.min(VW - BOAT_HALF - 8, boat.x));
+
+      if (hook.active) {
+        if (hook.phase === 'descending') {
+          hook.y += DESCEND_SPEED * dt;
+          var mine = null;
+          for (var i = 0; i < hazards.length; i++) {
+            if (!hazards[i].mine) continue;
+            var dx = hazards[i].x - boat.x, dy = hazards[i].y - hook.y;
+            if (dx * dx + dy * dy <= (hazards[i].r + 8) * (hazards[i].r + 8)) { mine = hazards[i]; break; }
+          }
+          if (mine) { penalize(mine, ''); }
+          else if (hook.y >= HOOK_BOTTOM) { hook.phase = 'reeling'; }
+        } else if (hook.phase === 'reeling') {
+          hook.y -= REEL_SPEED * dt;
+          if (hook.caught) { hook.caught.x = boat.x; hook.caught.y = hook.y; }
+          if (hook.y <= HOOK_TOP) { hook.active = false; hook.phase = 'idle'; hook.caught = null; }
+        }
+      }
+
+      fishTimer -= dt;
+      if (fishTimer <= 0 && fishes.length < maxFishOnScreen()) { spawnFish(); fishTimer = Math.max(0.5, 1.4 - 0.08 * level); }
+      hazardTimer -= dt;
+      if (hazardTimer <= 0 && hazards.length < 1 + level) { spawnHazard(); hazardTimer = Math.max(1.1, 3.0 - 0.16 * level); }
+
+      for (var f = fishes.length - 1; f >= 0; f--) {
+        var fi = fishes[f];
+        fi.x += fi.dir * fi.speed * dt;
+        fi.wig += dt * 4;
+        if (fi.dir === 1 && fi.x > VW + fi.def.len) fishes.splice(f, 1);
+        else if (fi.dir === -1 && fi.x < -fi.def.len) fishes.splice(f, 1);
+      }
+      for (var h = hazards.length - 1; h >= 0; h--) {
+        var hz = hazards[h];
+        hz.x += hz.dir * hz.speed * dt;
+        hz.blink += dt;
+        if (hz.dir === 1 && hz.x > VW + 40) hazards.splice(h, 1);
+        else if (hz.dir === -1 && hz.x < -40) hazards.splice(h, 1);
+      }
+      for (var t = floaters.length - 1; t >= 0; t--) {
+        floaters[t].age += dt; floaters[t].y -= 26 * dt;
+        if (floaters[t].age >= floaters[t].life) floaters.splice(t, 1);
+      }
+      for (var b = bubbles.length - 1; b >= 0; b--) {
+        bubbles[b].age += dt; bubbles[b].y += bubbles[b].vy * dt;
+        if (bubbles[b].age >= bubbles[b].life) bubbles.splice(b, 1);
+      }
+    }
+
+    // Draw
+    function draw() {
+      ctx.setTransform(dpr * (viewW / VW), 0, 0, dpr * (viewH / VH), 0, 0);
+      ctx.clearRect(0, 0, VW, VH);
+
+      // Sky
+      var sky = ctx.createLinearGradient(0, 0, 0, WATERLINE);
+      sky.addColorStop(0, '#0a0a1e'); sky.addColorStop(1, '#141433');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, VW, WATERLINE);
+
+      // Stars
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      for (var s = 0; s < stars.length; s++) {
+        var st = stars[s];
+        ctx.globalAlpha = 0.4 + 0.5 * Math.abs(Math.sin(boat.bob * 0.5 + st.tw));
+        ctx.fillRect(st.x, st.y, st.s, st.s);
+      }
+      ctx.globalAlpha = 1;
+
+      // Moon with level number
+      var mg = ctx.createRadialGradient(MOON.x, MOON.y, 6, MOON.x, MOON.y, MOON.r + 22);
+      mg.addColorStop(0, 'rgba(0,234,255,0.30)'); mg.addColorStop(1, 'rgba(0,234,255,0)');
+      ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(MOON.x, MOON.y, MOON.r + 22, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#EDF6FF'; ctx.beginPath(); ctx.arc(MOON.x, MOON.y, MOON.r, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(120,150,190,0.30)';
+      ctx.beginPath(); ctx.arc(MOON.x - 14, MOON.y - 10, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(MOON.x + 12, MOON.y + 8, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(MOON.x + 6, MOON.y - 16, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0a0a1e'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '900 34px Orbitron, sans-serif';
+      ctx.fillText(String(level), MOON.x, MOON.y + 2);
+
+      // Water
+      var water = ctx.createLinearGradient(0, WATERLINE, 0, VH);
+      water.addColorStop(0, '#062b3a'); water.addColorStop(0.5, '#04202e'); water.addColorStop(1, '#02121b');
+      ctx.fillStyle = water; ctx.fillRect(0, WATERLINE, VW, VH - WATERLINE);
+
+      // Water shimmer
+      ctx.strokeStyle = 'rgba(0,234,255,0.10)'; ctx.lineWidth = 2;
+      for (var w = 0; w < 5; w++) {
+        var yy = WATERLINE + 18 + w * 26;
+        ctx.beginPath();
+        for (var x = 0; x <= VW; x += 20) {
+          var oy = Math.sin((x * 0.03) + boat.bob + w) * 3;
+          if (x === 0) ctx.moveTo(x, yy + oy); else ctx.lineTo(x, yy + oy);
+        }
+        ctx.stroke();
+      }
+
+      // Hazards
+      for (var hi = 0; hi < hazards.length; hi++) drawHazard(hazards[hi]);
+
+      // Fish
+      for (var fi2 = 0; fi2 < fishes.length; fi2++) drawFish(fishes[fi2]);
+
+      // Line + hook + strike ring
+      if (hook.active) {
+        ctx.strokeStyle = 'rgba(220,240,255,0.55)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(boat.x, BOAT_Y - 4); ctx.lineTo(boat.x, hook.y); ctx.stroke();
+        if (hook.phase === 'descending') {
+          var pulse = 1 + 0.12 * Math.sin(boat.bob * 4);
+          ctx.strokeStyle = 'rgba(0,234,255,0.9)'; ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
+          ctx.beginPath(); ctx.arc(boat.x, hook.y, STRIKE_R * pulse, 0, Math.PI * 2); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        if (hook.caught) drawFish({ x: boat.x, y: hook.y, def: hook.caught.def, dir: 1, wig: 0, type: hook.caught.type });
+        ctx.fillStyle = '#EDF6FF'; ctx.beginPath(); ctx.arc(boat.x, hook.y, 4, 0, Math.PI * 2); ctx.fill();
+      }
+
+      drawBoat();
+
+      // Bubbles
+      for (var bi = 0; bi < bubbles.length; bi++) {
+        var bb = bubbles[bi];
+        ctx.globalAlpha = 1 - bb.age / bb.life;
+        ctx.strokeStyle = 'rgba(0,234,255,0.7)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(bb.x, bb.y, bb.r, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Floating catch / penalty text
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      for (var ti = 0; ti < floaters.length; ti++) {
+        var fl = floaters[ti];
+        ctx.globalAlpha = 1 - fl.age / fl.life;
+        ctx.font = '700 20px Orbitron, sans-serif';
+        ctx.fillStyle = fl.color;
+        ctx.fillText(fl.text, fl.x, fl.y);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawBoat() {
+      var y = BOAT_Y + Math.sin(boat.bob) * 2;
+      ctx.save(); ctx.translate(boat.x, y);
+      ctx.fillStyle = '#12121f'; ctx.strokeStyle = '#FF6B2B'; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-BOAT_HALF, -4); ctx.lineTo(BOAT_HALF, -4);
+      ctx.lineTo(BOAT_HALF - 12, 12); ctx.lineTo(-BOAT_HALF + 12, 12);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#8A8AAD'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(-14, -4); ctx.lineTo(-14, -26); ctx.stroke();
+      var lg = ctx.createRadialGradient(-14, -28, 1, -14, -28, 16);
+      lg.addColorStop(0, 'rgba(255,180,80,0.9)'); lg.addColorStop(1, 'rgba(255,140,40,0)');
+      ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(-14, -28, 16, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#FFD447'; ctx.beginPath(); ctx.arc(-14, -28, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#39FF14'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(6, -2); ctx.lineTo(24, -18); ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawFish(f) {
+      var d = f.def;
+      ctx.save(); ctx.translate(f.x, f.y);
+      if (f.dir === -1) ctx.scale(-1, 1);
+      var wob = Math.sin(f.wig) * 2;
+      ctx.fillStyle = d.color;
+      ctx.shadowColor = d.color; ctx.shadowBlur = f.type === 'trophy' ? 14 : 6;
+      ctx.beginPath(); ctx.ellipse(0, wob, d.len / 2, d.hgt / 2, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-d.len / 2, wob);
+      ctx.lineTo(-d.len / 2 - d.hgt * 0.6, wob - d.hgt * 0.55);
+      ctx.lineTo(-d.len / 2 - d.hgt * 0.6, wob + d.hgt * 0.55);
+      ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#07070F';
+      ctx.beginPath(); ctx.arc(d.len / 4, wob - d.hgt * 0.12, Math.max(1.5, d.hgt * 0.12), 0, Math.PI * 2); ctx.fill();
+      if (f.type === 'trophy') {
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(d.len / 6, wob - d.hgt * 0.3, 1.6, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawHazard(h) {
+      ctx.save(); ctx.translate(h.x, h.y);
+      if (h.mine) {
+        ctx.fillStyle = '#2a2a3a'; ctx.strokeStyle = '#555';
+        ctx.lineWidth = 2;
+        for (var a = 0; a < 8; a++) {
+          var ang = a * Math.PI / 4;
+          ctx.beginPath(); ctx.moveTo(Math.cos(ang) * 12, Math.sin(ang) * 12);
+          ctx.lineTo(Math.cos(ang) * (h.r + 2), Math.sin(ang) * (h.r + 2)); ctx.stroke();
+        }
+        ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = Math.sin(h.blink * 8) > 0 ? '#FF3355' : '#5a1520';
+        ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+      } else if (h.type === 'can') {
+        ctx.fillStyle = '#6a6a7a'; ctx.strokeStyle = '#9a9ab0'; ctx.lineWidth = 1.5;
+        ctx.fillRect(-9, -13, 18, 26); ctx.strokeRect(-9, -13, 18, 26);
+        ctx.strokeStyle = '#4a4a5a'; ctx.beginPath(); ctx.moveTo(-9, -6); ctx.lineTo(9, -6); ctx.moveTo(-9, 6); ctx.lineTo(9, 6); ctx.stroke();
+      } else if (h.type === 'boot') {
+        ctx.fillStyle = '#3a2a2a';
+        ctx.fillRect(-6, -14, 12, 20);
+        ctx.fillRect(-6, 4, 22, 10);
+      } else if (h.type === 'tire') {
+        ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 7;
+        ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#4a4a4a'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.stroke();
+      } else {
+        ctx.strokeStyle = '#2f7d3f'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+        for (var wv = -1; wv <= 1; wv++) {
+          ctx.beginPath(); ctx.moveTo(wv * 6, 16);
+          ctx.quadraticCurveTo(wv * 6 + Math.sin(h.blink + wv) * 8, 0, wv * 6, -16);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
+    // Main loop
+    function loop(ts) {
+      if (!lastTime) lastTime = ts;
+      var dt = Math.min(0.05, (ts - lastTime) / 1000);
+      lastTime = ts;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    // Input
+    var MOVE_LEFT = { arrowleft: 1, a: 1 };
+    var MOVE_RIGHT = { arrowright: 1, d: 1 };
+    var GAME_KEYS = { arrowleft: 1, arrowright: 1, arrowup: 1, arrowdown: 1, a: 1, d: 1, ' ': 1, spacebar: 1 };
+
+    window.addEventListener('keydown', function (e) {
+      var k = e.key.toLowerCase();
+      if (GAME_KEYS[k]) e.preventDefault();
+      if (MOVE_LEFT[k]) keys.left = true;
+      else if (MOVE_RIGHT[k]) keys.right = true;
+      else if (k === ' ' || k === 'spacebar') { if (!e.repeat) castOrStrike(); }
+    });
+    window.addEventListener('keyup', function (e) {
+      var k = e.key.toLowerCase();
+      if (MOVE_LEFT[k]) keys.left = false;
+      else if (MOVE_RIGHT[k]) keys.right = false;
+    });
+
+    // Desktop tap-on-canvas fires cast/strike too. Mobile uses the shared
+    // action button (below); we listen on 'mousedown' rather than the earlier
+    // prototype's 'pointerdown' so a mobile finger drifting onto the canvas
+    // during joystick play can't accidentally trigger a cast.
+    canvas.addEventListener('mousedown', function (e) { e.preventDefault(); castOrStrike(); });
+
+    // Mobile joystick + CAST button. The joystick's left/right map onto the
+    // same keys.left / keys.right the keyboard already sets, so the update
+    // loop needs no changes. Up/down go to inert placeholder key names since
+    // this game has no vertical boat movement.
+    TouchJoystick.init({
+      parent: 'game',
+      keys: keys,
+      keyNames: { up: '_joyUnusedUp', down: '_joyUnusedDown', left: 'left', right: 'right' },
+      moveLabel: 'Steer boat',
+      actionLabel: 'CAST',
+      actionAriaLabel: 'Cast line and strike',
+      actionIcon: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v7"/><path d="M12 21a5 5 0 0 0 5-5"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/></svg>',
+      onActionStart: function () { castOrStrike(); }
+    });
+
+    // Header restart — full reset back to the Ready overlay.
+    restartBtn.addEventListener('click', resetToReady);
+
+    // Boot
+    function initStars() {
+      stars = [];
+      for (var i = 0; i < 60; i++) stars.push({ x: rand(0, VW), y: rand(0, WATERLINE - 6), s: rand(1, 2), tw: rand(0, 6) });
+    }
+
+    initStars();
+    resizeCanvas();
+    resetToReady();
+    requestAnimationFrame(loop);
+    Leaderboard.init({ gameKey: 'night-fishing' });
+  })();
+  </script>
+
+  <script src="../nav.js"></script>
+  <script src="../footer.js"></script>
+</body>
+</html>
