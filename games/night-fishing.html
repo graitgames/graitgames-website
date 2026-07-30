@@ -270,7 +270,10 @@
     var gameOverCard = GameOverCard.init({
       parent: 'game',
       color: 'blue',
-      onPlayAgain: function () { startLevel(1); }
+      // Zero totalPoints before starting level 1. startLevel() by itself
+      // preserves totalPoints because it's also used for normal level-to-
+      // level progression, where the score must carry forward.
+      onPlayAgain: function () { totalPoints = 0; startLevel(1); }
     });
 
     var pauseBtn = PauseButton.init({
