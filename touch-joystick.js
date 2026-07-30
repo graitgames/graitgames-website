@@ -235,6 +235,14 @@ var TouchJoystick = (function () {
     joyBase.addEventListener('pointerup', endJoystick);
     joyBase.addEventListener('pointercancel', endJoystick);
     joyBase.addEventListener('pointerleave', endJoystick);
+    // Fallback: if the tracked pointer's up/cancel event fires anywhere on
+    // the document instead of on joyBase (iOS Safari can lose the up event
+    // when a system gesture, URL-bar transition, or split-view change
+    // interrupts a captured pointer mid-drag), endJoystick still runs so the
+    // thumb visual snaps back and the direction key clears. Guarded by
+    // pointerId inside endJoystick — unrelated pointerups are ignored.
+    document.addEventListener('pointerup', endJoystick);
+    document.addEventListener('pointercancel', endJoystick);
 
     var actionActive = false;
     function triggerAction(e) {
@@ -247,9 +255,12 @@ var TouchJoystick = (function () {
       beginDragSuppression();
       if (opts.onActionStart) opts.onActionStart();
     }
+    // Guard MUST come before e.preventDefault so this handler is safe to
+    // bind on document too — otherwise it would swallow the default action
+    // on every unrelated pointerup on the page.
     function releaseAction(e) {
-      if (e) e.preventDefault();
       if (!actionActive) return;
+      if (e) e.preventDefault();
       actionActive = false;
       actionBtn.classList.remove('active-touch');
       endDragSuppression();
@@ -259,6 +270,9 @@ var TouchJoystick = (function () {
     actionBtn.addEventListener('pointerup', releaseAction);
     actionBtn.addEventListener('pointercancel', releaseAction);
     actionBtn.addEventListener('pointerleave', releaseAction);
+    // Same lost-pointerup fallback as the joystick above.
+    document.addEventListener('pointerup', releaseAction);
+    document.addEventListener('pointercancel', releaseAction);
 
     // Belt-and-suspenders against iOS Safari's long-press text-selection
     // callout (Copy/Look Up/etc.) occasionally slipping through: the
