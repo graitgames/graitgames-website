@@ -863,6 +863,144 @@
     var fullscreen = GameFullscreen.init({ el: 'game', enabled: MOBILE_FULLSCREEN });
 
     /* ============================================
+       DAILY-PLAY GATE
+       One play per IP per local calendar day, enforced by
+       /api/daily-play (Cloudflare Pages Function + D1). Boot
+       does a GET to learn whether today's play is used; the
+       first PLAYER guess does a POST to claim it (the two
+       AI-prefilled rows in newGame() are skipped — they aren't
+       the player's move); end-of-game does a PATCH to record
+       the outcome. Return visits the same day skip the Tap to
+       Play gate and land straight on the "already played today"
+       overlay.
+       ============================================ */
+    var DAILY_GAME_KEY = 'fix-my-4ordle';
+    var TOKEN_STORAGE_KEY = 'gg_dp_token';
+    var dailyBlocked = false;
+    var dailyClaimed = false;
+    var dailyCountdownTimer = null;
+    var dailyResetAtMs = 0;
+    var dailyResetAtUtcIso = '';
+
+    function getBrowserToken() {
+      try {
+        var t = localStorage.getItem(TOKEN_STORAGE_KEY);
+        if (t) return t;
+        t = (crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+        localStorage.setItem(TOKEN_STORAGE_KEY, t);
+        return t;
+      } catch (e) {
+        return '';
+      }
+    }
+    var BROWSER_TOKEN = getBrowserToken();
+
+    function checkDailyStatus() {
+      var url = '/api/daily-play?game=' + encodeURIComponent(DAILY_GAME_KEY)
+              + '&token=' + encodeURIComponent(BROWSER_TOKEN);
+      return fetch(url, { method: 'GET', credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
+    }
+
+    function claimDailyPlay(targetsList) {
+      return fetch('/api/daily-play', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game: DAILY_GAME_KEY,
+          token: BROWSER_TOKEN,
+          targets: targetsList,
+        }),
+      })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+    }
+
+    function reportDailyOutcome(outcome, guessCount) {
+      if (!dailyClaimed) return;
+      fetch('/api/daily-play', {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game: DAILY_GAME_KEY,
+          token: BROWSER_TOKEN,
+          outcome: outcome,
+          guesses: guessCount,
+        }),
+      }).catch(function () {});
+    }
+
+    function formatCountdown(ms) {
+      if (ms <= 0) return '0h 0m 0s';
+      var totalSec = Math.floor(ms / 1000);
+      var h = Math.floor(totalSec / 3600);
+      var m = Math.floor((totalSec % 3600) / 60);
+      var s = totalSec % 60;
+      return h + 'h ' + m + 'm ' + s + 's';
+    }
+
+    function showDailyBlockedOverlay(payload, opts) {
+      opts = opts || {};
+      dailyBlocked = true;
+      gameOver = true;
+
+      var so = document.getElementById('startOverlay');
+      if (so) so.classList.add('hidden');
+      if (newBtn) newBtn.disabled = true;
+
+      var answersUpper = (payload.targets || [])
+        .map(function (w) { return String(w).toUpperCase(); }).join(', ');
+      var didWin = payload.outcome === 'won';
+      var resultLine = payload.outcome === 'in_progress'
+        ? 'You started today’s puzzle.'
+        : (didWin
+            ? 'You solved it in ' + payload.guesses + ' ' + (payload.guesses === 1 ? 'guess' : 'guesses') + '.'
+            : 'You didn’t solve it in ' + payload.guesses + ' ' + (payload.guesses === 1 ? 'guess' : 'guesses') + '.');
+
+      dailyResetAtMs = payload.resetAtUtcIso ? Date.parse(payload.resetAtUtcIso) : 0;
+
+      var html =
+        '<span style="display:block; margin-bottom:8px;">' + resultLine + '</span>' +
+        (answersUpper
+          ? '<span style="display:block; margin-bottom:8px;">Today’s words: <span class="missed-words">' + answersUpper + '</span></span>'
+          : '') +
+        '<span style="display:block; margin-bottom:14px;">Next play in <span id="dailyCountdown">' +
+          (dailyResetAtMs ? formatCountdown(dailyResetAtMs - Date.now()) : '') +
+        '</span></span>' +
+        '<a href="/games.html" class="btn btn-secondary">Back to Catalog</a>';
+
+      document.getElementById('endOverlayTitle').textContent = opts.title || 'You’ve already played today!';
+      document.getElementById('endOverlayText').innerHTML = html;
+
+      var pa = document.getElementById('playAgainBtn');
+      if (pa) pa.style.display = 'none';
+      var xClose = document.getElementById('endOverlayClose');
+      if (xClose) xClose.style.display = 'none';
+
+      document.getElementById('endOverlay').classList.remove('hidden');
+
+      if (dailyCountdownTimer) clearInterval(dailyCountdownTimer);
+      if (dailyResetAtMs) {
+        dailyCountdownTimer = setInterval(function () {
+          var el = document.getElementById('dailyCountdown');
+          if (!el) return;
+          var remaining = dailyResetAtMs - Date.now();
+          if (remaining <= 0) {
+            clearInterval(dailyCountdownTimer);
+            el.textContent = 'now';
+            return;
+          }
+          el.textContent = formatCountdown(remaining);
+        }, 1000);
+      }
+    }
+
+    /* ============================================
        GAME STATE
        All mutable game data lives here.
        Reset by newGame() at the start of each round.
@@ -1354,7 +1492,10 @@
        boards, checks win/lose conditions, and
        updates all UI.
        ============================================ */
-    function submitGuess() {
+    var submitting = false; /* Blocks re-entry while the daily-play POST is in flight */
+    async function submitGuess() {
+      if (submitting) return;
+
       /* Must have a full 5-letter word */
       if (currentGuess.length !== WORD_LEN) {
         flashMessage('Need 5 letters!');
@@ -1367,6 +1508,23 @@
         return;
       }
 
+      /* Daily-play claim: the FIRST player-submitted guess burns today's
+         play. The two AI-prefilled rows come from newGame() via
+         scoreAndRecordGuess() and don't route through here, so
+         guesses.length at this point excludes them and starts at
+         PREFILL_ROWS — the check is === PREFILL_ROWS, not === 0. */
+      if (guesses.length === PREFILL_ROWS && !dailyClaimed) {
+        submitting = true;
+        var claim = await claimDailyPlay(targets);
+        submitting = false;
+        if (claim && claim.status === 'played') {
+          showDailyBlockedOverlay(claim);
+          return;
+        }
+        dailyClaimed = true;
+        if (claim && claim.resetAtUtcIso) dailyResetAtUtcIso = claim.resetAtUtcIso;
+      }
+
       scoreAndRecordGuess(currentGuess);
       currentGuess = ''; /* Clear the active guess */
 
@@ -1375,26 +1533,24 @@
 
       if (allSolved) {
         gameOver = true;
+        reportDailyOutcome('won', guesses.length);
+        var wonGuessCount = guesses.length;
         setTimeout(function () {
-          showEndOverlay(
-            '🎉 You Solved It!',
-            'All 4 words solved in ' + guesses.length + ' guesses!<br>' +
-            '<span class="missed-words">' + targets.join(', ').toUpperCase() + '</span>'
+          showDailyBlockedOverlay(
+            { outcome: 'won', guesses: wonGuessCount, targets: targets, resetAtUtcIso: dailyResetAtUtcIso },
+            { title: '🎉 You Solved It!' }
           );
         }, 120);
 
       } else if (guesses.length >= MAX_GUESSES) {
         gameOver = true;
-        /* Show which words the player solved vs. missed */
-        var solvedWords = targets.filter(function (_, i) { return solved[i]; });
-        var missedWords = targets.filter(function (_, i) { return !solved[i]; });
+        reportDailyOutcome('lost', guesses.length);
+        var lostGuessCount = guesses.length;
         setTimeout(function () {
-          var text = 'You ran out of guesses.';
-          if (solvedWords.length) {
-            text += '<br>Solved: ' + solvedWords.join(', ').toUpperCase();
-          }
-          text += '<br>Missed: <span class="missed-words">' + missedWords.join(', ').toUpperCase() + '</span>';
-          showEndOverlay('Out of Guesses', text);
+          showDailyBlockedOverlay(
+            { outcome: 'lost', guesses: lostGuessCount, targets: targets, resetAtUtcIso: dailyResetAtUtcIso },
+            { title: 'Out of Guesses' }
+          );
         }, 120);
       }
 
@@ -1438,6 +1594,13 @@
 
     (async function init() {
       await loadDictionary();
+      /* Ask the server whether today's play is already used. Same behavior
+         as 4ordle — see the DAILY-PLAY GATE block above. */
+      var status = await checkDailyStatus();
+      if (status && status.status === 'played') {
+        showDailyBlockedOverlay(status);
+        return;
+      }
       newBtn.disabled = false;
       startBtn.disabled = false;
       startBtn.textContent = '▶ Start Game';
@@ -1447,6 +1610,7 @@
        private newGame() function. The old inline onclick="newGame()" failed
        because newGame is not on the global scope. */
     startBtn.addEventListener('click', function () {
+      if (dailyBlocked) return;
       if (fullscreen) fullscreen.enter();
       startOverlay.classList.add('hidden');
       newGame();
@@ -1456,6 +1620,7 @@
        Again (in the end-of-game popup) is the one that skips the gate
        and starts a new round immediately. */
     newBtn.addEventListener('click', function () {
+      if (dailyBlocked) return;
       startOverlay.classList.remove('hidden');
     });
 

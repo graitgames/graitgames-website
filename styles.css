@@ -2418,8 +2418,9 @@ select:disabled {
   width: 100%;
   margin-top: var(--space-sm);
 }
-.game-card-lb-label.has-lb { color: var(--color-green); }
-.game-card-lb-label.no-lb  { color: var(--text-muted); }
+.game-card-lb-label.has-lb     { color: var(--color-green); }
+.game-card-lb-label.no-lb      { color: var(--text-muted); }
+.game-card-lb-label.daily-play { color: var(--color-orange); }
 
 /* --- EMPTY STATE (shown when a filter has no games) --- */
 .catalog-empty {

@@ -632,6 +632,11 @@ that instead).
 - [ ] Add a game card to `games.html` (copy an existing card; update title, description,
       category, href) with `<p class="game-card-lb-label no-lb">No Leaderboard</p>` in the
       footer, matching 4ordle's card, unless this game genuinely has one
+- [ ] If the game is a **daily** puzzle (one play per IP per local calendar day, no
+      leaderboard), use `<p class="game-card-lb-label daily-play">Daily Play Game!</p>`
+      instead and wire the game to `/api/daily-play` — see `4ordle.html` /
+      `fix-my-4ordle.html` (search for `DAILY-PLAY GATE`) for the reference implementation.
+      Register the game key in `functions/api/daily-play.js`'s `ALLOWED_GAMES` set.
 - [ ] Set `data-creator="father"` or `data-creator="son"` on the `<article class="game-card">`
       element — required on every card (planned "made by father / made by son" catalog filter;
       extensible if more creators join later)
