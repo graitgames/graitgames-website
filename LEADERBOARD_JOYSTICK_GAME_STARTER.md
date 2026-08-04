@@ -538,6 +538,17 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
       rows meant to line up with it (ability/buff bars, hint text) use the SAME 760px, not a
       narrower value. Anything capped below 760px makes the game look smaller than the rest of
       the catalog.
+- [ ] **`.overlay h2` base rule: NO `text-shadow` / glow.** The Ready screen shows this heading
+      on page load; a glow makes the title look blurry rather than crisp. If the win/lose states
+      want triumphant glow, add it selectively via `.overlay h2.win { text-shadow: var(--glow-green); }`
+      and `.overlay h2.lose { text-shadow: var(--glow-orange); }` — not on the base rule that
+      also styles Ready.
+- [ ] **Belt-and-suspenders callout suppression on the canvas frame.** Add
+      `-webkit-touch-callout: none; -webkit-user-select: none; user-select: none;` to whichever
+      element holds the canvas (`.game-frame`, `.canvas-frame`, etc.), and `-webkit-touch-callout: none;`
+      on the canvas itself. `touch-joystick.js`'s `body.joystick-dragging` global CSS covers
+      selection during an active drag, but this catches long-press "Copy / Look Up" iOS callouts
+      that fire OUTSIDE a joystick drag (mistimed long tap, two-finger tap, etc.).
 
 ### HTML head
 - [ ] Replace the Artifact font `<link>` with the full stack (unchanged from base starter):
@@ -573,6 +584,13 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
       — the shared shell already hides `.game-description` and `.game-title-bar` for you
 
 ### Touch joystick wiring
+> **Non-negotiable:** the live site uses `touch-joystick.js` as its ONLY
+> joystick implementation. Every joystick fix (iOS "Copy…" callout
+> suppression, lost-pointerup fallback, asymmetric hard-drag "jam" bug)
+> lives in that shared file — a per-game custom joystick misses them all
+> and re-invites bugs we've already paid for. Delete the placeholder
+> joystick wholesale during integration; do not leave it in "just in
+> case."
 - [ ] Remove the Artifact's placeholder joystick HTML, CSS, and `setupTouchControls()` JS entirely
 - [ ] Add `<script src="../touch-joystick.js"></script>`
 - [ ] Call, once at setup:
@@ -683,6 +701,18 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
       header/stats/bar/stage/controls stack in the standard order, and nothing is cut off
 - [ ] Drag the joystick in all 4 directions — confirm movement (or whichever directions are wired)
       actually applies, not just that the thumb visually drags
+- [ ] **Extreme-direction drag test.** Push the joystick as HARD in each direction as the base
+      allows — for 5+ seconds each — then release. The character/boat should keep moving the
+      whole time and cleanly stop the moment your finger lifts. If it stops mid-drag or keeps
+      going after you release, `touch-joystick.js` isn't installed or `_headers` is serving a
+      stale copy. Test right and left symmetrically — the joystick sits on the LEFT of the
+      controls row on mobile, so hard-right drags historically surfaced pointer-tracking bugs
+      that hard-left drags didn't. Test on a real iPhone (Safari), not just desktop DevTools
+      emulation — the bugs the shared component fixes are all iOS-specific.
+- [ ] **Long-press on the game surface must NOT show iOS's "Copy / Look Up" menu.** Try a
+      slow finger-tap-and-hold on the canvas, on the stat labels ("Score", "Time"), and on the
+      overlay text between rounds. If a callout appears, the belt-and-suspenders CSS on
+      `.game-frame` (see CSS checklist above) wasn't added.
 - [ ] Restart at least twice in a row on mobile — confirm the joystick still works after a restart
       (this is exactly the bug the `keys = {}` reassignment causes, and it only shows up after the
       *first* restart, not immediately)

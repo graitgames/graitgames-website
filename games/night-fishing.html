@@ -63,6 +63,12 @@
       position: relative;
     }
 
+    /* -webkit-touch-callout / -webkit-user-select / user-select: none is
+       belt-and-suspenders on top of touch-joystick.js's `body.joystick-dragging`
+       global suppression — it kills the iOS Safari long-press "Copy / Look Up"
+       callout on the canvas itself even outside an active joystick drag (e.g.
+       during a mistimed long press, or a two-finger tap that never routes
+       through the joystick component's touchmove blocker). */
     .game-frame {
       position: relative;
       width: 100%;
@@ -73,6 +79,9 @@
       overflow: hidden;
       box-shadow: var(--glow-cyan);
       touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
 
     #canvas {
@@ -82,6 +91,7 @@
       height: 100%;
       display: block;
       touch-action: none;
+      -webkit-touch-callout: none;
     }
 
     .overlay {
@@ -99,13 +109,15 @@
       z-index: 5;
     }
     .overlay.hidden { display: none; }
+    /* No text-shadow on the base rule so the "Ready?" title reads sharp.
+       Triumphant win / lose variants keep their glow selectively — that's the
+       moment where the neon accent is welcome, not on the calm start screen. */
     .overlay h2 {
       font-family: var(--font-logo);
       font-size: 1.05rem;
       letter-spacing: 1px;
       color: var(--color-cyan);
       line-height: 1.5;
-      text-shadow: var(--glow-cyan);
     }
     .overlay h2.win  { color: var(--color-green); text-shadow: var(--glow-green); }
     .overlay h2.lose { color: var(--color-orange); text-shadow: var(--glow-orange); }

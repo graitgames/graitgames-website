@@ -234,13 +234,19 @@ var TouchJoystick = (function () {
     }
     joyBase.addEventListener('pointerup', endJoystick);
     joyBase.addEventListener('pointercancel', endJoystick);
-    joyBase.addEventListener('pointerleave', endJoystick);
-    // Fallback: if the tracked pointer's up/cancel event fires anywhere on
-    // the document instead of on joyBase (iOS Safari can lose the up event
-    // when a system gesture, URL-bar transition, or split-view change
-    // interrupts a captured pointer mid-drag), endJoystick still runs so the
-    // thumb visual snaps back and the direction key clears. Guarded by
-    // pointerId inside endJoystick — unrelated pointerups are ignored.
+    // NOTE: intentionally NO pointerleave handler here. setPointerCapture()
+    // above SHOULD keep pointer events routed to joyBase even when the finger
+    // drags past its bounds, but on iOS Safari that capture doesn't always
+    // hold — so a hard drag past the joystick base's edge would fire
+    // pointerleave mid-drag, endJoystick would run, and the direction key
+    // would silently clear while the finger was still down. The joystick sits
+    // on the LEFT of the touch-controls row, so this asymmetrically bit
+    // hard-right drags more than hard-left drags (Night Fishing surfaced it
+    // first — its whole gameplay is holding right). The pointerup/cancel
+    // handlers below (both on joyBase and, as a captured-pointer fallback,
+    // on document) are the only correct signals for "the touch is really
+    // over"; the pointerleave signal is ambiguous ("finger still down but
+    // outside the element") and would over-fire.
     document.addEventListener('pointerup', endJoystick);
     document.addEventListener('pointercancel', endJoystick);
 
@@ -269,8 +275,10 @@ var TouchJoystick = (function () {
     actionBtn.addEventListener('pointerdown', triggerAction);
     actionBtn.addEventListener('pointerup', releaseAction);
     actionBtn.addEventListener('pointercancel', releaseAction);
-    actionBtn.addEventListener('pointerleave', releaseAction);
-    // Same lost-pointerup fallback as the joystick above.
+    // Same reasoning as the joystick above — no pointerleave. If the finger
+    // slides off the action button while it's being held (e.g. the player
+    // adjusts grip mid-shoot), we shouldn't release the action; we should
+    // wait for an actual pointerup/cancel via the doc-level fallback.
     document.addEventListener('pointerup', releaseAction);
     document.addEventListener('pointercancel', releaseAction);
 
