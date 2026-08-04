@@ -29,6 +29,12 @@ should not be edited.**
 
 ## Before starting game work, read the relevant guide
 
+For an end-to-end walkthrough of the whole "new game" process — from picking
+the right archetype, to prototyping in Claude Artifacts, to integrating into
+the live site — start with
+**[NEW-GAME-WORKFLOW.md](NEW-GAME-WORKFLOW.md)**. It's the top-level entry
+point and points at each of the archetype-specific starters below.
+
 - **New game with a leaderboard + mobile joystick** (continuous directional
   movement, e.g. Save My Chicks, Gnome Crawler) →
   [LEADERBOARD_JOYSTICK_GAME_STARTER.md](LEADERBOARD_JOYSTICK_GAME_STARTER.md).

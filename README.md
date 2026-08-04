@@ -80,6 +80,10 @@ Commit and push all three files together; Cloudflare auto-deploys.
 
 ## See also — the rest of the docs
 
+- **[NEW-GAME-WORKFLOW.md](./NEW-GAME-WORKFLOW.md)** — top-level guide for
+  building a new game end-to-end: pick the archetype, prototype in Claude
+  Artifacts, integrate into the site, QA on a real device. Start here for
+  any new game.
 - **[CLAUDE.md](./CLAUDE.md)** — instructions for anyone (human or AI) working
   in this repo: where files live, which guide to read for each task, and the
   site-wide conventions worth knowing.
