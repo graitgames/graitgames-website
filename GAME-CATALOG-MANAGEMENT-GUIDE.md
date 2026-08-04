@@ -59,6 +59,14 @@ The Game Catalog has three moving parts that work together like a team:
 > sidebar button and the game card. `"puzzle"` ≠ `"Puzzle"` ≠ `"PUZZLE"`.
 > Always use **lowercase**.
 
+<a id="newest-first"></a>
+> 🕐 **Newest first — the ordering rule.** Cards in `#game-grid` are always
+> listed **newest → oldest**, top to bottom. The `<!-- N. ... -->` numbered
+> comments above each card reflect that order. When you add a new game, its
+> card goes in as **card #1** and every following comment renumbers by one.
+> Removing a card renumbers everything below it. Whenever you touch the grid,
+> re-check the numbering.
+
 ---
 
 ## 2. 📂 File Map — What Lives Where
@@ -74,9 +82,13 @@ graitgames-website/
 │   └── (thumbnail files go here — see Section 5)
 │
 ├── games/              ← Individual playable game pages
-│   ├── memory-match.html
-│   ├── snake.html
-│   └── tic-tac-toe.html
+│   ├── 4ordle.html
+│   ├── aim-trainer.html
+│   ├── fix-my-4ordle.html
+│   ├── gnome-crawler.html
+│   ├── night-fishing.html
+│   ├── save-my-chicks.html
+│   └── space_dogfight.html
 │
 ├── nav.js              ← Site navigation (auto-injected)
 └── footer.js           ← Site footer (auto-injected)
@@ -111,12 +123,17 @@ Open `games.html` and scroll to the section that looks like this:
 
 ### Step 2 — Copy a Game Card Template
 
-Add your new card **above** the `<!-- EMPTY STATE -->` comment. Here's the
-template — copy it and fill in your details:
+Add your new card as the **FIRST card** inside `<div class="game-grid">` — the
+"All Games" view always shows newest → oldest, top to bottom. See the
+["Newest first" callout](#newest-first) in Section 1 for details, and don't
+forget to renumber the `<!-- N. ... -->` comments above the surrounding cards
+so they match the new order.
+
+Here's the template — copy it and fill in your details:
 
 ```html
 <!-- NEW GAME: Your Game Name -->
-<article class="game-card" data-category="CATEGORY_HERE">
+<article class="game-card" data-category="CATEGORY_HERE" data-creator="CREATOR_HERE">
   <div class="game-thumb">
     <span class="game-tag">CATEGORY_LABEL</span>
     <span class="game-thumb-label">GAME<br>NAME</span>
@@ -143,16 +160,24 @@ Here's what to change (with a real example — adding a game called "Pixel Pong"
 |----------------------|------------------------------------|----------------------------------|
 | `CATEGORY_HERE`      | Lowercase category name            | `arcade`                         |
 | `CATEGORY_LABEL`     | Display name (shown on the tag)    | `Arcade`                         |
+| `CREATOR_HERE`       | Who built the game (see below)     | `father` or `son`                |
 | `GAME<br>NAME`       | Short name split on two lines      | `PIXEL<br>PONG`                  |
 | `Your Game Name`     | Full title (heading + aria-label)  | `Pixel Pong`                     |
 | `games/your-game.html` | Path to the playable game file   | `games/pixel-pong.html`          |
 | Description text     | Fun 2-3 sentence description       | *"Classic table tennis..."*      |
 
+> 👨‍👦 **About `data-creator`.** Every card records who built the game — today
+> the values are `father` and `son`, and both should be used verbatim
+> (lowercase). More creators may join later; the attribute is designed to be
+> extensible. A "made by father / made by son" filter on the catalog page is
+> planned, so every new card **must** include this attribute even though no
+> visible filter exists yet.
+
 ### Step 4 — The Completed Card
 
 ```html
 <!-- NEW GAME: Pixel Pong -->
-<article class="game-card" data-category="arcade">
+<article class="game-card" data-category="arcade" data-creator="father">
   <div class="game-thumb">
     <span class="game-tag">Arcade</span>
     <span class="game-thumb-label">PIXEL<br>PONG</span>
@@ -177,9 +202,13 @@ If your game is ready to play, put its HTML file in the `/games/` folder:
 
 ```
 games/
-├── memory-match.html
-├── snake.html
-├── tic-tac-toe.html
+├── 4ordle.html
+├── aim-trainer.html
+├── fix-my-4ordle.html
+├── gnome-crawler.html
+├── night-fishing.html
+├── save-my-chicks.html
+├── space_dogfight.html
 └── pixel-pong.html       ← your new game!
 ```
 
@@ -188,8 +217,10 @@ games/
 
 ### ✅ Done! The Checklist
 
-- [ ] Card added inside `<div class="game-grid">` (above the EMPTY STATE comment)
+- [ ] Card added as the **first** entry inside `<div class="game-grid">` (newest → oldest)
+- [ ] `<!-- N. ... -->` numbering comments above the surrounding cards renumbered to match
 - [ ] `data-category` is lowercase and matches an existing sidebar category
+- [ ] `data-creator` is set to `father` or `son` (lowercase)
 - [ ] `game-tag` text matches the display name of the category
 - [ ] `href` points to the correct file in `/games/`
 - [ ] Description is 2-3 sentences (not too long)
@@ -255,18 +286,18 @@ a gradient background). You can replace these with real images!
 
 | Property       | Recommendation                                    |
 |----------------|---------------------------------------------------|
-| **Dimensions** | **400 × 240 px** (5:3 ratio) — fits the card perfectly |
-| **Max file size** | **100 KB** or less (keeps pages fast)           |
-| **Format**     | **WebP** (best) or **PNG** (good). Avoid BMP/TIFF. |
+| **Dimensions** | **800 × 450 px** (16:9 ratio) — matches every existing card in `/images/` |
+| **Max file size** | **100 KB** or less (every current thumbnail is 38–71 KB) |
+| **Format**     | **JPG** — matches every existing card. WebP or PNG also work. |
 | **Style**      | Dark backgrounds with bright neon accents match the synthwave brand |
-| **File name**  | Lowercase, hyphens, no spaces: `pixel-pong-thumb.webp` ✅ |
+| **File name**  | Lowercase, hyphens, no spaces: `pixel-pong.jpg` ✅ |
 
 ### Step 1 — Prepare Your Image
 
 1. Create or screenshot your game thumbnail.
-2. Resize to **400 × 240 px** (use any free tool — [Squoosh.app](https://squoosh.app) is great).
-3. Export as **WebP** for the smallest file size.
-4. Name it clearly: `your-game-name-thumb.webp`
+2. Resize to **800 × 450 px** (use any free tool — [Squoosh.app](https://squoosh.app) is great).
+3. Export as **JPG** at quality 75–80% (matches the size of the existing thumbnails).
+4. Name it clearly: `your-game-name.jpg`
 
 ### Step 2 — Add the Image to Your Project
 
@@ -275,8 +306,8 @@ Place the file in the `/images/` folder (create it if it doesn't exist):
 ```
 graitgames-website/
 └── images/
-    ├── memory-match-thumb.webp
-    ├── pixel-pong-thumb.webp    ← new image
+    ├── save-my-chicks.jpg
+    ├── pixel-pong.jpg           ← new image
     └── ...
 ```
 
@@ -297,12 +328,12 @@ section. Change it **from** the placeholder style **to** the image style:
 ```html
 <div class="game-thumb">
   <span class="game-tag">Arcade</span>
-  <img src="images/pixel-pong-thumb.webp"
+  <img src="images/pixel-pong.jpg"
        alt="Pixel Pong game screenshot"
        class="game-thumb-img"
        loading="lazy"
-       width="400"
-       height="240" />
+       width="800"
+       height="450" />
 </div>
 ```
 
@@ -328,18 +359,6 @@ section. Change it **from** the placeholder style **to** the image style:
 5. **If you don't have an image yet**, the placeholder text (`game-thumb-label`)
    looks great! No rush to replace it.
 
-> 💡 **Note about `game-thumb-img` class:** If this CSS class doesn't exist
-> in `styles.css` yet, add this rule:
-> ```css
-> .game-thumb-img {
->   width: 100%;
->   height: 100%;
->   object-fit: cover;
->   display: block;
-> }
-> ```
-> This makes the image fill the thumbnail area without stretching or distortion.
-
 ---
 
 ## 6. 📁 Adding a New Category
@@ -359,11 +378,11 @@ Find the `<ul class="category-list">` section in the sidebar. It looks like this
     </button>
   </li>
   <li>
-    <button type="button" class="category-btn" data-category="puzzle" aria-pressed="false">
-      Puzzle <span class="category-count" data-count="puzzle">0</span>
+    <button type="button" class="category-btn" data-category="arcade" aria-pressed="false">
+      Arcade <span class="category-count" data-count="arcade">0</span>
     </button>
   </li>
-  <!-- ... more categories ... -->
+  <!-- ... more categories (action, adventure, strategy, word) ... -->
 </ul>
 ```
 
@@ -655,7 +674,7 @@ git push origin main
 The count comes from `games.js` scanning `data-category` attributes.
 
 - Make sure your card's `data-category` value matches **exactly** (case-sensitive!).
-- `data-category="Puzzle"` ≠ `data-category="puzzle"` ← this will break the count.
+- `data-category="Arcade"` ≠ `data-category="arcade"` ← this will break the count.
 
 ---
 
@@ -765,4 +784,4 @@ and you're doing great.
 ---
 
 *This guide is part of the GRaiT GAMES project — a father-son adventure in
-game development and web design. Last updated: June 2025.*
+game development and web design.*

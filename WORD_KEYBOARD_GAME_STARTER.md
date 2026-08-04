@@ -550,6 +550,25 @@ height rather than staying its natural/fixed size, three gotchas will bite you i
       `vh`, not `%` — CSS resolves vertical `%` padding/margin against the container's *width*,
       not height, a classic gotcha) on each element individually instead
 
+### Pause button (optional — rarely needed for word games)
+Most word games in this archetype (4ordle, Fix My 4ordle) don't have any
+continuous state that needs pausing — turns are player-driven, so the game
+already "waits." Skip pause wiring unless your game does have a
+time-pressure element (a countdown timer, an animation loop, etc.). If it
+does:
+- [ ] Add `<script src="../pause-button.js"></script>` before your game's own `<script>` block
+- [ ] Call, once at setup, on a positioned play-area element:
+      ```
+      var pauseBtn = PauseButton.init({
+        parent: 'gameViewport',                          // element id — must be position:relative
+        onPause:  function () { paused = true; },        // freeze your timer/animation
+        onResume: function () { paused = false; }
+      });
+      ```
+- [ ] Call `pauseBtn.setEnabled(true)` when a run starts and `pauseBtn.setEnabled(false)` at game over
+- [ ] Skip Esc/P wiring in your own key handler — the component owns those shortcuts, and Esc in
+      a word game otherwise tends to mean "clear the current guess," which would conflict
+
 ### Transient feedback text (e.g. "Not in word list")
 - [ ] Decide how it fits into the mobile layout: hide it entirely, give it its own small
       reserved margin (4ordle's choice — 1.5vh above and below, with the play area claiming
@@ -613,6 +632,9 @@ that instead).
 - [ ] Add a game card to `games.html` (copy an existing card; update title, description,
       category, href) with `<p class="game-card-lb-label no-lb">No Leaderboard</p>` in the
       footer, matching 4ordle's card, unless this game genuinely has one
+- [ ] Set `data-creator="father"` or `data-creator="son"` on the `<article class="game-card">`
+      element — required on every card (planned "made by father / made by son" catalog filter;
+      extensible if more creators join later)
 - [ ] Insert the new card FIRST in `#game-grid` and renumber the `<!-- N. ... -->` comments
 - [ ] Add a real 16:9 thumbnail image to `/images/[game-name].jpg` (resize to ~800×450,
       compress well under 100KB) and swap it in for the placeholder `.game-thumb-label`

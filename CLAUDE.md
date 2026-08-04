@@ -7,9 +7,9 @@ auto-deploys on every push to `main`. See [README.md](README.md) for the full
 project structure and brand quick-reference.
 
 **If you were pointed at a different folder for a "GRaiT GAMES" task, stop and
-confirm — there are stale duplicate copies of some games elsewhere on this
-machine (e.g. under `Documents\Benjamin\Grait Games\Games\`) that are NOT
-this repo and should not be edited.**
+confirm — there may be stale duplicate copies of games elsewhere on this
+machine (`Documents\`, `Downloads\`, older clones) that are NOT this repo and
+should not be edited.**
 
 ## Where things live
 
@@ -22,7 +22,9 @@ this repo and should not be edited.**
   design system.
 - `games.html` — the game catalog page (cards + filtering).
 - `admin/`, `functions/api/` — the Decap CMS editor and its Cloudflare Pages
-  Functions (GitHub OAuth proxy, leaderboard score submission).
+  Functions: `auth.js` + `callback.js` (GitHub OAuth proxy), `scores.js`
+  (GET the leaderboard for a game), `submit-score.js` (POST a new score,
+  with per-game caps in `GAME_CAPS`).
 - `blog/posts/` — blog posts as Markdown files.
 
 ## Before starting game work, read the relevant guide
@@ -69,4 +71,12 @@ PowerShell static file server on port 8000, no Node/Python needed) — use
   overrides this separately, so it only affects desktop.
 - SVG icons only for UI glyphs (back arrow, restart, close) — never Unicode
   characters like `←`/`↺`, which render as emoji on mobile Safari.
+- **When adding a new shared JS file at the repo root** (e.g. another game
+  component alongside `leaderboard.js` / `pause-button.js`), add an explicit
+  cache-control entry for its path in `_headers`. Cloudflare Pages' default is
+  a **4-hour edge cache** on unspecified static assets, which is long enough
+  to mask a deploy — a bugfix to a shared component can appear live on your
+  machine but still serve stale to visitors for hours. Copy the pattern of an
+  existing entry in `_headers` and be sure to name the exact path (not a
+  glob) so revalidation is immediate.
 - Only commit and push when explicitly asked.

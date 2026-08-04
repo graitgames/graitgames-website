@@ -401,6 +401,19 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 - [ ] Confirm the back button keeps the `class="btn btn-outline-cyan btn-icon"` combination
 - [ ] Add `<script src="../nav.js"></script>` and `<script src="../footer.js"></script>` before `</body>`
 
+**Pause button (optional — only if the game has state that can be paused)**
+- [ ] Add `<script src="../pause-button.js"></script>` before your game's own `<script>` block
+- [ ] Call, once at setup, on a positioned play-area element (the same element the shared game-over popup / overlays anchor to):
+      ```
+      var pauseBtn = PauseButton.init({
+        parent: 'gameViewport',                          // element id — must be position:relative
+        onPause:  function () { paused = true; },        // freeze your update loop
+        onResume: function () { paused = false; }        // reset delta time here if you use one
+      });
+      ```
+- [ ] Call `pauseBtn.setEnabled(true)` when a run starts and `pauseBtn.setEnabled(false)` at game over
+- [ ] Skip Esc/P wiring in your own key handler — the component owns those shortcuts
+
 **Leaderboard wiring [LEADERBOARD]**
 - [ ] Add `<script src="../leaderboard.js"></script>` *before* your game's own `<script>` block
 - [ ] At the end of your `init()`, call `Leaderboard.init({ gameKey: '[game-key]' })`
@@ -413,6 +426,9 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 
 **Catalog**
 - [ ] Add a game card to `games.html` (copy an existing card; update title, description, category, href)
+- [ ] Set `data-creator="father"` or `data-creator="son"` on the `<article class="game-card">` element —
+      required on every card (planned "made by father / made by son" catalog filter; extensible if more
+      creators join later)
 - [ ] Insert the new card FIRST in `#game-grid` (the "All Games" view always shows newest → oldest, top to
       bottom) and renumber the `<!-- N. ... -->` comments above each card to match the new order
 - [ ] If the game introduces a new category, add the sidebar button + `.category-count` badge in `games.html`

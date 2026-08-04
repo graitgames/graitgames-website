@@ -616,6 +616,22 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 - [ ] Call `gameOverCard.hide();` in your Restart button's handler and inside `init()`/reset logic,
       so a mid-popup restart doesn't leave it stuck open
 
+### Pause button (optional — only if the game has state that can be paused)
+- [ ] Add `<script src="../pause-button.js"></script>` before your game's own `<script>` block
+- [ ] Call, once at setup, on a positioned play-area element (the same element the game-over card
+      anchors to):
+      ```
+      var pauseBtn = PauseButton.init({
+        parent: 'gameViewport',                          // element id — must be position:relative
+        onPause:  function () { paused = true; },        // freeze your update loop
+        onResume: function () { paused = false; }        // reset delta time here if you use one
+      });
+      ```
+- [ ] Call `pauseBtn.setEnabled(true)` when a run starts and `pauseBtn.setEnabled(false)` at game over
+- [ ] Skip Esc/P wiring in your own key handler — the component owns those shortcuts
+- [ ] Save My Chicks, Night Fishing, Space Dogfight, and Aim Trainer all use this exact pattern —
+      read one of them for a live reference
+
 ### Leaderboard wiring
 - [ ] Add `<script src="../leaderboard.js"></script>` — load it *before* `game-fullscreen.js`,
       `touch-joystick.js`, and `game-over-card.js`, since `GameOverCard.show()` calls
@@ -654,6 +670,9 @@ Copy the finished file to `/games/[game-name].html`, then work through this list
 
 ### Catalog
 - [ ] Add a game card to `games.html` (copy an existing card; update title, description, category, href)
+- [ ] Set `data-creator="father"` or `data-creator="son"` on the `<article class="game-card">` element —
+      required on every card (planned "made by father / made by son" catalog filter; extensible if more
+      creators join later)
 - [ ] Insert the new card FIRST in `#game-grid` and renumber the `<!-- N. ... -->` comments above each card
 - [ ] If the game introduces a new category, add the sidebar button + `.category-count` badge
 - [ ] Add a real 16:9 thumbnail image to `/images/[game-name].jpg` (resize to ~800×450, compress

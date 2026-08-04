@@ -9,23 +9,42 @@ auto-deploys on every push to `main`.
 ## Project structure
 
 ```
-index.html            Home / Coming Soon
-games.html            Game catalog (sidebar + filterable card grid)
-about.html            About the project
-blog.html             Blog listing (post cards)
-blog-post.html        Single-article template
-privacy-policy.html   Privacy Policy
-terms.html            Terms & Conditions
+Pages
+  index.html              Home / Coming Soon
+  games.html              Game catalog (sidebar + filterable card grid)
+  about.html              About the project
+  blog.html               Blog listing (post cards)
+  blog-post.html          Single-article template
+  privacy-policy.html     Privacy Policy
+  terms.html              Terms & Conditions
+  newsletter-confirm.html Post-subscribe landing (MailerLite redirects here)
 
-styles.css            Master design system (synthwave / retro-futuristic)
-nav.js                Injected responsive navigation header
-footer.js             Injected site footer
-games.js              Game catalog filtering + mobile sidebar
+Site-wide styles + scripts
+  styles.css              Master design system (synthwave / retro-futuristic)
+  nav.js                  Injected responsive navigation header
+  footer.js               Injected site footer
+  home.js                 Starfield background animation on the home page
+  games.js                Game catalog filtering + mobile sidebar
 
-admin/                Decap CMS editor (config.yml + index.html)
-functions/api/        Cloudflare Pages Functions — GitHub OAuth proxy for the CMS
-blog/posts/           Blog posts as Markdown (.md) files
-blog/images/          Uploaded blog images
+Shared game components (used by /games/*.html)
+  leaderboard.js          Monthly Top-10 leaderboard widget
+  game-fullscreen.js      Mobile fullscreen shell
+  game-over-card.js       Game-over popup with Top 3 board
+  touch-joystick.js       Drag joystick + action button (mobile)
+  pause-button.js         Shared pause button
+
+Content + backend
+  games/                  Individual playable game HTML files
+  blog/posts/             Blog posts as Markdown (.md) files
+  blog/images/            Uploaded blog images
+  admin/                  Decap CMS editor (config.yml + index.html)
+  functions/api/          Cloudflare Pages Functions:
+                            auth.js + callback.js — GitHub OAuth proxy for the CMS
+                            scores.js             — GET the leaderboard for a game
+                            submit-score.js       — POST a new score (with per-game caps)
+
+Cloudflare config
+  _headers                Cache-control rules for shared JS / assets
 ```
 
 ## Brand quick reference
@@ -46,11 +65,39 @@ You have two options — full details in **[BLOG-CMS-SETUP.md](./BLOG-CMS-SETUP.
 3. **Blog Posts → New Blog Post**, fill in the fields, and **Publish**.
 
 **Option B — By hand:**
-1. Add a file to `blog/posts/` named `YYYY-MM-DD-your-title.md`.
-2. Include the front matter (title, date, category, readtime, image, excerpt)
-   then write the body in Markdown. Copy
-   `blog/posts/2026-05-22-building-our-first-game-loop.md` as a starting point.
-3. Commit and push to `main`; Cloudflare auto-deploys.
+
+This is a **static site with no build step**, so a Markdown file on its own
+doesn't publish a post. Each post needs three things — full walkthrough in
+**[BLOG-CMS-SETUP.md §6](./BLOG-CMS-SETUP.md#6-connecting-posts-to-the-pages)**:
+
+1. **A Markdown source** at `blog/posts/YYYY-MM-DD-your-title.md` (front
+   matter + body — see the template in BLOG-CMS-SETUP.md §5 Option B).
+2. **A rendered page** at `blog/your-title.html`, created by copying the
+   `blog-post.html` template and replacing the `[PLACEHOLDER]` fields.
+3. **A card** added to the grid in `blog.html` linking to the new page.
+
+Commit and push all three files together; Cloudflare auto-deploys.
+
+## See also — the rest of the docs
+
+- **[CLAUDE.md](./CLAUDE.md)** — instructions for anyone (human or AI) working
+  in this repo: where files live, which guide to read for each task, and the
+  site-wide conventions worth knowing.
+- **[GAME-CATALOG-MANAGEMENT-GUIDE.md](./GAME-CATALOG-MANAGEMENT-GUIDE.md)** —
+  how to add, remove, reorder, or re-categorize games on the catalog page.
+- **[BLOG-CMS-SETUP.md](./BLOG-CMS-SETUP.md)** — how the Decap CMS is set up
+  and how to write / publish blog posts (visual editor or by hand).
+- **[DECAP-CMS-TROUBLESHOOTING.md](./DECAP-CMS-TROUBLESHOOTING.md)** — first
+  stop when `/admin/` login is broken.
+- **New-game starter prompts** (paste into a Claude Artifacts chat to prototype
+  a new game, then follow the integration checklist to wire it into the site):
+    - **[NEW_GAME_STARTER.md](./NEW_GAME_STARTER.md)** — puzzle / turn-based /
+      anything without a leaderboard or joystick.
+    - **[LEADERBOARD_JOYSTICK_GAME_STARTER.md](./LEADERBOARD_JOYSTICK_GAME_STARTER.md)** —
+      continuous-movement games with a monthly leaderboard + mobile touch joystick
+      (Save My Chicks, Gnome Crawler archetype).
+    - **[WORD_KEYBOARD_GAME_STARTER.md](./WORD_KEYBOARD_GAME_STARTER.md)** —
+      on-screen-keyboard word games (4ordle, Fix My 4ordle archetype).
 
 ## Local preview
 

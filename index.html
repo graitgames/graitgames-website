@@ -209,9 +209,10 @@
          NEWSLETTER — PRIMARY CTA  +  SOCIAL FOLLOWS
          The #newsletter anchor is the target of the nav "Newsletter" CTA,
          the home-page skip link, and the blog "Join the Newsletter" button.
-         The embedded Beehiiv form was removed; we now link out to the hosted
-         Beehiiv subscribe page (matching the global footer signup), so the
-         form is maintained in one place and never double-loads.
+         The actual signup form is the MailerLite embed rendered by
+         footer.js (see the .ml-embedded div there) — kept in one place so
+         it never double-loads. This section on the home page shows only
+         the "Follow the Journey" social buttons.
          ================================================================= -->
     <section id="newsletter" class="about-cta" aria-labelledby="newsletter-title">
       <div class="container-narrow">

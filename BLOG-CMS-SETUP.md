@@ -94,8 +94,8 @@ and access to the Cloudflare Pages dashboard for the site.
    (Direct link: <https://github.com/settings/developers>)
 2. Fill in:
    - **Application name:** `GRaiT GAMES CMS`
-   - **Homepage URL:** `https://graitgames.com`
-   - **Authorization callback URL:** `https://graitgames.com/api/callback`
+   - **Homepage URL:** `https://www.graitgames.com`
+   - **Authorization callback URL:** `https://www.graitgames.com/api/callback`
 3. Click **Register application**.
 4. Copy the **Client ID**. Then click **Generate a new client secret** and copy
    the **Client Secret** (you only see it once!).
@@ -113,8 +113,14 @@ and access to the Cloudflare Pages dashboard for the site.
 Open `admin/config.yml` and make sure:
 - `repo:` is `graitgames/graitgames-website`
 - `branch:` is `main`
-- `base_url:` is `https://graitgames.com`
-- `auth_endpoint:` is `/api/auth`
+- `base_url:` is `https://www.graitgames.com`
+- `auth_endpoint:` is `api/auth` *(relative — no leading slash)*
+
+> All three domain-facing values (`base_url`, the OAuth **callback URL**, and
+> the URL you open to log in) must use the same `www.` prefix. Cloudflare
+> redirects the bare `graitgames.com` to `www.graitgames.com`, so **www.** is
+> the standard. If any of the three disagree, login breaks silently — see
+> [DECAP-CMS-TROUBLESHOOTING.md](./DECAP-CMS-TROUBLESHOOTING.md).
 
 That's it — setup is done. ✅
 
@@ -164,10 +170,12 @@ That's it — setup is done. ✅
    console.log("Hello, GRaiT GAMES!");
    ```
    ```
-3. Commit and push to `main`. Cloudflare auto-deploys.
+3. Commit and push to `main`. Cloudflare auto-deploys the Markdown file — but
+   see the next section: a `.md` file alone doesn't render as a web page.
 
-> **Note:** `blog/posts/2026-05-22-building-our-first-game-loop.md` is included
-> as a real example you can copy.
+> **Real example on disk:** `blog/posts/2026-06-07-the-origin-story-of-grait-games.md`
+> is the site's first published post — open it to see the front matter and body
+> in context.
 
 ---
 
@@ -179,11 +187,11 @@ needs two small things to go live, and **every post gets its own unique URL**
 based on its title.
 
 ### Each post = its own page + its own URL
-A post named *"Building Our First Game Loop"* lives at:
+The site's first post, *"The Origin Story of GRaiT GAMES"*, lives at:
 
 ```
-blog/building-our-first-game-loop.html
-   → https://www.graitgames.com/blog/building-our-first-game-loop
+blog/the-origin-story-of-grait-games.html
+   → https://www.graitgames.com/blog/the-origin-story-of-grait-games
 ```
 
 The file name (the "slug") is the title in lowercase with words joined by
@@ -195,11 +203,14 @@ pointing at one generic page.
 **Step 1 — Create the post page**
 1. Copy the template file **`blog-post.html`** (in the project root).
 2. Save the copy inside the **`blog/`** folder, named after the title slug,
-   e.g. `blog/my-cool-update.html`.
+   e.g. `blog/my-cool-update.html`. For the running example, that would be
+   `blog/the-origin-story-of-grait-games.html`.
 3. Open your new file and replace the `[PLACEHOLDER]` fields with your content:
    the `<title>`, meta description, the **canonical** + **og:url** links (point
    them at your new URL), the hero label, category, date, read-time, `<h1>`,
-   and everything inside `<article class="article-body">`.
+   and everything inside `<article class="article-body">`. Open the existing
+   `blog/the-origin-story-of-grait-games.html` alongside it as a filled-in
+   reference.
    *(The template already uses `../styles.css`, `../nav.js`, `../footer.js`
    because it lives one folder deep — keep those `../` prefixes.)*
 
